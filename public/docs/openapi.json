@@ -1,0 +1,4232 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Wudysoft API",
+    "description": "Wudysoft API provides powerful RESTful AI services to integrate with your applications.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://malik-jmk.us.kg",
+      "description": "Original"
+    },
+    {
+      "url": "https://wudysoft.us.kg",
+      "description": "Alternative"
+    }
+  ],
+  "paths": {
+    "/api/ai/acloud": {
+      "get": {
+        "summary": " Api Ai Acloud",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Acloud.",
+        "operationId": "_api_ai_acloud",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/ai-hat": {
+      "get": {
+        "summary": " Api Ai Ai-Hat",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Ai-Hat.",
+        "operationId": "_api_ai_ai-hat",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/ai4chat": {
+      "get": {
+        "summary": " Api Ai Ai4chat",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Ai4chat.",
+        "operationId": "_api_ai_ai4chat",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/aiartgenerator": {
+      "get": {
+        "summary": " Api Ai Aiartgenerator",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Aiartgenerator.",
+        "operationId": "_api_ai_aiartgenerator",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/aichat": {
+      "get": {
+        "summary": " Api Ai Aichat",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Aichat.",
+        "operationId": "_api_ai_aichat",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/aiimage": {
+      "get": {
+        "summary": " Api Ai Aiimage",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Aiimage.",
+        "operationId": "_api_ai_aiimage",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/aimath": {
+      "get": {
+        "summary": " Api Ai Aimath",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Aimath.",
+        "operationId": "_api_ai_aimath",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/aimusic-lyrics": {
+      "get": {
+        "summary": " Api Ai Aimusic-Lyrics",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Aimusic-Lyrics.",
+        "operationId": "_api_ai_aimusic-lyrics",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/aiproxy": {
+      "get": {
+        "summary": " Api Ai Aiproxy",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Aiproxy.",
+        "operationId": "_api_ai_aiproxy",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/allyfy": {
+      "get": {
+        "summary": " Api Ai Allyfy",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Allyfy.",
+        "operationId": "_api_ai_allyfy",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/animagine": {
+      "get": {
+        "summary": " Api Ai Animagine",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Animagine.",
+        "operationId": "_api_ai_animagine",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/ansari-chat": {
+      "get": {
+        "summary": " Api Ai Ansari-Chat",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Ansari-Chat.",
+        "operationId": "_api_ai_ansari-chat",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/aoyo": {
+      "get": {
+        "summary": " Api Ai Aoyo",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Aoyo.",
+        "operationId": "_api_ai_aoyo",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/art-gen": {
+      "get": {
+        "summary": " Api Ai Art-Gen",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Art-Gen.",
+        "operationId": "_api_ai_art-gen",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/arting": {
+      "get": {
+        "summary": " Api Ai Arting",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Arting.",
+        "operationId": "_api_ai_arting",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/askthee": {
+      "get": {
+        "summary": " Api Ai Askthee",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Askthee.",
+        "operationId": "_api_ai_askthee",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/bingchat": {
+      "get": {
+        "summary": " Api Ai Bingchat",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Bingchat.",
+        "operationId": "_api_ai_bingchat",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/blackbox": {
+      "get": {
+        "summary": " Api Ai Blackbox",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Blackbox.",
+        "operationId": "_api_ai_blackbox",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/chataibot": {
+      "get": {
+        "summary": " Api Ai Chataibot",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Chataibot.",
+        "operationId": "_api_ai_chataibot",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/chatboxai": {
+      "get": {
+        "summary": " Api Ai Chatboxai",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Chatboxai.",
+        "operationId": "_api_ai_chatboxai",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/chawnyma": {
+      "get": {
+        "summary": " Api Ai Chawnyma",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Chawnyma.",
+        "operationId": "_api_ai_chawnyma",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/cococlip": {
+      "get": {
+        "summary": " Api Ai Cococlip",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Cococlip.",
+        "operationId": "_api_ai_cococlip",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/controllino": {
+      "get": {
+        "summary": " Api Ai Controllino",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Controllino.",
+        "operationId": "_api_ai_controllino",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/crushchat": {
+      "get": {
+        "summary": " Api Ai Crushchat",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Crushchat.",
+        "operationId": "_api_ai_crushchat",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/darkai": {
+      "get": {
+        "summary": " Api Ai Darkai",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Darkai.",
+        "operationId": "_api_ai_darkai",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/doppleai": {
+      "get": {
+        "summary": " Api Ai Doppleai",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Doppleai.",
+        "operationId": "_api_ai_doppleai",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/gemini": {
+      "get": {
+        "summary": " Api Ai Gemini",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Gemini.",
+        "operationId": "_api_ai_gemini",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/groq": {
+      "get": {
+        "summary": " Api Ai Groq",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Groq.",
+        "operationId": "_api_ai_groq",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/ideagenerator": {
+      "get": {
+        "summary": " Api Ai Ideagenerator",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Ideagenerator.",
+        "operationId": "_api_ai_ideagenerator",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/imagelabs": {
+      "get": {
+        "summary": " Api Ai Imagelabs",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Imagelabs.",
+        "operationId": "_api_ai_imagelabs",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/islamandai": {
+      "get": {
+        "summary": " Api Ai Islamandai",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Islamandai.",
+        "operationId": "_api_ai_islamandai",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/justai": {
+      "get": {
+        "summary": " Api Ai Justai",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Justai.",
+        "operationId": "_api_ai_justai",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/khodam": {
+      "get": {
+        "summary": " Api Ai Khodam",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Khodam.",
+        "operationId": "_api_ai_khodam",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/lalals": {
+      "get": {
+        "summary": " Api Ai Lalals",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Lalals.",
+        "operationId": "_api_ai_lalals",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/lenna": {
+      "get": {
+        "summary": " Api Ai Lenna",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Lenna.",
+        "operationId": "_api_ai_lenna",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/midjourney": {
+      "get": {
+        "summary": " Api Ai Midjourney",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Midjourney.",
+        "operationId": "_api_ai_midjourney",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/mikasa": {
+      "get": {
+        "summary": " Api Ai Mikasa",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Mikasa.",
+        "operationId": "_api_ai_mikasa",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/morphic": {
+      "get": {
+        "summary": " Api Ai Morphic",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Morphic.",
+        "operationId": "_api_ai_morphic",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/moshiai": {
+      "get": {
+        "summary": " Api Ai Moshiai",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Moshiai.",
+        "operationId": "_api_ai_moshiai",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/musichero": {
+      "get": {
+        "summary": " Api Ai Musichero",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Musichero.",
+        "operationId": "_api_ai_musichero",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/muslimai": {
+      "get": {
+        "summary": " Api Ai Muslimai",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Muslimai.",
+        "operationId": "_api_ai_muslimai",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/myanima": {
+      "get": {
+        "summary": " Api Ai Myanima",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Myanima.",
+        "operationId": "_api_ai_myanima",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/nekomori": {
+      "get": {
+        "summary": " Api Ai Nekomori",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Nekomori.",
+        "operationId": "_api_ai_nekomori",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/netwrck-img": {
+      "get": {
+        "summary": " Api Ai Netwrck-Img",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Netwrck-Img.",
+        "operationId": "_api_ai_netwrck-img",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/netwrck": {
+      "get": {
+        "summary": " Api Ai Netwrck",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Netwrck.",
+        "operationId": "_api_ai_netwrck",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/neuralblender": {
+      "get": {
+        "summary": " Api Ai Neuralblender",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Neuralblender.",
+        "operationId": "_api_ai_neuralblender",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/opengpt": {
+      "get": {
+        "summary": " Api Ai Opengpt",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Opengpt.",
+        "operationId": "_api_ai_opengpt",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/perchanceai": {
+      "get": {
+        "summary": " Api Ai Perchanceai",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Perchanceai.",
+        "operationId": "_api_ai_perchanceai",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/photai": {
+      "get": {
+        "summary": " Api Ai Photai",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Photai.",
+        "operationId": "_api_ai_photai",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/refine-prompt": {
+      "get": {
+        "summary": " Api Ai Refine-Prompt",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Refine-Prompt.",
+        "operationId": "_api_ai_refine-prompt",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/roleplai": {
+      "get": {
+        "summary": " Api Ai Roleplai",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Roleplai.",
+        "operationId": "_api_ai_roleplai",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/sara-study": {
+      "get": {
+        "summary": " Api Ai Sara-Study",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Sara-Study.",
+        "operationId": "_api_ai_sara-study",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/snonlyric": {
+      "get": {
+        "summary": " Api Ai Snonlyric",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Snonlyric.",
+        "operationId": "_api_ai_snonlyric",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/suno-prompt": {
+      "get": {
+        "summary": " Api Ai Suno-Prompt",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Suno-Prompt.",
+        "operationId": "_api_ai_suno-prompt",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/sunoai": {
+      "get": {
+        "summary": " Api Ai Sunoai",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Sunoai.",
+        "operationId": "_api_ai_sunoai",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/teach-anything": {
+      "get": {
+        "summary": " Api Ai Teach-Anything",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Teach-Anything.",
+        "operationId": "_api_ai_teach-anything",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/ai/tuneai": {
+      "get": {
+        "summary": " Api Ai Tuneai",
+        "description": "Endpoint ini untuk mengambil data  Api Ai Tuneai.",
+        "operationId": "_api_ai_tuneai",
+        "tags": ["AI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/aiodown": {
+      "get": {
+        "summary": " Api Down Aiodown",
+        "description": "Endpoint ini untuk mengambil data  Api Down Aiodown.",
+        "operationId": "_api_down_aiodown",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/cobalt": {
+      "get": {
+        "summary": " Api Down Cobalt",
+        "description": "Endpoint ini untuk mengambil data  Api Down Cobalt.",
+        "operationId": "_api_down_cobalt",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/ddownr": {
+      "get": {
+        "summary": " Api Down Ddownr",
+        "description": "Endpoint ini untuk mengambil data  Api Down Ddownr.",
+        "operationId": "_api_down_ddownr",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/dirpy": {
+      "get": {
+        "summary": " Api Down Dirpy",
+        "description": "Endpoint ini untuk mengambil data  Api Down Dirpy.",
+        "operationId": "_api_down_dirpy",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/doods": {
+      "get": {
+        "summary": " Api Down Doods",
+        "description": "Endpoint ini untuk mengambil data  Api Down Doods.",
+        "operationId": "_api_down_doods",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/eporner": {
+      "get": {
+        "summary": " Api Down Eporner",
+        "description": "Endpoint ini untuk mengambil data  Api Down Eporner.",
+        "operationId": "_api_down_eporner",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/fbdown": {
+      "get": {
+        "summary": " Api Down Fbdown",
+        "description": "Endpoint ini untuk mengambil data  Api Down Fbdown.",
+        "operationId": "_api_down_fbdown",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/flydl": {
+      "get": {
+        "summary": " Api Down Flydl",
+        "description": "Endpoint ini untuk mengambil data  Api Down Flydl.",
+        "operationId": "_api_down_flydl",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/ig": {
+      "get": {
+        "summary": " Api Down Ig",
+        "description": "Endpoint ini untuk mengambil data  Api Down Ig.",
+        "operationId": "_api_down_ig",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/indown": {
+      "get": {
+        "summary": " Api Down Indown",
+        "description": "Endpoint ini untuk mengambil data  Api Down Indown.",
+        "operationId": "_api_down_indown",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/mediafire": {
+      "get": {
+        "summary": " Api Down Mediafire",
+        "description": "Endpoint ini untuk mengambil data  Api Down Mediafire.",
+        "operationId": "_api_down_mediafire",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/publer": {
+      "get": {
+        "summary": " Api Down Publer",
+        "description": "Endpoint ini untuk mengambil data  Api Down Publer.",
+        "operationId": "_api_down_publer",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/savetik": {
+      "get": {
+        "summary": " Api Down Savetik",
+        "description": "Endpoint ini untuk mengambil data  Api Down Savetik.",
+        "operationId": "_api_down_savetik",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/snapsave": {
+      "get": {
+        "summary": " Api Down Snapsave",
+        "description": "Endpoint ini untuk mengambil data  Api Down Snapsave.",
+        "operationId": "_api_down_snapsave",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/snaptwitter": {
+      "get": {
+        "summary": " Api Down Snaptwitter",
+        "description": "Endpoint ini untuk mengambil data  Api Down Snaptwitter.",
+        "operationId": "_api_down_snaptwitter",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/spotify": {
+      "get": {
+        "summary": " Api Down Spotify",
+        "description": "Endpoint ini untuk mengambil data  Api Down Spotify.",
+        "operationId": "_api_down_spotify",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/step2down": {
+      "get": {
+        "summary": " Api Down Step2down",
+        "description": "Endpoint ini untuk mengambil data  Api Down Step2down.",
+        "operationId": "_api_down_step2down",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/stickercloud": {
+      "get": {
+        "summary": " Api Down Stickercloud",
+        "description": "Endpoint ini untuk mengambil data  Api Down Stickercloud.",
+        "operationId": "_api_down_stickercloud",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/terabox-hnn": {
+      "get": {
+        "summary": " Api Down Terabox-Hnn",
+        "description": "Endpoint ini untuk mengambil data  Api Down Terabox-Hnn.",
+        "operationId": "_api_down_terabox-hnn",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/terabox": {
+      "get": {
+        "summary": " Api Down Terabox",
+        "description": "Endpoint ini untuk mengambil data  Api Down Terabox.",
+        "operationId": "_api_down_terabox",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/tikdd": {
+      "get": {
+        "summary": " Api Down Tikdd",
+        "description": "Endpoint ini untuk mengambil data  Api Down Tikdd.",
+        "operationId": "_api_down_tikdd",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/tiktokio": {
+      "get": {
+        "summary": " Api Down Tiktokio",
+        "description": "Endpoint ini untuk mengambil data  Api Down Tiktokio.",
+        "operationId": "_api_down_tiktokio",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/down/ttsave": {
+      "get": {
+        "summary": " Api Down Ttsave",
+        "description": "Endpoint ini untuk mengambil data  Api Down Ttsave.",
+        "operationId": "_api_down_ttsave",
+        "tags": ["DOWN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/asahotak": {
+      "get": {
+        "summary": " Api Game Asahotak",
+        "description": "Endpoint ini untuk mengambil data  Api Game Asahotak.",
+        "operationId": "_api_game_asahotak",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/caklontong": {
+      "get": {
+        "summary": " Api Game Caklontong",
+        "description": "Endpoint ini untuk mengambil data  Api Game Caklontong.",
+        "operationId": "_api_game_caklontong",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/emoji": {
+      "get": {
+        "summary": " Api Game Emoji",
+        "description": "Endpoint ini untuk mengambil data  Api Game Emoji.",
+        "operationId": "_api_game_emoji",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/family100": {
+      "get": {
+        "summary": " Api Game Family100",
+        "description": "Endpoint ini untuk mengambil data  Api Game Family100.",
+        "operationId": "_api_game_family100",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/lengkapikalimat": {
+      "get": {
+        "summary": " Api Game Lengkapikalimat",
+        "description": "Endpoint ini untuk mengambil data  Api Game Lengkapikalimat.",
+        "operationId": "_api_game_lengkapikalimat",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/math": {
+      "get": {
+        "summary": " Api Game Math",
+        "description": "Endpoint ini untuk mengambil data  Api Game Math.",
+        "operationId": "_api_game_math",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/siapakahaku": {
+      "get": {
+        "summary": " Api Game Siapakahaku",
+        "description": "Endpoint ini untuk mengambil data  Api Game Siapakahaku.",
+        "operationId": "_api_game_siapakahaku",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/susunkata": {
+      "get": {
+        "summary": " Api Game Susunkata",
+        "description": "Endpoint ini untuk mengambil data  Api Game Susunkata.",
+        "operationId": "_api_game_susunkata",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tebakan": {
+      "get": {
+        "summary": " Api Game Tebakan",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tebakan.",
+        "operationId": "_api_game_tebakan",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tebakanime": {
+      "get": {
+        "summary": " Api Game Tebakanime",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tebakanime.",
+        "operationId": "_api_game_tebakanime",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tebakbendera": {
+      "get": {
+        "summary": " Api Game Tebakbendera",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tebakbendera.",
+        "operationId": "_api_game_tebakbendera",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tebakgambar": {
+      "get": {
+        "summary": " Api Game Tebakgambar",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tebakgambar.",
+        "operationId": "_api_game_tebakgambar",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tebakgame": {
+      "get": {
+        "summary": " Api Game Tebakgame",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tebakgame.",
+        "operationId": "_api_game_tebakgame",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tebakheroml": {
+      "get": {
+        "summary": " Api Game Tebakheroml",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tebakheroml.",
+        "operationId": "_api_game_tebakheroml",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tebakhewan": {
+      "get": {
+        "summary": " Api Game Tebakhewan",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tebakhewan.",
+        "operationId": "_api_game_tebakhewan",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tebakjkt48": {
+      "get": {
+        "summary": " Api Game Tebakjkt48",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tebakjkt48.",
+        "operationId": "_api_game_tebakjkt48",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tebakkabupaten": {
+      "get": {
+        "summary": " Api Game Tebakkabupaten",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tebakkabupaten.",
+        "operationId": "_api_game_tebakkabupaten",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tebakkalimat": {
+      "get": {
+        "summary": " Api Game Tebakkalimat",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tebakkalimat.",
+        "operationId": "_api_game_tebakkalimat",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tebakkata": {
+      "get": {
+        "summary": " Api Game Tebakkata",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tebakkata.",
+        "operationId": "_api_game_tebakkata",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tebakkimia": {
+      "get": {
+        "summary": " Api Game Tebakkimia",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tebakkimia.",
+        "operationId": "_api_game_tebakkimia",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tebaklagu": {
+      "get": {
+        "summary": " Api Game Tebaklagu",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tebaklagu.",
+        "operationId": "_api_game_tebaklagu",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tebaklirik": {
+      "get": {
+        "summary": " Api Game Tebaklirik",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tebaklirik.",
+        "operationId": "_api_game_tebaklirik",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tebaklogo": {
+      "get": {
+        "summary": " Api Game Tebaklogo",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tebaklogo.",
+        "operationId": "_api_game_tebaklogo",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tebaksiapa": {
+      "get": {
+        "summary": " Api Game Tebaksiapa",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tebaksiapa.",
+        "operationId": "_api_game_tebaksiapa",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tebaksurah": {
+      "get": {
+        "summary": " Api Game Tebaksurah",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tebaksurah.",
+        "operationId": "_api_game_tebaksurah",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/game/tekateki": {
+      "get": {
+        "summary": " Api Game Tekateki",
+        "description": "Endpoint ini untuk mengambil data  Api Game Tekateki.",
+        "operationId": "_api_game_tekateki",
+        "tags": ["GAME"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/gen/1secmail": {
+      "get": {
+        "summary": " Api Gen 1secmail",
+        "description": "Endpoint ini untuk mengambil data  Api Gen 1secmail.",
+        "operationId": "_api_gen_1secmail",
+        "tags": ["GEN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/gen/dropmail": {
+      "get": {
+        "summary": " Api Gen Dropmail",
+        "description": "Endpoint ini untuk mengambil data  Api Gen Dropmail.",
+        "operationId": "_api_gen_dropmail",
+        "tags": ["GEN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/gen/sw": {
+      "get": {
+        "summary": " Api Gen Sw",
+        "description": "Endpoint ini untuk mengambil data  Api Gen Sw.",
+        "operationId": "_api_gen_sw",
+        "tags": ["GEN"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/general/hello": {
+      "get": {
+        "summary": " Api General Hello",
+        "description": "Endpoint ini untuk mengambil data  Api General Hello.",
+        "operationId": "_api_general_hello",
+        "tags": ["GENERAL"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/general/system-stats": {
+      "get": {
+        "summary": " Api General System-Stats",
+        "description": "Endpoint ini untuk mengambil data  Api General System-Stats.",
+        "operationId": "_api_general_system-stats",
+        "tags": ["GENERAL"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/info/cuaca": {
+      "get": {
+        "summary": " Api Info Cuaca",
+        "description": "Endpoint ini untuk mengambil data  Api Info Cuaca.",
+        "operationId": "_api_info_cuaca",
+        "tags": ["INFO"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/info/gempa": {
+      "get": {
+        "summary": " Api Info Gempa",
+        "description": "Endpoint ini untuk mengambil data  Api Info Gempa.",
+        "operationId": "_api_info_gempa",
+        "tags": ["INFO"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/info/hari-libur": {
+      "get": {
+        "summary": " Api Info Hari-Libur",
+        "description": "Endpoint ini untuk mengambil data  Api Info Hari-Libur.",
+        "operationId": "_api_info_hari-libur",
+        "tags": ["INFO"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/info/primbon": {
+      "get": {
+        "summary": " Api Info Primbon",
+        "description": "Endpoint ini untuk mengambil data  Api Info Primbon.",
+        "operationId": "_api_info_primbon",
+        "tags": ["INFO"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/info/truecaller": {
+      "get": {
+        "summary": " Api Info Truecaller",
+        "description": "Endpoint ini untuk mengambil data  Api Info Truecaller.",
+        "operationId": "_api_info_truecaller",
+        "tags": ["INFO"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/islami/litequran": {
+      "get": {
+        "summary": " Api Islami Litequran",
+        "description": "Endpoint ini untuk mengambil data  Api Islami Litequran.",
+        "operationId": "_api_islami_litequran",
+        "tags": ["ISLAMI"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/maker/brat": {
+      "get": {
+        "summary": " Api Maker Brat",
+        "description": "Endpoint ini untuk mengambil data  Api Maker Brat.",
+        "operationId": "_api_maker_brat",
+        "tags": ["MAKER"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/maker/captcha": {
+      "get": {
+        "summary": " Api Maker Captcha",
+        "description": "Endpoint ini untuk mengambil data  Api Maker Captcha.",
+        "operationId": "_api_maker_captcha",
+        "tags": ["MAKER"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/maker/photofunia": {
+      "get": {
+        "summary": " Api Maker Photofunia",
+        "description": "Endpoint ini untuk mengambil data  Api Maker Photofunia.",
+        "operationId": "_api_maker_photofunia",
+        "tags": ["MAKER"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/maker/prodia": {
+      "get": {
+        "summary": " Api Maker Prodia",
+        "description": "Endpoint ini untuk mengambil data  Api Maker Prodia.",
+        "operationId": "_api_maker_prodia",
+        "tags": ["MAKER"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/maker/qc": {
+      "get": {
+        "summary": " Api Maker Qc",
+        "description": "Endpoint ini untuk mengambil data  Api Maker Qc.",
+        "operationId": "_api_maker_qc",
+        "tags": ["MAKER"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/maker/quotly": {
+      "get": {
+        "summary": " Api Maker Quotly",
+        "description": "Endpoint ini untuk mengambil data  Api Maker Quotly.",
+        "operationId": "_api_maker_quotly",
+        "tags": ["MAKER"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/maker/text2picture": {
+      "get": {
+        "summary": " Api Maker Text2picture",
+        "description": "Endpoint ini untuk mengambil data  Api Maker Text2picture.",
+        "operationId": "_api_maker_text2picture",
+        "tags": ["MAKER"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/misc/emojimix": {
+      "get": {
+        "summary": " Api Misc Emojimix",
+        "description": "Endpoint ini untuk mengambil data  Api Misc Emojimix.",
+        "operationId": "_api_misc_emojimix",
+        "tags": ["MISC"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/misc/fakeyou": {
+      "get": {
+        "summary": " Api Misc Fakeyou",
+        "description": "Endpoint ini untuk mengambil data  Api Misc Fakeyou.",
+        "operationId": "_api_misc_fakeyou",
+        "tags": ["MISC"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/misc/lazypy": {
+      "get": {
+        "summary": " Api Misc Lazypy",
+        "description": "Endpoint ini untuk mengambil data  Api Misc Lazypy.",
+        "operationId": "_api_misc_lazypy",
+        "tags": ["MISC"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/misc/micmonster": {
+      "get": {
+        "summary": " Api Misc Micmonster",
+        "description": "Endpoint ini untuk mengambil data  Api Misc Micmonster.",
+        "operationId": "_api_misc_micmonster",
+        "tags": ["MISC"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/misc/playht": {
+      "get": {
+        "summary": " Api Misc Playht",
+        "description": "Endpoint ini untuk mengambil data  Api Misc Playht.",
+        "operationId": "_api_misc_playht",
+        "tags": ["MISC"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/quotes/bacot": {
+      "get": {
+        "summary": " Api Quotes Bacot",
+        "description": "Endpoint ini untuk mengambil data  Api Quotes Bacot.",
+        "operationId": "_api_quotes_bacot",
+        "tags": ["QUOTES"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/quotes/bijak": {
+      "get": {
+        "summary": " Api Quotes Bijak",
+        "description": "Endpoint ini untuk mengambil data  Api Quotes Bijak.",
+        "operationId": "_api_quotes_bijak",
+        "tags": ["QUOTES"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/quotes/bucin": {
+      "get": {
+        "summary": " Api Quotes Bucin",
+        "description": "Endpoint ini untuk mengambil data  Api Quotes Bucin.",
+        "operationId": "_api_quotes_bucin",
+        "tags": ["QUOTES"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/quotes/goodreads": {
+      "get": {
+        "summary": " Api Quotes Goodreads",
+        "description": "Endpoint ini untuk mengambil data  Api Quotes Goodreads.",
+        "operationId": "_api_quotes_goodreads",
+        "tags": ["QUOTES"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/quotes/ilham": {
+      "get": {
+        "summary": " Api Quotes Ilham",
+        "description": "Endpoint ini untuk mengambil data  Api Quotes Ilham.",
+        "operationId": "_api_quotes_ilham",
+        "tags": ["QUOTES"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/quotes/pakboy": {
+      "get": {
+        "summary": " Api Quotes Pakboy",
+        "description": "Endpoint ini untuk mengambil data  Api Quotes Pakboy.",
+        "operationId": "_api_quotes_pakboy",
+        "tags": ["QUOTES"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/quotes/quote-anime": {
+      "get": {
+        "summary": " Api Quotes Quote-Anime",
+        "description": "Endpoint ini untuk mengambil data  Api Quotes Quote-Anime.",
+        "operationId": "_api_quotes_quote-anime",
+        "tags": ["QUOTES"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/quotes/sad": {
+      "get": {
+        "summary": " Api Quotes Sad",
+        "description": "Endpoint ini untuk mengambil data  Api Quotes Sad.",
+        "operationId": "_api_quotes_sad",
+        "tags": ["QUOTES"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/quotes/sindiran": {
+      "get": {
+        "summary": " Api Quotes Sindiran",
+        "description": "Endpoint ini untuk mengambil data  Api Quotes Sindiran.",
+        "operationId": "_api_quotes_sindiran",
+        "tags": ["QUOTES"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/quotes/type": {
+      "get": {
+        "summary": " Api Quotes Type",
+        "description": "Endpoint ini untuk mengambil data  Api Quotes Type.",
+        "operationId": "_api_quotes_type",
+        "tags": ["QUOTES"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/random/cerpen": {
+      "get": {
+        "summary": " Api Random Cerpen",
+        "description": "Endpoint ini untuk mengambil data  Api Random Cerpen.",
+        "operationId": "_api_random_cerpen",
+        "tags": ["RANDOM"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/random/some": {
+      "get": {
+        "summary": " Api Random Some",
+        "description": "Endpoint ini untuk mengambil data  Api Random Some.",
+        "operationId": "_api_random_some",
+        "tags": ["RANDOM"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/random/tools": {
+      "get": {
+        "summary": " Api Random Tools",
+        "description": "Endpoint ini untuk mengambil data  Api Random Tools.",
+        "operationId": "_api_random_tools",
+        "tags": ["RANDOM"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/random/wallpaper": {
+      "get": {
+        "summary": " Api Random Wallpaper",
+        "description": "Endpoint ini untuk mengambil data  Api Random Wallpaper.",
+        "operationId": "_api_random_wallpaper",
+        "tags": ["RANDOM"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/search/anime": {
+      "get": {
+        "summary": " Api Search Anime",
+        "description": "Endpoint ini untuk mengambil data  Api Search Anime.",
+        "operationId": "_api_search_anime",
+        "tags": ["SEARCH"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/search/eporner": {
+      "get": {
+        "summary": " Api Search Eporner",
+        "description": "Endpoint ini untuk mengambil data  Api Search Eporner.",
+        "operationId": "_api_search_eporner",
+        "tags": ["SEARCH"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/search/pinterest": {
+      "get": {
+        "summary": " Api Search Pinterest",
+        "description": "Endpoint ini untuk mengambil data  Api Search Pinterest.",
+        "operationId": "_api_search_pinterest",
+        "tags": ["SEARCH"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/search/sendthesong": {
+      "get": {
+        "summary": " Api Search Sendthesong",
+        "description": "Endpoint ini untuk mengambil data  Api Search Sendthesong.",
+        "operationId": "_api_search_sendthesong",
+        "tags": ["SEARCH"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/search/stickercloud": {
+      "get": {
+        "summary": " Api Search Stickercloud",
+        "description": "Endpoint ini untuk mengambil data  Api Search Stickercloud.",
+        "operationId": "_api_search_stickercloud",
+        "tags": ["SEARCH"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/search/tiktok": {
+      "get": {
+        "summary": " Api Search Tiktok",
+        "description": "Endpoint ini untuk mengambil data  Api Search Tiktok.",
+        "operationId": "_api_search_tiktok",
+        "tags": ["SEARCH"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/tools/ezgif": {
+      "get": {
+        "summary": " Api Tools Ezgif",
+        "description": "Endpoint ini untuk mengambil data  Api Tools Ezgif.",
+        "operationId": "_api_tools_ezgif",
+        "tags": ["TOOLS"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/tools/jarak": {
+      "get": {
+        "summary": " Api Tools Jarak",
+        "description": "Endpoint ini untuk mengambil data  Api Tools Jarak.",
+        "operationId": "_api_tools_jarak",
+        "tags": ["TOOLS"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/tools/lens": {
+      "get": {
+        "summary": " Api Tools Lens",
+        "description": "Endpoint ini untuk mengambil data  Api Tools Lens.",
+        "operationId": "_api_tools_lens",
+        "tags": ["TOOLS"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/tools/playwright": {
+      "get": {
+        "summary": " Api Tools Playwright",
+        "description": "Endpoint ini untuk mengambil data  Api Tools Playwright.",
+        "operationId": "_api_tools_playwright",
+        "tags": ["TOOLS"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/tools/roasting": {
+      "get": {
+        "summary": " Api Tools Roasting",
+        "description": "Endpoint ini untuk mengambil data  Api Tools Roasting.",
+        "operationId": "_api_tools_roasting",
+        "tags": ["TOOLS"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/tools/saveweb": {
+      "get": {
+        "summary": " Api Tools Saveweb",
+        "description": "Endpoint ini untuk mengambil data  Api Tools Saveweb.",
+        "operationId": "_api_tools_saveweb",
+        "tags": ["TOOLS"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/tools/shortlink": {
+      "get": {
+        "summary": " Api Tools Shortlink",
+        "description": "Endpoint ini untuk mengambil data  Api Tools Shortlink.",
+        "operationId": "_api_tools_shortlink",
+        "tags": ["TOOLS"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/tools/sinonim": {
+      "get": {
+        "summary": " Api Tools Sinonim",
+        "description": "Endpoint ini untuk mengambil data  Api Tools Sinonim.",
+        "operationId": "_api_tools_sinonim",
+        "tags": ["TOOLS"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/tools/ssweb": {
+      "get": {
+        "summary": " Api Tools Ssweb",
+        "description": "Endpoint ini untuk mengambil data  Api Tools Ssweb.",
+        "operationId": "_api_tools_ssweb",
+        "tags": ["TOOLS"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/tools/styletext": {
+      "get": {
+        "summary": " Api Tools Styletext",
+        "description": "Endpoint ini untuk mengambil data  Api Tools Styletext.",
+        "operationId": "_api_tools_styletext",
+        "tags": ["TOOLS"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/tools/transcript": {
+      "get": {
+        "summary": " Api Tools Transcript",
+        "description": "Endpoint ini untuk mengambil data  Api Tools Transcript.",
+        "operationId": "_api_tools_transcript",
+        "tags": ["TOOLS"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/tools/virtualnum": {
+      "get": {
+        "summary": " Api Tools Virtualnum",
+        "description": "Endpoint ini untuk mengambil data  Api Tools Virtualnum.",
+        "operationId": "_api_tools_virtualnum",
+        "tags": ["TOOLS"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    },
+    "/api/user/user": {
+      "get": {
+        "summary": " Api User User",
+        "description": "Endpoint ini untuk mengambil data  Api User User.",
+        "operationId": "_api_user_user",
+        "tags": ["USER"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Permintaan berhasil",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {"type": "string", "example": "Sukses"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Permintaan tidak valid"},
+          "500": {"description": "Kesalahan server"}
+        }
+      }
+    }
+  }
+}
