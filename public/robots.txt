@@ -1,0 +1,24 @@
+# robots.txt untuk Wudysoft
+
+# Izinkan semua robot mesin pencari untuk mengakses semua halaman
+User-agent: *
+Disallow:
+
+# Larang pengindeksan folder tertentu
+Disallow: /admin/
+Disallow: /private/
+
+# Izinkan Googlebot mengakses halaman tertentu (contoh)
+User-agent: Googlebot
+Allow: /public/
+
+# Larang bot tertentu mengakses seluruh situs
+User-agent: BadBot
+Disallow: /
+
+# Aturan untuk semua bot yang datang dari negara tertentu
+User-agent: *
+Disallow: /restricted-country/
+
+# Menambahkan Sitemap untuk referensi mesin pencari
+Sitemap: https://wudynext.netlify.app/sitemap.xml
