@@ -1,0 +1,21 @@
+import axios from 'axios';
+
+export default async function handler(req, res) {
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+  const { prompt } = req.query;
+  if (!prompt) {
+    return res.status(400).json({ error: 'Prompt parameter is required' });
+  }
+  const imageUrl = `https://imgen.duck.mom/prompt/${encodeURIComponent(prompt)}`;
+  try {
+    const response = await axios.get(imageUrl, {
+      responseType: 'arraybuffer',
+    });
+    res.setHeader('Content-Type', 'image/png');
+    res.end(response.data);
+  } catch (error) {
+    return res.status(500).json({ error: 'Failed to fetch the image' });
+  }
+}
