@@ -1,0 +1,122 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { Row, Col, Spinner, ProgressBar } from 'react-bootstrap';
+import { Person, Eye, Cpu, Memory as MemoryIcon, ListTask } from 'react-bootstrap-icons';
+import { StatRightTopIcon } from "widgets";
+
+const ProjectStats = () => {
+  const [userStats, setUserStats] = useState(null);
+  const [visitorStats, setVisitorStats] = useState(null);
+  const [systemStats, setSystemStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadingMessage, setLoadingMessage] = useState('Loading stats...');
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      setLoading(true);
+      setLoadingMessage('Fetching user stats...');
+      const userData = await fetchData('/api/user/stats', 'User Stats');
+      
+      if (userData) {
+        setUserStats(userData);
+      }
+
+      setLoadingMessage('Fetching visitor stats...');
+      const visitorData = await fetchData('/api/visitor/stats', 'Visitor Stats');
+      
+      if (visitorData) {
+        setVisitorStats(visitorData);
+      }
+
+      setLoadingMessage('Fetching system stats...');
+      const systemData = await fetchData('/api/general/system-stats', 'System Stats');
+      
+      if (systemData) {
+        setSystemStats(systemData);
+      }
+
+      setLoading(false);
+    };
+
+    const fetchData = async (url, statName) => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ${statName}`);
+        }
+        return await response.json();
+      } catch (err) {
+        setError(`Error fetching ${statName}`);
+        return null;
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center flex-column align-items-center mt-4">
+        <Spinner animation="grow" role="status" variant="primary" />
+        <p>{loadingMessage}</p>
+        <ProgressBar animated now={50} style={{ width: '100%', marginTop: '10px' }} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="alert alert-danger mt-4">{error}</div>;
+  }
+
+  const statsData = [
+    {
+      id: 1,
+      title: "Request Count",
+      value: visitorStats?.requestCount,
+      icon: <ListTask size={24} className="text-danger" />,
+      statInfo: `${visitorStats?.requestCount} total requests`,
+    },
+    {
+      id: 2,
+      title: "Total Visitors",
+      value: visitorStats?.visitorCount,
+      icon: <Eye size={24} className="text-success" />,
+      statInfo: `${visitorStats?.visitorCount} total visitors`,
+    },
+    {
+      id: 3,
+      title: "Total Users",
+      value: userStats?.userCount,
+      icon: <Person size={24} className="text-primary" />,
+      statInfo: `${userStats?.userCount} total users`,
+    },
+    {
+      id: 4,
+      title: "System Uptime",
+      value: systemStats?.Statistik?.Uptime,
+      icon: <Cpu size={24} className="text-info" />,
+      statInfo: `Uptime: ${systemStats?.Statistik?.Uptime}`,
+    },
+    {
+      id: 5,
+      title: "Memory Usage",
+      value: systemStats?.Statistik?.Memory?.used,
+      icon: <MemoryIcon size={24} className="text-warning" />,
+      statInfo: `Used: ${systemStats?.Statistik?.Memory?.used}`,
+    },
+  ];
+
+  return (
+    <Row className="my-4">
+      {statsData.map((item) => (
+        <Col xl={3} lg={6} md={12} xs={12} className="mt-4" key={item.id}>
+          <StatRightTopIcon info={item} />
+        </Col>
+      ))}
+    </Row>
+  );
+};
+
+export default ProjectStats;
