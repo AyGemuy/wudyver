@@ -1,0 +1,308 @@
+/*
+=========================================================
+* Dash UI - Bootstrap 5 Admin & Dashboard Theme
+=========================================================
+* Product Page: https://codescandy.com/dashui/index.html
+* Copyright 2023 Codescandy (https://codescandy.com/)
+* Designed and coded by https://codescandy.com
+========================================================= */
+
+// Inter Fonts
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
+
+// Font Awesome
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css");
+
+// Material Design Icons
+@import url("https://cdnjs.cloudflare.com/ajax/libs/MaterialDesign-Webfont/7.2.96/css/materialdesignicons.min.css");
+
+// Feathers CSS for Before Icon
+@import url("/fonts/feather-icons/feather.css");
+
+// Bootstrap functions
+@import "~bootstrap/scss/functions";
+
+// User Variables
+@import "user-variables";
+
+// theme variables
+@import "theme/variables";
+
+//utilities
+@import "theme/utilities";
+
+// Bootstrap
+@import "~bootstrap/scss/bootstrap";
+
+// Theme
+@import "theme/theme";
+
+// User
+@import "user";
+
+.heading-permalink{
+    color: transparent;
+    margin-left: -2rem;
+    &:hover{
+        color: transparent;
+
+
+    }
+
+
+
+&::before {
+    color: rgba(82,95,127,0);
+    content: "#";
+
+
+
+}
+&:hover:before{
+    color: $primary;
+
+
+
+}
+
+}
+
+/* Hapus scroll bar asli */
+body::-webkit-scrollbar {
+	display: none;
+}
+body {
+	-ms-overflow-style: none; /* IE dan Edge */
+	scrollbar-width: none; /* Firefox */
+}
+
+/* Header Styles */
+.header-card {
+    position: fixed;
+    top: 10px;
+    left: 10%;
+    transform: translateX(0); /* Remove translateX(-50%) to adjust position */
+    z-index: 1050;
+    background-color: #fff; /* Set background to white */
+    border: 2px solid #ddd; /* Light border */
+    color: #343a40; /* Text color */
+    padding: 14px 24px; /* Increase padding to make the header bigger */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for a raised effect */
+    width: 44%; /* Adjust width to fit the new position */
+    max-width: 640px;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.header-card.fade-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.header-card.fade-out {
+    opacity: 0;
+    transform: translateY(-100%);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center align content */
+    width: 100%; /* Ensure the content stretches the full width */
+}
+
+.header-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.2rem; /* Increase font size slightly */
+    font-weight: 600; /* Slightly lighter weight for a more Bootstrap-like feel */
+    margin: 0;
+    text-align: center; /* Center the text */
+}
+
+.header-toggle-btn {
+    background: #e9ecef;
+    color: #343a40;
+    border: 1px solid #ced4da;
+    border-radius: 50%;
+    padding: 8px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s ease;
+}
+
+.header-toggle-btn:hover {
+    background: #ced4da; /* Slightly darker on hover */
+    transform: scale(1.1);
+}
+
+
+/* Scroll Progress Bar */
+.scroll-progress {
+	position: fixed;
+	right: 0;
+	top: 0;
+	width: 6px; /* Thicker progress bar for better visibility */
+	background: linear-gradient(135deg, #007bff, #00d4ff); /* Gradient for a modern look */
+	border-radius: 3px; /* Rounded corners */
+	box-shadow: 0 0 5px rgba(0, 123, 255, 0.7); /* Slight shadow for depth */
+	transition: height 0.4s ease-in-out, background-color 0.4s ease-in-out;
+}
+
+/* Style the dark/light mode toggle button for better UI */
+.btn-toggle-mode {
+    position: fixed;
+    bottom: 20px; /* Position it at the bottom */
+    background-color: #fff; /* Set background to white */
+    border: 2px solid #ddd; /* Light border */
+    border-radius: 50%; /* Circular button */
+    padding: 12px; /* Padding for button */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for a raised effect */
+    cursor: pointer;
+    transition: all 0.3s ease; /* Smooth transition on hover */
+    z-index: 999; /* Ensure button stays on top of other elements */
+}
+
+/* Change the appearance on hover */
+.btn-toggle-mode:hover {
+    background-color: #f0f0f0; /* Slightly darken the background */
+    transform: scale(1.1); /* Slight zoom effect */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Darker shadow on hover */
+}
+
+/* Dark mode button */
+.btn-toggle-mode.sun-mode {
+    background-color: #fdd835; /* Sun color when dark mode is active */
+}
+
+/* Light mode button */
+.btn-toggle-mode.moon-mode {
+    background-color: #4caf50; /* Moon color for light mode */
+}
+
+/* Position Left */
+.btn-toggle-mode.left {
+    left: 20px; /* Position it to the left */
+}
+
+/* Position Right */
+.btn-toggle-mode.right {
+    right: 20px; /* Position it to the right */
+}
+
+/* Position Left Up*/
+.btn-toggle-mode.left-up-one {
+    left: 20px; /* Position it to the left */
+    bottom: 80px; /* Position it at the bottom */
+}
+
+/* Position Right Up*/
+.btn-toggle-mode.right-up-one {
+    right: 20px; /* Position it to the right */
+    bottom: 80px; /* Position it at the bottom */
+}
+
+.btn-toggle-mode.fade-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.btn-toggle-mode.fade-out {
+    opacity: 0;
+    transform: translateY(-100%);
+}
+
+/* Basic styling for the spinner container */
+.spinner-container {
+  display: flex;
+  flex-direction: column; /* Stack spinner and text vertically */
+  align-items: center; /* Center horizontally */
+  justify-content: center; /* Center vertically */
+  padding: 15px; /* Add padding for some breathing room */
+  max-width: 100%; /* Ensure container doesn't overflow */
+  margin: 0 auto; /* Center container on the page */
+  background-color: #f8f9fa; /* Light background color for subtle contrast */
+  border-radius: 8px; /* Rounded corners for a smoother look */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow to make it pop slightly */
+}
+
+/* Styling for the spinner */
+.spinner-container .spinner-border {
+  width: 2.5rem; /* Slightly smaller spinner for a neat look */
+  height: 2.5rem; /* Same size as width */
+  margin-bottom: 10px; /* Space between spinner and text */
+  border-width: 0.3rem; /* Thin border for a more refined appearance */
+}
+
+/* Styling for the loading message */
+.spinner-container p {
+  font-size: 1rem; /* Medium font size for readability */
+  color: #6c757d; /* Subtle gray color for the text */
+  text-align: center; /* Center the text */
+  margin-top: 10px; /* Space between the spinner and the text */
+  font-weight: 500; /* Slightly bold text for emphasis */
+}
+
+/* Media query for medium screens (tablets) */
+@media (max-width: 768px) {
+  .spinner-container p {
+    font-size: 0.95rem; /* Slightly smaller text for medium screens */
+  }
+  
+  .spinner-container .spinner-border {
+    width: 2rem; /* Slightly smaller spinner */
+    height: 2rem; /* Match the width */
+  }
+}
+
+/* Media query for small screens (phones) */
+@media (max-width: 576px) {
+  .spinner-container p {
+    font-size: 0.875rem; /* Smaller text for smaller screens */
+  }
+  
+  .spinner-container .spinner-border {
+    width: 1.8rem; /* Smaller spinner size for small screens */
+    height: 1.8rem; /* Match the width */
+  }
+}
+
+/* Default hidden state for accordion rows */
+.accordion-expand {
+  opacity: 0;
+  transform: translateY(30px); /* Mulai dengan sedikit lebih bawah */
+  transition: opacity 0.8s ease, transform 0.8s ease;
+  visibility: hidden;
+}
+
+/* Animate the accordion rows when they appear */
+.accordion-expand.delay-0 {
+  animation: fadeInUp 0.8s ease-out forwards 0s; /* No delay for the first row */
+}
+
+.accordion-expand.delay-1 {
+  animation: fadeInUp 0.8s ease-out forwards 0.3s; /* Delay for the second row */
+}
+
+.accordion-expand.delay-2 {
+  animation: fadeInUp 0.8s ease-out forwards 0.6s; /* Delay for the third row */
+}
+
+/* Animasi untuk memunculkan accordion */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px); /* Mulai lebih rendah */
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0); /* Pindah ke posisi semula */
+  }
+}
+
+/* Pastikan bahwa accordion tetap terlihat setelah animasi */
+.accordion-expand {
+  visibility: visible; /* Pastikan elemen terlihat setelah animasi */
+}
