@@ -15,10 +15,18 @@ export default async function handler(req, res) {
 
   if (!bot) {
     bot = new Client({
-      prefix: '!',
-      printQRInTerminal: true,
-      readIncommingMsg: true,
-    });
+    WAVersion: [2, 3000, 1015901307],
+    autoMention: true,
+    markOnlineOnConnect: true,
+    phoneNumber: '6282196415358',
+    prefix: '!',
+    readIncommingMsg: false,
+    printQRInTerminal: false,
+    selfReply: false,
+    usePairingCode: true
+});
+console.log(`Connecting...`);
+
 
     const broadcast = (message) => {
       res.socket.server.io.emit('log', message);
