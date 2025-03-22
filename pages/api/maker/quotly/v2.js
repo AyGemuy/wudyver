@@ -30,7 +30,7 @@ class HtmlToImg {
     replyName = "null",
     replyMessage = "null",
     replyMedia = "null",
-    template = "1"
+    template = "1",
     type = "v5"
   }) {
     const data = {
