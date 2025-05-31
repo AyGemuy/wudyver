@@ -1,0 +1,23 @@
+.card-title {
+  @apply font-medium  capitalize md:text-xl md:leading-[28px] text-lg leading-[24px]  text-slate-900 dark:text-white;
+}
+.card-subtitle {
+  @apply text-sm leading-5 font-medium text-slate-600 dark:text-slate-300 mt-1;
+}
+
+.card-header {
+  @apply flex items-center justify-between px-6 pt-6;
+}
+.card-header:not(.no-border) {
+  @apply border-b border-slate-200 dark:border-slate-700 pb-5;
+}
+
+.card-footer {
+  @apply flex items-center justify-between px-6 pt-6 border-t border-slate-200 dark:border-slate-700 pb-5;
+}
+
+.card-height-auto {
+  .card {
+    @apply h-min;
+  }
+}
