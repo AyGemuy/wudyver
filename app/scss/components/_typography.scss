@@ -1,0 +1,88 @@
+h1 {
+  @apply text-6xl font-semibold text-slate-900 dark:text-slate-300;
+}
+h2 {
+  @apply text-5xl font-semibold text-slate-900 dark:text-slate-300;
+}
+
+h3 {
+  @apply text-4xl font-medium text-slate-900 dark:text-slate-300;
+}
+h4 {
+  @apply text-3xl font-medium text-slate-900 dark:text-slate-300;
+}
+h5 {
+  @apply text-2xl font-medium text-slate-900 dark:text-slate-300;
+}
+h6 {
+  @apply text-xl leading-[20px] font-medium text-slate-900 dark:text-slate-300;
+}
+
+.display-1 {
+  @apply text-[70px] leading-[80px] text-slate-900 dark:text-slate-300 font-semibold;
+}
+.display-2 {
+  @apply text-[48px] leading-[58px] text-slate-900 dark:text-slate-300 font-semibold;
+}
+
+.display-3 {
+  @apply text-[40px] leading-[48px] text-slate-900 dark:text-slate-300 font-semibold;
+}
+
+.display-4 {
+  @apply text-[40px] leading-[48px] text-slate-900 dark:text-slate-300 font-normal;
+}
+blockquote {
+  @apply border-l-2 border-gray-500 pl-5 text-xl  italic;
+}
+
+.gradient-1 {
+  background: linear-gradient(96.2deg, #0575e6 0%, #021b79 100%);
+}
+
+.gradient-2 {
+  background: linear-gradient(96.01deg, #00c9ff 0.29%, #fff94c 100%);
+}
+
+.gradient-3 {
+  background: linear-gradient(96.01deg, #aaffa9 0.29%, #11ffbd 100%);
+}
+
+// order list
+.custom-list {
+  @apply relative pl-4 -mx-1;
+  list-style: none;
+  li {
+    @apply relative;
+    &::before {
+      @apply absolute ltr:left-0 rtl:right-0;
+    }
+  }
+}
+ol.custom-list ol,
+ul.custom-list ul {
+  @apply mt-3;
+  li {
+    @apply ltr:pl-6 rtl:pr-6;
+  }
+}
+.lits-by-numbaring {
+  counter-reset: listitem;
+
+  li {
+    @apply ltr:pl-[1.3em] rtl:pr-[1.3em] relative -mx-1;
+    &::before {
+      counter-increment: listitem;
+      content: counters(listitem, ".") ".";
+    }
+  }
+}
+.lits-by-slash {
+  li {
+    @apply pl-4 relative;
+    &::before {
+      left: 6px;
+      content: "-";
+    }
+  }
+}
