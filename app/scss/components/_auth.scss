@@ -1,0 +1,60 @@
+.loginwrapper {
+  @apply flex w-full items-center overflow-hidden;
+  min-height: 100vh;
+  min-height: calc(var(--vh, 1vh) * 100);
+  height: 100vh;
+  flex-basis: 100%;
+
+  .lg-inner-column {
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+    @apply overflow-y-auto flex flex-wrap w-full;
+  }
+  .left-column {
+    @apply bg-slate-100 dark:bg-slate-900  lg:block hidden flex-1 overflow-hidden;
+    h4 {
+      @apply text-[40px] leading-[48px] text-slate-600 dark:text-slate-400;
+    }
+  }
+  .right-column {
+    @apply flex-1;
+  }
+  .black-500-title {
+    @apply text-[40px] leading-[48px] text-white;
+  }
+}
+
+.auth-box {
+  @apply max-w-[524px] md:px-[42px] md:py-[44px] p-7  mx-auto w-full;
+  h4 {
+    @apply text-2xl text-slate-900 dark:text-white mb-3;
+  }
+}
+.auth-box2 {
+  @apply max-w-[524px] mx-auto  w-full  md:px-[42px] md:py-[44px] p-7;
+  h4 {
+    @apply text-2xl text-slate-900 dark:text-white mb-3;
+  }
+}
+.auth-box-3 {
+  h4 {
+    @apply text-2xl text-slate-900 dark:text-white mb-3;
+  }
+}
+.auth-footer {
+  @apply text-xs font-normal text-secondary-500 dark:text-slate-400 z-[999] pb-10;
+}
+
+.auth-box-3 {
+  @apply bg-white dark:bg-slate-800 relative h-auto  lg:mr-[150px] mr-auto p-10 md:rounded-md max-w-[520px] w-full ml-auto;
+}
+
+.logo-box-3 {
+  @apply flex justify-center items-center min-h-screen;
+}
+.v3-right-column {
+  @apply flex flex-col items-center justify-center;
+}
+.auth-footer3 {
+  @apply absolute bottom-0 lg:block hidden;
+}
