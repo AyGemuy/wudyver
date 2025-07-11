@@ -1,0 +1,47 @@
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link
+			rel="icon"
+			href="https://wudysoft.xyz/favicon.ico"
+			type="image/x-icon"
+		/>
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+		/>
+		<title>Wudysoft API</title>
+
+		<script src="https://unpkg.com/@stoplight/elements/web-components.min.js"></script>
+		<link
+			rel="stylesheet"
+			href="https://unpkg.com/@stoplight/elements/styles.min.css"
+		/>
+		<style>
+        .sl-elements {
+            font-size: 14px;
+        }
+        .sl-text-base {
+            font-size: 14px;
+        }
+        div.sl-py-16 {
+            max-width: none !important;
+        }
+        div.sl-relative.sl-ml-16 {
+            max-width: none !important;
+        }
+        .sl-elements .TextRequestBody {
+            max-height: 45%;
+        }
+    </style>
+	</head>
+	<body style='height: 100vh'>
+		<elements-api
+			apiDescriptionUrl="https://wudysoft.xyz/api/openapi"
+			hideExport="true"
+			layout="responsive"
+			logo="https://wudysoft.xyz/favicon.png",
+			style="display: block; height: 100vh"
+		/>
+	</body>
+</html>
