@@ -9,7 +9,7 @@ import requestIp from "request-ip";
 export const config = {
   matcher: [
     "/api/:path*",
-    "/((?!api|_next/static|_next/image|_next/data|favicon.ico|manifest.json|sw.js|workbox-.*|.*\\.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot|webp|mp4|webm|mp3|wav|pdf|zip|rar|tar|gz)$).*)"
+    "/((?!api|_next/static|_next/image|_next/data|favicon.ico|manifest.json|sw.js|workbox-.*|.*\\.(?:jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot|webp|mp4|webm|mp3|wav|pdf|zip|rar|tar|gz)$).*)"
   ]
 };
 
