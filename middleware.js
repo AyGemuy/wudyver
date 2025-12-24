@@ -88,7 +88,19 @@ function ensureProtocol(url, defaultProtocol) {
 }
 
 function addSecurityHeaders(response) {
+  // ========== FIX CSP: Izinkan semua media (media-src *) ==========
   const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data: blob: https:;
+    media-src *;
+    font-src 'self' data:;
+    connect-src 'self';
+    frame-src 'none';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
     frame-ancestors 'none';
     block-all-mixed-content;
     upgrade-insecure-requests;
@@ -243,9 +255,7 @@ export async function middleware(req) {
       response = addRateLimitHeaders(response, null, null, "api");
       
       // ========== PERBAIKAN: Tambahkan no-cache untuk OPTIONS request ==========
-      if (shouldAddNoCache(pathname)) {
-        response = addNoCacheHeaders(response);
-      }
+      response = addNoCacheHeaders(response);
       
       return response;
     }
@@ -306,9 +316,7 @@ export async function middleware(req) {
       response = addRateLimitHeaders(response, null, totalLimit, rateLimitType);
       
       // ========== PERBAIKAN: Tambahkan no-cache untuk error response ==========
-      if (isApiRoute) {
-        response = addNoCacheHeaders(response);
-      }
+      response = addNoCacheHeaders(response);
       
       response.headers.set("X-RateLimit-Remaining", "0");
       response.headers.set("X-RateLimit-Reset", Math.ceil((Date.now() + (rateLimiterError.msBeforeNext || 60000)) / 1000).toString());

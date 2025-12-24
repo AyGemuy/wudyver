@@ -17,7 +17,6 @@ const withPWA = require("@ducanh2912/next-pwa").default({
         handler: "NetworkOnly",
         options: {
           cacheName: "api-no-cache",
-          // ========== FIX: Removed networkTimeoutSeconds - not compatible with NetworkOnly ==========
         },
       },
       {
@@ -60,12 +59,13 @@ const securityHeaders = [
   }),
   {
     key: "Content-Security-Policy",
+    // ========== FIX CSP: Izinkan semua media (media-src *) ==========
     value: `
       default-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval' ${allowedOrigins};
       style-src 'self' 'unsafe-inline' ${allowedOrigins};
       img-src 'self' data: blob: https: ${allowedOrigins} cdn.weatherapi.com tile.openstreetmap.org www.chess.com deckofcardsapi.com raw.githubusercontent.com;
-      media-src 'self' data: blob: https: ${allowedOrigins};
+      media-src *;
       font-src 'self' data: ${allowedOrigins};
       connect-src 'self' ${allowedOrigins};
       frame-src 'none';
@@ -207,13 +207,21 @@ const nextConfig = withPWA({
           }
         ]
       },
-      // Media files
+      // Media files - NO CACHE untuk media juga
       {
         source: "/:path*.(mp4|webm|ogg|mp3|wav|flac|aac|m4a|oga|weba|mov|avi)",
         headers: [
           {
             key: "Cache-Control",
-            value: "public, max-age=31536000, immutable"
+            value: "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+          },
+          {
+            key: "Pragma",
+            value: "no-cache"
+          },
+          {
+            key: "Expires",
+            value: "0"
           },
           {
             key: "Access-Control-Allow-Origin",

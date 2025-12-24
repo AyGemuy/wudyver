@@ -1235,6 +1235,7 @@ export default function handler(req, res) {
     { path: "/api/download/slideshare/v2", name: "V2", params: [{ "name": "prompt", "in": "query", "required": false }], },
     { path: "/api/download/slideshare/v4", name: "V4", params: [{ "name": "prompt", "in": "query", "required": false }], },
     { path: "/api/download/slideshare/v5", name: "V5", params: [{ "name": "prompt", "in": "query", "required": false }], },
+    { path: "/api/download/debrid", name: "Debrid", params: [{ "name": "prompt", "in": "query", "required": false }], },
     { path: "/api/download/crx/v1", name: "V1", params: [{ "name": "prompt", "in": "query", "required": false }], },
     { path: "/api/download/crx/v2", name: "V2", params: [{ "name": "prompt", "in": "query", "required": false }], },
     { path: "/api/download/bilibili/v1", name: "V1", params: [{ "name": "prompt", "in": "query", "required": false }], },
