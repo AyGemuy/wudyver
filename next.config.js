@@ -76,7 +76,7 @@ const nextConfig = withPWA({
       source: "/",
       headers: securityHeaders
     }, {
-      source: "/(.*\\.(html|js|css|ts|tsx|jsx))",
+      source: "/:path*",
       headers: securityHeaders
     }, {
       source: "/:path(sw.js|workbox-.*.js|manifest.json)",
