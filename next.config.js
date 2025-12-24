@@ -17,7 +17,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
         handler: "NetworkOnly",
         options: {
           cacheName: "api-no-cache",
-          networkTimeoutSeconds: 10,
+          // ========== FIX: Removed networkTimeoutSeconds - not compatible with NetworkOnly ==========
         },
       },
       {
