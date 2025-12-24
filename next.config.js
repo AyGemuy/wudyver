@@ -8,46 +8,31 @@ const withPWA = require("@ducanh2912/next-pwa").default({
   swcMinify: true,
   disable: false,
   workboxOptions: {
-    disableDevLogs: true,
-    exclude: [/\/api\//, /\/_next\/data\//],
-    runtimeCaching: [
-      {
-        urlPattern: /\/api\//,
-        handler: "NetworkOnly",
-        options: {
-          cacheName: "api-no-cache",
-        },
-      },
-      {
-        urlPattern: /^https?.*/,
-        handler: "NetworkFirst",
-        options: {
-          cacheName: "offlineCache",
-          expiration: {
-            maxEntries: 200,
-          },
-          matchOptions: {
-            ignoreSearch: true,
-          },
-        },
-      },
-    ],
+    disableDevLogs: true
   }
 });
 
+const { createSecureHeaders } = require("next-secure-headers");
+
 const apiConfig = {
-  DOMAIN_URL: process.env.DOMAIN_URL || "wudysoft.xyz",
-  JWT_SECRET: process.env.NEXTAUTH_SECRET,
-  LIMIT_POINTS: 100,
-  LIMIT_DURATION: 60,
-  PAGE_LIMIT_POINTS: 30,
-  PAGE_LIMIT_DURATION: 60,
-  IS_PRODUCTION: process.env.NODE_ENV === "production"
+  DOMAIN_URL: "wudysoft.xyz"
 };
 
-const apiAllowOrigin = `https://${apiConfig.DOMAIN_URL}`;
-
 const securityHeaders = [
+  ...createSecureHeaders({
+    frameGuard: "deny",
+    xssProtection: "block-rendering",
+    referrerPolicy: "strict-origin-when-cross-origin"
+  }),
+  {
+    key: "Content-Security-Policy",
+    // UPDATE: Izinkan sumber daya media dan font
+    value: "default-src 'self'; img-src 'self' data: https:; font-src 'self' data:; frame-ancestors 'none'; block-all-mixed-content; upgrade-insecure-requests;"
+  },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+  },
   {
     key: "X-DNS-Prefetch-Control",
     value: "on"
@@ -71,10 +56,6 @@ const securityHeaders = [
   {
     key: "Referrer-Policy",
     value: "strict-origin-when-cross-origin"
-  },
-  {
-    key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), interest-cohort=()"
   }
 ];
 
@@ -84,20 +65,29 @@ const nextConfig = withPWA({
   productionBrowserSourceMaps: false,
   compress: true,
   poweredByHeader: false,
-  trailingSlash: false,
-  
+  experimental: {
+    nextScriptWorkers: true,
+    serverActions: true,
+    amp: {
+      skipValidation: true
+    }
+  },
+  images: {
+    domains: [apiConfig.DOMAIN_URL, "cdn.weatherapi.com", "tile.openstreetmap.org", "www.chess.com", "deckofcardsapi.com", "raw.githubusercontent.com"],
+    minimumCacheTTL: 60,
+    remotePatterns: [{
+      protocol: "https",
+      hostname: "**"
+    }]
+  },
   async headers() {
     return [
       {
-        source: "/",
+        source: "/(.*)",
         headers: securityHeaders
       },
       {
-        source: "/:path*",
-        headers: securityHeaders
-      },
-      {
-        source: "/:path(sw.js|workbox-.*.js|manifest.json)",
+        source: "/:path*(sw.js|workbox-*.js|manifest.json)",
         headers: [
           {
             key: "Cache-Control",
@@ -106,113 +96,64 @@ const nextConfig = withPWA({
           {
             key: "Service-Worker-Allowed",
             value: "/"
-          },
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "*"
-          }
-        ]
-      },
-      {
-        source: "/assets/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable"
-          },
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "*"
-          }
-        ]
-      },
-      {
-        source: "/:path*.(jpg|jpeg|png|gif|svg|ico|webp|avif|bmp|tiff)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable"
-          },
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "*"
-          }
-        ]
-      },
-      {
-        source: "/:path*.(mp4|webm|ogg|mp3|wav|flac|aac|m4a|oga|weba|mov|avi)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable"
-          },
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "*"
           }
         ]
       },
       {
         source: "/api/:path*",
         headers: [
-          {
-            key: "Cache-Control",
-            value: "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
-          },
-          {
-            key: "Pragma",
-            value: "no-cache"
-          },
-          {
-            key: "Expires",
-            value: "0"
-          },
           {
             key: "Access-Control-Allow-Credentials",
             value: "true"
           },
           {
             key: "Access-Control-Allow-Origin",
-            value: apiAllowOrigin
+            value: "*"
           },
           {
             key: "Access-Control-Allow-Methods",
-            value: "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD"
+            value: "GET, POST, PUT, DELETE, OPTIONS, PATCH"
           },
           {
             key: "Access-Control-Allow-Headers",
             value: "Content-Type, Authorization, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, Origin, X-CSRF-Token"
+          },
+          // UPDATE: Tambahkan no-cache untuk API
+          {
+            key: "Cache-Control",
+            value: "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
           }
         ]
       },
       {
-        source: "/_next/static/:path*",
+        source: "/_next/static/(.*)",
         headers: [
           {
             key: "Cache-Control",
             value: "public, max-age=31536000, immutable"
-          },
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "*"
           }
         ]
       },
+      // UPDATE: Tambahkan header untuk file statis di public folder
       {
-        source: "/_next/image/:path*",
+        source: "/(.*\\.(jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot|webp|mp4|webm|mp3|wav|pdf|zip|rar|tar|gz))",
         headers: [
           {
             key: "Cache-Control",
             value: "public, max-age=31536000, immutable"
-          },
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "*"
           }
         ]
       },
+      // UPDATE: Header no-cache untuk halaman HTML
       {
-        source: "/_next/data/:path*",
+        source: "/:path*",
+        has: [
+          {
+            type: "header",
+            key: "accept",
+            value: "text/html"
+          }
+        ],
         headers: [
           {
             key: "Cache-Control",
@@ -225,83 +166,29 @@ const nextConfig = withPWA({
           {
             key: "Expires",
             value: "0"
-          },
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "*"
           }
         ]
       }
     ];
   },
-  
-  experimental: {
-    appDir: true,
-    nextScriptWorkers: true,
-    serverActions: {
-      bodySizeLimit: "5gb"
-    },
-    amp: {
-      skipValidation: true
-    }
-  },
-  
-  images: {
-    domains: [
-      apiConfig.DOMAIN_URL, 
-      `www.${apiConfig.DOMAIN_URL}`, 
-      "cdn.weatherapi.com", 
-      "tile.openstreetmap.org", 
-      "www.chess.com", 
-      "deckofcardsapi.com", 
-      "raw.githubusercontent.com"
-    ],
-    minimumCacheTTL: 60,
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**"
-      }
-    ],
-    dangerouslyAllowSVG: true,
-    contentDispositionType: "attachment"
-  },
-  
   async rewrites() {
     return [
       {
         source: "/api/:path*",
+        has: [
+          {
+            type: "header",
+            key: "access-control-request-method"
+          }
+        ],
         destination: "/api/:path*"
-      },
-      {
-        source: "/static/:path*",
-        destination: "/:path*"
       }
     ];
   },
-  
-  async redirects() {
-    return [
-      {
-        source: "/public/:path*",
-        destination: "/:path*",
-        permanent: true
-      }
-    ];
-  },
-  
   webpack: (config, { dev, isServer }) => {
     config.externals.push({
       "utf-8-validate": "commonjs utf-8-validate",
       bufferutil: "commonjs bufferutil"
-    });
-    
-    config.module.rules.push({
-      test: /\.(jpg|jpeg|png|gif|svg|webp|avif)$/,
-      type: "asset/resource",
-      generator: {
-        filename: "static/media/[name].[hash][ext]"
-      }
     });
     
     if (!dev && !isServer) {
@@ -315,7 +202,7 @@ const nextConfig = withPWA({
           stringArray: true,
           stringArrayRotate: true,
           stringArrayShuffle: true,
-          stringArrayThreshold: 0.75,
+          stringArrayThreshold: .75,
           unicodeEscapeSequence: false,
           controlFlowFlattening: false,
           deadCodeInjection: false,
@@ -323,36 +210,9 @@ const nextConfig = withPWA({
           disableConsoleOutput: true
         })
       );
-      
-      const webpack = require('webpack');
-      config.plugins.push(
-        new webpack.BannerPlugin({
-          banner: `Build Time: ${new Date().toISOString()}`,
-          entryOnly: true,
-          include: /\.(js|ts)$/
-        })
-      );
     }
     return config;
-  },
-  
-  staticPageGenerationTimeout: 120,
-  onDemandEntries: {
-    maxInactiveAge: 25 * 1000,
-    pagesBufferLength: 5
-  },
-  
-  generateEtags: false,
-  
-  compress: true,
-  
-  webpackDevMiddleware: (config) => {
-    config.watchOptions = {
-      poll: 1000,
-      aggregateTimeout: 300,
-    };
-    return config;
-  },
+  }
 });
 
 module.exports = nextConfig;
