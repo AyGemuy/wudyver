@@ -5,7 +5,7 @@ import axios from "axios";
 import { RateLimiterMemory } from "rate-limiter-flexible";
 import requestIp from "request-ip";
 
-// UPDATE: Matcher untuk skip file statis dan public files
+// FIX: Matcher untuk skip file statis dan public files
 export const config = {
   matcher: [
     "/api/:path*",
@@ -79,7 +79,7 @@ function ensureProtocol(url, defaultProtocol) {
   return url;
 }
 
-// UPDATE: Tambahkan header no-cache untuk halaman
+// FIX: Tambahkan header no-cache untuk halaman
 function addNoCacheHeaders(response) {
   response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
   response.headers.set("Pragma", "no-cache");
@@ -179,13 +179,32 @@ export async function middleware(req) {
   
   console.log(`[Middleware-Main] Menerima permintaan untuk: ${pathname} dari IP: ${ipAddress}`);
   
-  // UPDATE: Skip file statis, media, dan public files
-  const isStaticFile = pathname.match(/\.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot|webp|mp4|webm|mp3|wav|pdf|zip|rar|tar|gz)$/i);
-  const isNextStatic = pathname.startsWith('/_next/') || pathname.startsWith('/_next/image');
+  // FIX: Skip file statis, media, dan public files dengan regex yang lebih spesifik
+  const staticFileExtensions = [
+    'jpg', 'jpeg', 'png', 'gif', 'ico', 'css', 'js', 'svg', 'woff', 'woff2', 
+    'ttf', 'eot', 'webp', 'mp4', 'webm', 'mp3', 'wav', 'pdf', 'zip', 'rar', 'tar', 'gz'
+  ];
   
-  if (isStaticFile || isNextStatic) {
+  const isStaticFile = staticFileExtensions.some(ext => 
+    pathname.toLowerCase().endsWith(`.${ext}`)
+  );
+  
+  const isNextStatic = pathname.startsWith('/_next/') || 
+                       pathname.startsWith('/_next/image') || 
+                       pathname.startsWith('/_next/data');
+  
+  const isPublicFile = pathname.match(/^\/(manifest\.json|sw\.js|workbox-\w+\.js|favicon\.ico|robots\.txt|sitemap\.xml)$/);
+  
+  if (isStaticFile || isNextStatic || isPublicFile) {
     console.log(`[Middleware-Static] Skip static file: ${pathname}`);
-    return NextResponse.next();
+    const response = NextResponse.next();
+    
+    // FIX: Tambahkan header cache untuk file statis
+    if (isStaticFile || isNextStatic) {
+      response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+    
+    return response;
   }
   
   let response = NextResponse.next();
@@ -272,7 +291,7 @@ export async function middleware(req) {
     }
     response = addRateLimitHeaders(response, rateLimiterRes, null, rateLimitType);
     
-    // UPDATE: Tambahkan no-cache untuk halaman non-API
+    // FIX: Tambahkan no-cache untuk halaman non-API
     if (!isApiRoute) {
       response = addNoCacheHeaders(response);
     }

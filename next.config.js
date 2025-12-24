@@ -26,8 +26,8 @@ const securityHeaders = [
   }),
   {
     key: "Content-Security-Policy",
-    // UPDATE: Izinkan sumber daya media dan font
-    value: "default-src 'self'; img-src 'self' data: https:; font-src 'self' data:; frame-ancestors 'none'; block-all-mixed-content; upgrade-insecure-requests;"
+    // FIX: Izinkan sumber daya media dan font
+    value: "default-src 'self'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; frame-ancestors 'none'; block-all-mixed-content; upgrade-insecure-requests;"
   },
   {
     key: "Permissions-Policy",
@@ -81,6 +81,13 @@ const nextConfig = withPWA({
     }]
   },
   async headers() {
+    const staticFileHeaders = [
+      {
+        key: "Cache-Control",
+        value: "public, max-age=31536000, immutable"
+      }
+    ];
+
     return [
       {
         source: "/(.*)",
@@ -118,7 +125,7 @@ const nextConfig = withPWA({
             key: "Access-Control-Allow-Headers",
             value: "Content-Type, Authorization, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, Origin, X-CSRF-Token"
           },
-          // UPDATE: Tambahkan no-cache untuk API
+          // FIX: Tambahkan no-cache untuk API
           {
             key: "Cache-Control",
             value: "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
@@ -127,24 +134,34 @@ const nextConfig = withPWA({
       },
       {
         source: "/_next/static/(.*)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable"
-          }
-        ]
+        headers: staticFileHeaders
       },
-      // UPDATE: Tambahkan header untuk file statis di public folder
+      // FIX: Header untuk file gambar di public folder - tanpa capturing groups
       {
-        source: "/(.*\\.(jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot|webp|mp4|webm|mp3|wav|pdf|zip|rar|tar|gz))",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable"
-          }
-        ]
+        source: "/:path*.(jpg|jpeg|png|gif|ico|svg|webp)",
+        headers: staticFileHeaders
       },
-      // UPDATE: Header no-cache untuk halaman HTML
+      // FIX: Header untuk file font di public folder
+      {
+        source: "/:path*.(woff|woff2|ttf|eot)",
+        headers: staticFileHeaders
+      },
+      // FIX: Header untuk file media di public folder
+      {
+        source: "/:path*.(mp4|webm|mp3|wav)",
+        headers: staticFileHeaders
+      },
+      // FIX: Header untuk file dokumen di public folder
+      {
+        source: "/:path*.(pdf|zip|rar|tar|gz)",
+        headers: staticFileHeaders
+      },
+      // FIX: Header untuk file CSS dan JS di public folder
+      {
+        source: "/:path*.(css|js)",
+        headers: staticFileHeaders
+      },
+      // FIX: Header no-cache untuk halaman HTML
       {
         source: "/:path*",
         has: [
