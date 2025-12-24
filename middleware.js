@@ -88,49 +88,23 @@ function ensureProtocol(url, defaultProtocol) {
 }
 
 function addSecurityHeaders(response) {
-  // ========== FIX CSP: Izinkan semua media (media-src *) ==========
-  const cspHeader = `
-    default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval';
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' data: blob: https:;
-    media-src *;
-    font-src 'self' data:;
-    connect-src 'self';
-    frame-src 'none';
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self';
-    frame-ancestors 'none';
-    block-all-mixed-content;
-    upgrade-insecure-requests;
-  `.replace(/\s{2,}/g, " ").trim();
-  
+  // Header keamanan dasar tanpa CSP
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-XSS-Protection", "1; mode=block");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), interest-cohort=()");
-  response.headers.set("Content-Security-Policy", cspHeader);
   response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   
   return response;
 }
 
 function addCorsHeaders(response) {
-  const corsOptions = {
-    origin: ["*"],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Accept-Version", "Content-Length", "Content-MD5", "Date", "X-Api-Version", "Origin", "X-CSRF-Token"],
-    credentials: true,
-    maxAge: 86400
-  };
-  
-  response.headers.set("Access-Control-Allow-Origin", corsOptions.origin.join(", "));
-  response.headers.set("Access-Control-Allow-Methods", corsOptions.methods.join(", "));
-  response.headers.set("Access-Control-Allow-Headers", corsOptions.allowedHeaders.join(", "));
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD");
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, Origin, X-CSRF-Token");
   response.headers.set("Access-Control-Allow-Credentials", "true");
-  response.headers.set("Access-Control-Max-Age", corsOptions.maxAge.toString());
+  response.headers.set("Access-Control-Max-Age", "86400");
   
   return response;
 }
@@ -143,15 +117,12 @@ function addRateLimitHeaders(response, rateLimiterRes = null, totalLimit = null,
     response.headers.set("X-RateLimit-Limit", limit.toString());
     response.headers.set("X-RateLimit-Remaining", rateLimiterRes.remainingPoints?.toString() || "0");
     response.headers.set("X-RateLimit-Reset", Math.ceil((Date.now() + (rateLimiterRes.msBeforeNext || 0)) / 1000).toString());
-    response.headers.set("X-RateLimit-Type", rateLimitType);
   } else {
     response.headers.set("X-RateLimit-Limit", limit.toString());
     response.headers.set("X-RateLimit-Remaining", limit.toString());
     response.headers.set("X-RateLimit-Reset", Math.ceil(Date.now() / 1000 + duration).toString());
-    response.headers.set("X-RateLimit-Type", rateLimitType);
   }
   
-  response.headers.set("X-RateLimit-Policy", `${limit};w=${duration}`);
   return response;
 }
 
@@ -168,10 +139,8 @@ async function performTracking(req) {
     const isAuthPage = currentPathname === "/login" || currentPathname === "/register";
     
     if (isApiRoute && !isVisitorApi && !isAuthApi && !isGeneralApi) {
-      console.log(`[Middleware-Tracking] Mengirim data permintaan API untuk tracking: ${currentPathname}`);
       await axiosInstance.get(`${baseURL}/api/visitor/req`);
     } else if (!isApiRoute && !isAuthPage) {
-      console.log(`[Middleware-Tracking] Mengirim data kunjungan halaman untuk tracking: ${currentPathname}`);
       await axiosInstance.get(`${baseURL}/api/visitor/visit`);
       await axiosInstance.post(`${baseURL}/api/visitor/info`, {
         route: currentPathname,
@@ -180,47 +149,22 @@ async function performTracking(req) {
       });
     }
   } catch (err) {
-    const errorMessage = err.response ? `Status ${err.response.status}: ${err.response.data?.message || err.message}` : err.message;
-    console.error(`[Middleware-Tracking] Gagal mencatat pengunjung untuk ${req.url}: ${errorMessage}`);
+    console.error(`[Middleware-Tracking] Gagal mencatat pengunjung: ${err.message}`);
   }
 }
 
-// Fungsi untuk menghapus cache headers lama dan menambahkan no-cache untuk API
 function addNoCacheHeaders(response) {
-  // Hapus header cache lama jika ada
-  response.headers.delete("Cache-Control");
-  response.headers.delete("Expires");
-  response.headers.delete("Pragma");
-  
-  // Tambahkan header untuk mencegah cache
   response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
   response.headers.set("Pragma", "no-cache");
   response.headers.set("Expires", "0");
-  response.headers.set("Surrogate-Control", "no-store");
   
   return response;
-}
-
-// Fungsi untuk memeriksa apakah request memerlukan no-cache
-function shouldAddNoCache(pathname) {
-  const apiRoutes = [
-    "/api/visitor",
-    "/api/auth",
-    "/api/general",
-    "/api/dashboard",
-    "/api/analytics",
-    "/api/data",
-    "/api/stats"
-  ];
-  
-  return apiRoutes.some(route => pathname.startsWith(route));
 }
 
 export async function middleware(req) {
   const url = new URL(req.url);
   const { pathname } = url;
   
-  // ========== PERBAIKAN: Skip static assets ==========
   const isStaticAsset = 
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/assets/') ||
@@ -230,17 +174,11 @@ export async function middleware(req) {
     pathname.startsWith('/workbox-') ||
     /\.(jpg|jpeg|png|gif|svg|ico|webp|avif|bmp|tiff|mp4|webm|ogg|mp3|wav|flac|aac|m4a|oga|weba|mov|avi|pdf|doc|docx|xls|xlsx|ppt|pptx|txt|rtf|md|json|xml|csv|yml|yaml|js|ts|woff|woff2|ttf|eot|otf|sfnt|zip|rar|7z|tar|gz|bz2)$/i.test(pathname);
   
-  // Jika ini static asset, langsung return agar next.config.js headers() berlaku
   if (isStaticAsset) {
-    console.log(`[Middleware] Skipping static asset: ${pathname}`);
     return NextResponse.next();
   }
   
   const ipAddress = getClientIp(req);
-  
-  console.log(`[Middleware-Main] Menerima permintaan untuk: ${pathname} dari IP: ${ipAddress}`);
-  console.log(`[Middleware-IP] Headers untuk deteksi IP: x-forwarded-for=${req.headers.get("x-forwarded-for")}, x-real-ip=${req.headers.get("x-real-ip")}, cf-connecting-ip=${req.headers.get("cf-connecting-ip")}`);
-  console.log("[Middleware-Main] NEXTAUTH_SECRET (first 5 chars):", NEXTAUTH_SECRET ? NEXTAUTH_SECRET.substring(0, 5) + "..." : "Not set");
   
   let response = NextResponse.next();
   
@@ -248,13 +186,9 @@ export async function middleware(req) {
     const isApiRoute = pathname.startsWith("/api");
     
     if (isApiRoute && req.method === "OPTIONS") {
-      console.log(`[Middleware-CORS] Handling OPTIONS preflight request for: ${pathname}`);
       response = new NextResponse(null, { status: 200 });
       response = addCorsHeaders(response);
       response = addSecurityHeaders(response);
-      response = addRateLimitHeaders(response, null, null, "api");
-      
-      // ========== PERBAIKAN: Tambahkan no-cache untuk OPTIONS request ==========
       response = addNoCacheHeaders(response);
       
       return response;
@@ -273,36 +207,25 @@ export async function middleware(req) {
       secret: NEXTAUTH_SECRET
     });
     
-    console.log("[Middleware-Main] nextAuthToken:", nextAuthToken);
     const isAuthenticated = !!nextAuthToken;
-    console.log(`[Middleware-Main] Pathname: ${pathname}, Autentikasi: ${isAuthenticated ? "Ya" : "Tidak"}`);
     
     let rateLimiterRes = null;
     let rateLimitType = isApiRoute ? "api" : "page";
     
     try {
       if (isApiRoute && !isVisitorApi && !isAuthApi && !isGeneralApi) {
-        console.log(`[Middleware-RateLimit] Menerapkan Rate Limiting untuk API: ${pathname}`);
         rateLimiterRes = await rateLimiter.consume(ipAddress, 1);
-        console.log(`[Middleware-RateLimit] Rate limit berhasil. Sisa permintaan: ${rateLimiterRes.remainingPoints}`);
       } else if (!isApiRoute) {
-        console.log(`[Middleware-RateLimit] Menerapkan Rate Limiting untuk Halaman: ${pathname}`);
         rateLimiterRes = await pageRateLimiter.consume(ipAddress, 1);
-        console.log(`[Middleware-RateLimit] Rate limit halaman berhasil. Sisa permintaan: ${rateLimiterRes.remainingPoints}`);
       }
     } catch (rateLimiterError) {
       const retryAfterSeconds = Math.ceil((rateLimiterError.msBeforeNext || 60000) / 1000);
       const totalLimit = rateLimitType === "api" ? LIMIT_POINTS : PAGE_LIMIT_POINTS;
       
-      console.warn(`[Middleware-RateLimit] Rate limit terlampaui untuk IP: ${ipAddress}. Coba lagi dalam ${retryAfterSeconds} detik.`);
-      
       response = new NextResponse(JSON.stringify({
         status: "error",
         code: 429,
-        message: `Terlalu banyak permintaan. Anda telah melampaui batas ${totalLimit} permintaan per ${rateLimitType === "api" ? LIMIT_DURATION : PAGE_LIMIT_DURATION} detik. Silakan coba lagi dalam ${retryAfterSeconds} detik.`,
-        limit: totalLimit,
-        remaining: 0,
-        retryAfter: retryAfterSeconds
+        message: `Terlalu banyak permintaan. Silakan coba lagi dalam ${retryAfterSeconds} detik.`
       }), {
         status: 429,
         headers: {
@@ -313,26 +236,18 @@ export async function middleware(req) {
       
       response = addSecurityHeaders(response);
       if (isApiRoute) response = addCorsHeaders(response);
-      response = addRateLimitHeaders(response, null, totalLimit, rateLimitType);
-      
-      // ========== PERBAIKAN: Tambahkan no-cache untuk error response ==========
       response = addNoCacheHeaders(response);
       
       response.headers.set("X-RateLimit-Remaining", "0");
-      response.headers.set("X-RateLimit-Reset", Math.ceil((Date.now() + (rateLimiterError.msBeforeNext || 60000)) / 1000).toString());
       
       await performTracking(req);
       return response;
     }
     
-    // Tambahkan security headers dan CORS headers
     response = addSecurityHeaders(response);
     if (isApiRoute) {
       response = addCorsHeaders(response);
-      
-      // ========== PERBAIKAN PENTING: Tambahkan no-cache untuk semua API routes ==========
       response = addNoCacheHeaders(response);
-      console.log(`[Middleware-Cache] Menambahkan no-cache headers untuk API: ${pathname}`);
     }
     
     response = addRateLimitHeaders(response, rateLimiterRes, null, rateLimitType);
@@ -340,11 +255,7 @@ export async function middleware(req) {
     const redirectUrlWithProtocol = ensureProtocol(DOMAIN_URL, DEFAULT_PROTOCOL);
     
     if (isApiRoute) {
-      console.log(`[Middleware-Auth] API route ${pathname} diakses, melanjutkan tanpa pengecekan autentikasi.`);
-      
-      // ========== PERBAIKAN: Tambahkan timestamp untuk menghindari cache browser ==========
       if (req.method === "GET") {
-        // Untuk GET request, tambahkan timestamp sebagai query parameter
         const searchParams = url.searchParams;
         if (!searchParams.has('_t')) {
           searchParams.set('_t', Date.now().toString());
@@ -359,38 +270,25 @@ export async function middleware(req) {
     }
     
     if (isAuthenticated) {
-      if (isAuthPage) {
-        console.log(`[Middleware-Auth] Pengguna terautentikasi mencoba mengakses halaman otentikasi (${pathname}). Mengarahkan ke /analytics.`);
-        await performTracking(req);
+      if (isAuthPage || isRootRoute) {
         response = NextResponse.redirect(`${redirectUrlWithProtocol}/analytics`);
         response = addSecurityHeaders(response);
-        response = addRateLimitHeaders(response, rateLimiterRes, null, rateLimitType);
-        return response;
-      } else if (isRootRoute) {
-        console.log(`[Middleware-Auth] Pengguna terautentikasi mengakses halaman home (/). Mengarahkan ke /analytics.`);
         await performTracking(req);
-        response = NextResponse.redirect(`${redirectUrlWithProtocol}/analytics`);
-        response = addSecurityHeaders(response);
-        response = addRateLimitHeaders(response, rateLimiterRes, null, rateLimitType);
         return response;
       }
       
-      console.log(`[Middleware-Auth] Pengguna terautentikasi melanjutkan ke ${pathname}.`);
       await performTracking(req);
       return response;
     } else {
       const isPublicPath = isAuthPage;
       
       if (!isPublicPath) {
-        console.log(`[Middleware-Auth] Pengguna belum terautentikasi mencoba mengakses ${pathname}. Mengarahkan ke /login.`);
-        await performTracking(req);
         response = NextResponse.redirect(`${redirectUrlWithProtocol}/login`);
         response = addSecurityHeaders(response);
-        response = addRateLimitHeaders(response, rateLimiterRes, null, rateLimitType);
+        await performTracking(req);
         return response;
       }
       
-      console.log(`[Middleware-Auth] Pengguna belum terautentikasi melanjutkan ke ${pathname}.`);
       await performTracking(req);
       return response;
     }
@@ -411,11 +309,9 @@ export async function middleware(req) {
     response = addSecurityHeaders(response);
     if (pathname.startsWith("/api")) {
       response = addCorsHeaders(response);
-      // ========== PERBAIKAN: Tambahkan no-cache untuk error response API ==========
       response = addNoCacheHeaders(response);
     }
     
-    response = addRateLimitHeaders(response, null, null, pathname.startsWith("/api") ? "api" : "page");
     return response;
   }
 }

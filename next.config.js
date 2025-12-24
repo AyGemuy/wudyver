@@ -9,7 +9,6 @@ const withPWA = require("@ducanh2912/next-pwa").default({
   disable: false,
   workboxOptions: {
     disableDevLogs: true,
-    // ========== PERBAIKAN: Exclude API routes dari caching PWA ==========
     exclude: [/\/api\//, /\/_next\/data\//],
     runtimeCaching: [
       {
@@ -36,8 +35,6 @@ const withPWA = require("@ducanh2912/next-pwa").default({
   }
 });
 
-const { createSecureHeaders } = require("next-secure-headers");
-
 const apiConfig = {
   DOMAIN_URL: process.env.DOMAIN_URL || "wudysoft.xyz",
   JWT_SECRET: process.env.NEXTAUTH_SECRET,
@@ -48,39 +45,9 @@ const apiConfig = {
   IS_PRODUCTION: process.env.NODE_ENV === "production"
 };
 
-const allowedOrigins = `https://${apiConfig.DOMAIN_URL} https://*.${apiConfig.DOMAIN_URL}`;
 const apiAllowOrigin = `https://${apiConfig.DOMAIN_URL}`;
 
 const securityHeaders = [
-  ...createSecureHeaders({
-    frameGuard: "deny",
-    xssProtection: "block-rendering",
-    referrerPolicy: "strict-origin-when-cross-origin"
-  }),
-  {
-    key: "Content-Security-Policy",
-    // ========== FIX CSP: Izinkan semua media (media-src *) ==========
-    value: `
-      default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' ${allowedOrigins};
-      style-src 'self' 'unsafe-inline' ${allowedOrigins};
-      img-src 'self' data: blob: https: ${allowedOrigins} cdn.weatherapi.com tile.openstreetmap.org www.chess.com deckofcardsapi.com raw.githubusercontent.com;
-      media-src *;
-      font-src 'self' data: ${allowedOrigins};
-      connect-src 'self' ${allowedOrigins};
-      frame-src 'none';
-      object-src 'none';
-      base-uri 'self';
-      form-action 'self';
-      frame-ancestors 'none';
-      block-all-mixed-content;
-      upgrade-insecure-requests;
-    `.replace(/\s+/g, " ").trim()
-  },
-  {
-    key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), interest-cohort=()"
-  },
   {
     key: "X-DNS-Prefetch-Control",
     value: "on"
@@ -104,6 +71,10 @@ const securityHeaders = [
   {
     key: "Referrer-Policy",
     value: "strict-origin-when-cross-origin"
+  },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), interest-cohort=()"
   }
 ];
 
@@ -125,7 +96,6 @@ const nextConfig = withPWA({
         source: "/:path*",
         headers: securityHeaders
       },
-      // Service Worker dan PWA files
       {
         source: "/:path(sw.js|workbox-.*.js|manifest.json)",
         headers: [
@@ -140,18 +110,9 @@ const nextConfig = withPWA({
           {
             key: "Access-Control-Allow-Origin",
             value: "*"
-          },
-          {
-            key: "Access-Control-Allow-Methods",
-            value: "GET, HEAD, OPTIONS"
-          },
-          {
-            key: "Access-Control-Allow-Headers",
-            value: "*"
           }
         ]
       },
-      // Assets umum
       {
         source: "/assets/:path*",
         headers: [
@@ -162,26 +123,9 @@ const nextConfig = withPWA({
           {
             key: "Access-Control-Allow-Origin",
             value: "*"
-          },
-          {
-            key: "Access-Control-Allow-Methods",
-            value: "GET, HEAD, OPTIONS"
-          },
-          {
-            key: "Access-Control-Allow-Headers",
-            value: "*"
-          },
-          {
-            key: "Access-Control-Expose-Headers",
-            value: "Content-Length, Content-Range, Content-Type, Content-Disposition"
-          },
-          {
-            key: "Access-Control-Max-Age",
-            value: "86400"
           }
         ]
       },
-      // Images
       {
         source: "/:path*.(jpg|jpeg|png|gif|svg|ico|webp|avif|bmp|tiff)",
         headers: [
@@ -192,152 +136,22 @@ const nextConfig = withPWA({
           {
             key: "Access-Control-Allow-Origin",
             value: "*"
-          },
-          {
-            key: "Access-Control-Allow-Methods",
-            value: "GET, HEAD, OPTIONS"
-          },
-          {
-            key: "Access-Control-Allow-Headers",
-            value: "*"
-          },
-          {
-            key: "Access-Control-Expose-Headers",
-            value: "Content-Length, Content-Type"
           }
         ]
       },
-      // Media files - NO CACHE untuk media juga
       {
         source: "/:path*.(mp4|webm|ogg|mp3|wav|flac|aac|m4a|oga|weba|mov|avi)",
         headers: [
           {
             key: "Cache-Control",
-            value: "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
-          },
-          {
-            key: "Pragma",
-            value: "no-cache"
-          },
-          {
-            key: "Expires",
-            value: "0"
-          },
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "*"
-          },
-          {
-            key: "Access-Control-Allow-Methods",
-            value: "GET, HEAD, OPTIONS"
-          },
-          {
-            key: "Access-Control-Allow-Headers",
-            value: "Range, Content-Type"
-          },
-          {
-            key: "Accept-Ranges",
-            value: "bytes"
-          }
-        ]
-      },
-      // Documents
-      {
-        source: "/:path*.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt|rtf|md)",
-        headers: [
-          {
-            key: "Cache-Control",
             value: "public, max-age=31536000, immutable"
           },
           {
             key: "Access-Control-Allow-Origin",
             value: "*"
-          },
-          {
-            key: "Access-Control-Allow-Methods",
-            value: "GET, HEAD, OPTIONS"
-          },
-          {
-            key: "Access-Control-Allow-Headers",
-            value: "Content-Type"
-          },
-          {
-            key: "Content-Disposition",
-            value: "inline"
           }
         ]
       },
-      // Data files
-      {
-        source: "/:path*.(json|xml|csv|yml|yaml|js|ts)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable"
-          },
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "*"
-          },
-          {
-            key: "Access-Control-Allow-Methods",
-            value: "GET, HEAD, OPTIONS"
-          },
-          {
-            key: "Access-Control-Allow-Headers",
-            value: "Content-Type"
-          },
-          {
-            key: "Content-Type",
-            value: "application/json; charset=utf-8"
-          }
-        ]
-      },
-      // Fonts
-      {
-        source: "/:path*.(woff|woff2|ttf|eot|otf|sfnt)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable"
-          },
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "*"
-          },
-          {
-            key: "Access-Control-Allow-Methods",
-            value: "GET, HEAD, OPTIONS"
-          },
-          {
-            key: "Access-Control-Allow-Headers",
-            value: "Content-Type"
-          }
-        ]
-      },
-      // Archive files
-      {
-        source: "/:path*.(zip|rar|7z|tar|gz|bz2)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable"
-          },
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "*"
-          },
-          {
-            key: "Access-Control-Allow-Methods",
-            value: "GET, HEAD, OPTIONS"
-          },
-          {
-            key: "Content-Disposition",
-            value: "attachment"
-          }
-        ]
-      },
-      // ========== PERBAIKAN: API routes dengan NO CACHE ==========
       {
         source: "/api/:path*",
         headers: [
@@ -354,10 +168,6 @@ const nextConfig = withPWA({
             value: "0"
           },
           {
-            key: "Surrogate-Control",
-            value: "no-store"
-          },
-          {
             key: "Access-Control-Allow-Credentials",
             value: "true"
           },
@@ -371,19 +181,10 @@ const nextConfig = withPWA({
           },
           {
             key: "Access-Control-Allow-Headers",
-            value: "Content-Type, Authorization, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, Origin, X-CSRF-Token, Range, Cache-Control, Pragma"
-          },
-          {
-            key: "Access-Control-Expose-Headers",
-            value: "Content-Length, Content-Range, Cache-Control, Expires, Pragma"
-          },
-          {
-            key: "Access-Control-Max-Age",
-            value: "86400"
+            value: "Content-Type, Authorization, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, Origin, X-CSRF-Token"
           }
         ]
       },
-      // Next.js internal files
       {
         source: "/_next/static/:path*",
         headers: [
@@ -394,10 +195,6 @@ const nextConfig = withPWA({
           {
             key: "Access-Control-Allow-Origin",
             value: "*"
-          },
-          {
-            key: "Access-Control-Allow-Methods",
-            value: "GET, HEAD, OPTIONS"
           }
         ]
       },
@@ -411,14 +208,9 @@ const nextConfig = withPWA({
           {
             key: "Access-Control-Allow-Origin",
             value: "*"
-          },
-          {
-            key: "Access-Control-Allow-Methods",
-            value: "GET, HEAD, OPTIONS"
           }
         ]
       },
-      // ========== PERBAIKAN: _next/data juga perlu no-cache ==========
       {
         source: "/_next/data/:path*",
         headers: [
@@ -437,10 +229,6 @@ const nextConfig = withPWA({
           {
             key: "Access-Control-Allow-Origin",
             value: "*"
-          },
-          {
-            key: "Access-Control-Allow-Methods",
-            value: "GET, HEAD, OPTIONS"
           }
         ]
       }
@@ -459,7 +247,15 @@ const nextConfig = withPWA({
   },
   
   images: {
-    domains: [apiConfig.DOMAIN_URL, `www.${apiConfig.DOMAIN_URL}`, "cdn.weatherapi.com", "tile.openstreetmap.org", "www.chess.com", "deckofcardsapi.com", "raw.githubusercontent.com"],
+    domains: [
+      apiConfig.DOMAIN_URL, 
+      `www.${apiConfig.DOMAIN_URL}`, 
+      "cdn.weatherapi.com", 
+      "tile.openstreetmap.org", 
+      "www.chess.com", 
+      "deckofcardsapi.com", 
+      "raw.githubusercontent.com"
+    ],
     minimumCacheTTL: 60,
     remotePatterns: [
       {
@@ -468,36 +264,18 @@ const nextConfig = withPWA({
       }
     ],
     dangerouslyAllowSVG: true,
-    contentDispositionType: "attachment",
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;"
+    contentDispositionType: "attachment"
   },
   
   async rewrites() {
     return [
       {
         source: "/api/:path*",
-        has: [
-          {
-            type: "header",
-            key: "access-control-request-method"
-          }
-        ],
         destination: "/api/:path*"
       },
       {
         source: "/static/:path*",
         destination: "/:path*"
-      },
-      // ========== PERBAIKAN: Rewrite untuk menghindari cache ==========
-      {
-        source: "/api/no-cache/:path*",
-        destination: "/api/:path*",
-        has: [
-          {
-            type: "query",
-            key: "_t"
-          }
-        ]
       }
     ];
   },
@@ -508,19 +286,6 @@ const nextConfig = withPWA({
         source: "/public/:path*",
         destination: "/:path*",
         permanent: true
-      },
-      // ========== PERBAIKAN: Redirect untuk force refresh ==========
-      {
-        source: "/api/refresh/:path*",
-        destination: "/api/:path*?refresh=true&_t=:timestamp",
-        has: [
-          {
-            type: "header",
-            key: "Cache-Control",
-            value: "no-cache"
-          }
-        ],
-        permanent: false
       }
     ];
   },
@@ -530,6 +295,7 @@ const nextConfig = withPWA({
       "utf-8-validate": "commonjs utf-8-validate",
       bufferutil: "commonjs bufferutil"
     });
+    
     config.module.rules.push({
       test: /\.(jpg|jpeg|png|gif|svg|webp|avif)$/,
       type: "asset/resource",
@@ -538,7 +304,6 @@ const nextConfig = withPWA({
       }
     });
     
-    // ========== PERBAIKAN: Tambahkan webpack plugin untuk no-cache ==========
     if (!dev && !isServer) {
       const WebpackObfuscator = require("webpack-obfuscator");
       config.plugins.push(
@@ -559,7 +324,6 @@ const nextConfig = withPWA({
         })
       );
       
-      // Tambahkan banner untuk cache busting
       const webpack = require('webpack');
       config.plugins.push(
         new webpack.BannerPlugin({
@@ -578,13 +342,10 @@ const nextConfig = withPWA({
     pagesBufferLength: 5
   },
   
-  // ========== PERBAIKAN: Tambahkan generateEtags false untuk API ==========
   generateEtags: false,
   
-  // ========== PERBAIKAN: Compress tapi exclude API ==========
   compress: true,
   
-  // ========== PERBAIKAN: Cache untuk development ==========
   webpackDevMiddleware: (config) => {
     config.watchOptions = {
       poll: 1000,
