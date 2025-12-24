@@ -1,0 +1,9 @@
+.breadcrumbs {
+  @apply flex text-sm space-x-2 items-center;
+  li {
+    @apply relative flex items-center space-x-2 capitalize font-normal rtl:space-x-reverse;
+    .breadcrumbs-icon {
+      @apply text-lg text-secondary-500 dark:text-slate-500;
+    }
+  }
+}

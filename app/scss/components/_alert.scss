@@ -1,0 +1,81 @@
+.alert {
+  @apply py-[18px] px-6 font-normal text-sm rounded-md;
+}
+.alert-primary {
+  @apply bg-primary-500 text-white;
+  &.light-mode {
+    @apply bg-opacity-[14%] text-primary-500;
+  }
+}
+.alert-secondary {
+  @apply bg-secondary-500 text-white;
+
+  &.light-mode {
+    @apply bg-opacity-[14%] text-slate-900;
+  }
+}
+.alert-success {
+  @apply bg-success-500 text-white;
+
+  &.light-mode {
+    @apply bg-opacity-[14%] text-success-500;
+  }
+}
+.alert-danger {
+  @apply bg-danger-500 text-white;
+  &.light-mode {
+    @apply bg-opacity-[14%] text-danger-500;
+  }
+}
+.alert-warning {
+  @apply bg-warning-500 text-white;
+  &.light-mode {
+    @apply bg-opacity-[14%] text-warning-500;
+  }
+}
+.alert-info {
+  @apply bg-info-500 text-white;
+  &.light-mode {
+    @apply bg-opacity-[14%] text-info-500;
+  }
+}
+.alert-light {
+  @apply bg-slate-100 text-slate-900;
+
+  &.light-mode {
+    @apply text-slate-500;
+  }
+}
+
+.alert-dark {
+  @apply bg-slate-900 text-white;
+  &.light-mode {
+    @apply bg-opacity-[54%] text-slate-100;
+  }
+}
+
+// outline color
+.alert-outline-primary {
+  @apply border border-primary-500 text-primary-500;
+}
+.alert-outline-secondary {
+  @apply border border-secondary-500 text-secondary-500;
+}
+.alert-outline-success {
+  @apply border border-success-500 text-success-500;
+}
+.alert-outline-danger {
+  @apply border border-danger-500 text-danger-500;
+}
+.alert-outline-warning {
+  @apply border border-warning-500 text-warning-500;
+}
+.alert-outline-info {
+  @apply border border-info-500 text-info-500;
+}
+.alert-outline-light {
+  @apply border border-slate-200 text-slate-600;
+}
+.alert-outline-dark {
+  @apply border border-slate-900 text-slate-900;
+}

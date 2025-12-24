@@ -1,0 +1,148 @@
+{
+  "name": "DashCode API Dashboard",
+  "short_name": "DashCode",
+  "description": "Template admin Next.js 13 open-source dengan fitur API dan komponen server terbaru. Futuristik, cepat, dan responsif.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2196F3",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "id",
+  "dir": "ltr",
+  "categories": ["productivity", "business", "utilities"],
+  "icons": [
+    {
+      "src": "/images/favicon/favicon.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/favicon/favicon.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/favicon/favicon.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/favicon/favicon.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/favicon/favicon.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/favicon/favicon.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/favicon/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/images/favicon/favicon.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/favicon/favicon.png",
+      "sizes": "384x384",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/favicon/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Akses dashboard utama",
+      "url": "/analytics",
+      "icons": [
+        {
+          "src": "/images/favicon/favicon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "API Docs",
+      "short_name": "API",
+      "description": "Dokumentasi API",
+      "url": "/try-it",
+      "icons": [
+        {
+          "src": "/images/favicon/favicon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "short_name": "Settings",
+      "description": "Pengaturan aplikasi",
+      "url": "/settings",
+      "icons": [
+        {
+          "src": "/images/favicon/favicon.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/images/favicon/favicon.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Dashboard Desktop View"
+    },
+    {
+      "src": "/images/favicon/favicon.png", 
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Dashboard Mobile View"
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://wudysoft.xyz"
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+dashcode",
+      "url": "/?handler=%s"
+    }
+  ],
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}

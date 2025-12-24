@@ -1,0 +1,35 @@
+.profileAnimation-enter {
+  opacity: 0;
+  transform: translateX(-100%);
+}
+.profileAnimation-enter-active {
+  opacity: 1;
+  transform: translateX(-120px);
+  transition: opacity 300ms, transform 300ms;
+}
+.profileAnimation-exit {
+  opacity: 1;
+}
+.profileAnimation-exit-active {
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.slide-in-left-enter {
+  opacity: 0;
+  transform: scale(0.9);
+}
+.slide-in-left-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 300ms, transform 300ms;
+}
+.slide-in-left-exit {
+  opacity: 1;
+}
+.slide-in-left-exit-active {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 300ms, transform 300ms;
+}

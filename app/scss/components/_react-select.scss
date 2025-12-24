@@ -1,0 +1,206 @@
+// InValid Select
+.dashcode-app {
+  .react-select.is-invalid {
+    .select__control {
+      border-color: none !important;
+    }
+  }
+}
+
+// Select Control(Input)
+.dashcode-app {
+  .select__control {
+    @apply border-slate-200;
+  }
+  .has-error {
+    .select__control {
+      @apply border-danger-500;
+    }
+  }
+  .select__control,
+  .react-select__control {
+    .select__input {
+      @apply text-slate-500;
+    }
+    &.select__control--is-disabled {
+      @apply cursor-not-allowed;
+      .select__indicator-separator {
+        @apply bg-slate-50 text-slate-800 placeholder:text-opacity-60;
+      }
+    }
+
+    &.select__control--is-focused,
+    &.react-select__control--is-focused {
+      box-shadow: none;
+      @apply border-slate-600;
+    }
+
+    .select__indicator svg {
+      cursor: pointer;
+      @apply text-slate-600;
+    }
+
+    .select__indicator-separator {
+      display: none;
+    }
+    .select__single-value {
+      @apply text-slate-600   text-sm;
+    }
+
+    .select__placeholder {
+      @apply text-slate-400;
+    }
+  }
+  .has-error {
+    .select__control,
+    .react-select__control {
+      .select__indicator svg {
+        @apply text-danger-500;
+      }
+    }
+  }
+}
+
+// Select Menu
+.dashcode-app {
+  .select__menu,
+  .react-select__menu {
+    .select__menu-list,
+    .react-select__menu-list {
+      .select__option,
+      .react-select__option {
+        cursor: pointer;
+
+        &.select__option--is-focused {
+          @apply bg-secondary-500 text-slate-900 bg-opacity-30;
+        }
+
+        &.select__option--is-selected {
+          @apply bg-secondary-900 text-slate-200;
+        }
+      }
+    }
+
+    .select__menu-list,
+    .react-select__menu-list {
+      .select__group {
+        .select__group-heading {
+          margin-bottom: 0.5rem;
+          @apply text-slate-900 capitalize;
+          font-weight: bolder;
+          font-size: inherit;
+        }
+      }
+    }
+  }
+}
+
+.dashcode-app {
+  .select__multi-value,
+  .react-select__multi-value {
+    @apply text-white bg-slate-900;
+    border-radius: 3px;
+    margin: 0 0.7rem 0 0;
+
+    .select__multi-value__label {
+      @apply text-white;
+      font-size: 0.85rem;
+      border-radius: 10px;
+      padding: 0.26rem 0.6rem;
+    }
+
+    .select__multi-value__remove {
+      padding-left: 0;
+      padding-right: 0.5rem;
+
+      &:hover {
+        background-color: inherit;
+        color: inherit;
+      }
+
+      svg {
+        height: 0.85rem;
+        width: 0.85rem;
+        &:hover {
+          cursor: pointer;
+        }
+      }
+    }
+  }
+}
+
+// Select Borderless
+.select-borderless {
+  .select__control {
+    border: 0;
+    .select__indicators {
+      display: none;
+    }
+  }
+}
+
+.dark {
+  .select__control {
+    @apply bg-slate-900 border-slate-700;
+
+    .select__indicator svg {
+      @apply fill-slate-500;
+    }
+
+    .select__input {
+      color: #cbd5e1 !important;
+    }
+
+    .select__indicator span,
+    .select__single-value {
+      color: #cbd5e1;
+    }
+
+    .select__multi-value {
+      @apply bg-slate-700;
+      .select__multi-value__label {
+        @apply text-slate-300;
+      }
+    }
+    .select__multi-value__remove {
+      svg {
+        fill: #cbd5e1;
+      }
+      &:hover {
+        background-color: transparent !important;
+      }
+    }
+    .select__placeholder {
+      @apply text-slate-400;
+    }
+  }
+
+  .select__menu {
+    @apply bg-slate-800;
+  }
+
+  .select__menu,
+  .react-select__menu {
+    .select__menu-list,
+    .react-select__menu-list {
+      .select__option,
+      .react-select__option {
+        &.select__option--is-focused {
+          @apply bg-slate-500 text-slate-300 bg-opacity-50;
+        }
+
+        &.select__option--is-selected {
+          @apply bg-slate-900 text-slate-200;
+        }
+      }
+    }
+  }
+}
+
+html[dir="rtl"] {
+  .select__control {
+    .select__loading-indicator {
+      flex-direction: row-reverse;
+    }
+  }
+}

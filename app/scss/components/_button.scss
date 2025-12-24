@@ -1,0 +1,210 @@
+.btn {
+  @apply font-semibold  text-sm leading-6 md:px-6 md:py-3 px-4 py-[10px] rounded capitalize  transition-all duration-150 md:whitespace-nowrap whitespace-normal relative;
+}
+.btn.btn-xl {
+  @apply text-[16px] md:px-10 px-7 md:py-4 py-3;
+}
+.btn.btn-sm {
+  @apply text-xs md:px-4 py-2 px-3;
+}
+.btn.block-btn {
+  @apply block w-full text-center;
+  span {
+    @apply justify-center;
+  }
+}
+.btn-dark {
+  @apply bg-slate-900 dark:bg-slate-900 dark:hover:bg-opacity-70   text-white  hover:ring-2 hover:ring-opacity-80 ring-black-900   hover:ring-offset-1 dark:hover:ring-0 dark:hover:ring-offset-0;
+}
+.btn-primary {
+  @apply bg-primary-500 dark:hover:bg-opacity-70  text-white hover:ring-2 hover:ring-opacity-80 ring-primary-500 hover:ring-offset-1 dark:hover:ring-0 dark:hover:ring-offset-0;
+}
+.btn-secondary {
+  @apply bg-secondary-500 dark:hover:bg-opacity-70  text-white hover:ring-2 hover:ring-opacity-80 ring-secondary-500 hover:ring-offset-1 dark:hover:ring-0 dark:hover:ring-offset-0;
+}
+.btn-success {
+  @apply bg-success-500 dark:hover:bg-opacity-70  text-white hover:ring-2 hover:ring-opacity-80 ring-success-500 hover:ring-offset-1 dark:hover:ring-0 dark:hover:ring-offset-0;
+}
+.btn-info {
+  @apply bg-[#0CE7FA] dark:hover:bg-opacity-70  text-white hover:ring-2 hover:ring-opacity-80 ring-[#0CE7FA] hover:ring-offset-1 dark:hover:ring-0 dark:hover:ring-offset-0;
+}
+.btn-warning {
+  @apply bg-[#FA916B] dark:hover:bg-opacity-70  text-white hover:ring-2 hover:ring-opacity-80 ring-[#FA916B] hover:ring-offset-1 dark:hover:ring-0 dark:hover:ring-offset-0;
+}
+.btn-danger {
+  @apply bg-danger-500 dark:hover:bg-opacity-70  text-white hover:ring-2 hover:ring-opacity-80 ring-danger-500 hover:ring-offset-1 dark:hover:ring-0 dark:hover:ring-offset-0;
+}
+.btn-light {
+  @apply bg-slate-100 dark:hover:bg-opacity-70  text-slate-900 hover:ring-2 hover:ring-opacity-80 ring-[#E0EAFF] hover:ring-offset-1 dark:hover:ring-0 dark:hover:ring-offset-0;
+}
+
+// btn outline
+.btn-outline-dark {
+  @apply bg-transparent text-slate-900 dark:text-slate-300 border border-black-500 dark:border-slate-600 hover:border-black-500   hover:bg-slate-900 hover:bg-opacity-5;
+  &.active {
+    @apply bg-slate-900 text-white dark:bg-slate-900 dark:text-slate-300;
+  }
+}
+[aria-expanded="true"] > .btn-outline-dark {
+  @apply bg-slate-900 text-white;
+}
+.btn-outline-primary {
+  @apply bg-transparent text-primary-500 border border-primary-500 hover:border-primary-500  hover:bg-primary-500 hover:bg-opacity-5;
+  &.active {
+    @apply bg-primary-500 text-white;
+  }
+}
+[aria-expanded="true"] > .btn-outline-primary {
+  @apply bg-primary-500 text-white;
+}
+.btn-outline-secondary {
+  @apply bg-transparent text-secondary-500 border border-secondary-500 hover:border-secondary-500  hover:bg-secondary-500 hover:bg-opacity-5;
+  &.active {
+    @apply bg-secondary-500 text-white;
+  }
+}
+[aria-expanded="true"] > .btn-outline-secondary {
+  @apply bg-secondary-500 text-white;
+}
+.btn-outline-success {
+  @apply bg-transparent text-success-500 border border-success-500 hover:border-success-500  hover:bg-success-500 hover:bg-opacity-5;
+  &.active {
+    @apply bg-success-500 text-white;
+  }
+}
+[aria-expanded="true"] > .btn-outline-success {
+  @apply bg-success-500 text-white;
+}
+.btn-outline-info {
+  @apply bg-transparent text-[#0CE7FA] border border-[#0CE7FA] hover:border-[#0CE7FA]  hover:bg-[#0CE7FA] hover:bg-opacity-5;
+  &.active {
+    @apply bg-[#0CE7FA] text-white;
+  }
+}
+[aria-expanded="true"] > .btn-outline-info {
+  @apply bg-info-500 text-white;
+}
+.btn-outline-warning {
+  @apply bg-transparent text-[#FA916B] border border-[#FA916B] hover:border-[#FA916B]  hover:bg-[#FA916B] hover:bg-opacity-5;
+  &.active {
+    @apply bg-[#FA916B] text-white;
+  }
+}
+[aria-expanded="true"] > .btn-outline-warning {
+  @apply bg-warning-500 text-white;
+}
+
+.btn-outline-danger {
+  @apply bg-transparent text-danger-500 border border-danger-500 hover:border-danger-500  hover:bg-danger-500 hover:bg-opacity-5;
+  &.active {
+    @apply bg-danger-500 text-white;
+  }
+}
+[aria-expanded="true"] > .btn-outline-danger {
+  @apply bg-danger-500 text-white;
+}
+.btn-outline-light {
+  @apply bg-transparent  border border-[#E0EAFF] dark:text-white hover:border-[#E0EAFF] text-slate-900 hover:bg-[#E0EAFF] hover:bg-opacity-5;
+  &.active {
+    @apply bg-[#E0EAFF] text-slate-900;
+  }
+}
+[aria-expanded="true"] > .btn-outline-light {
+  @apply bg-[#E0EAFF] text-slate-900;
+}
+
+// light color
+.btn {
+  &.light {
+    @apply bg-opacity-[15%]  ring-opacity-30 dark:hover:bg-opacity-10;
+  }
+}
+.btn-primary {
+  &.light {
+    @apply text-primary-500 dark:hover:bg-opacity-10;
+  }
+}
+.btn-secondary {
+  &.light {
+    @apply text-secondary-500 dark:hover:bg-opacity-10;
+  }
+}
+.btn-success {
+  &.light {
+    @apply text-success-500 dark:hover:bg-opacity-10;
+  }
+}
+.btn-info {
+  &.light {
+    @apply text-[#0CE7FA] dark:hover:bg-opacity-10;
+  }
+}
+.btn-warning {
+  &.light {
+    @apply text-[#FA916B] dark:hover:bg-opacity-10;
+  }
+}
+.btn-danger {
+  &.light {
+    @apply text-danger-500 dark:hover:bg-opacity-10;
+  }
+}
+.btn-light {
+  &.light {
+    @apply text-opacity-80 dark:text-slate-300 dark:hover:bg-opacity-10;
+  }
+}
+
+// split dropdown
+.split-btngroup {
+  .btn {
+    @apply ltr:rounded-r-none rtl:rounded-l-none hover:ring-0;
+  }
+  button {
+    @apply ltr:last:rounded-r-md rtl:last:rounded-l-md  last:border-l last:border-white last:border-opacity-[0.10];
+    &:hover {
+      box-shadow: none !important;
+    }
+  }
+  [class*="btn-outline-"] {
+    @apply ltr:last:border-l-0 rtl:last:border-r-0  focus:bg-transparent focus:text-inherit;
+  }
+  .btn-outline-primary {
+    @apply focus:text-primary-500 last:border-primary-500;
+  }
+  .btn-outline-secondary {
+    @apply focus:text-secondary-500 last:border-secondary-500;
+  }
+  .btn-outline-success {
+    @apply focus:text-success-500 last:border-success-500;
+  }
+  .btn-outline-danger {
+    @apply focus:text-danger-500 last:border-danger-500;
+  }
+  .btn-outline-warning {
+    @apply focus:text-warning-500 last:border-warning-500;
+  }
+  .btn-outline-info {
+    @apply focus:text-info-500 last:border-info-500;
+  }
+  .btn-outline-light {
+    @apply focus:text-slate-600 last:border-[#E0EAFF];
+  }
+}
+
+// link btn
+.btn-link {
+  @apply text-slate-900 font-medium underline text-sm dark:text-white;
+  &.white {
+    @apply text-white;
+  }
+}
+
+// action btn
+.action-btn {
+  @apply h-6 w-6 flex flex-col items-center justify-center border border-slate-200 dark:border-slate-700 rounded;
+}
+
+.invocie-btn {
+  @apply hover:bg-slate-900 hover:text-slate-100 dark:hover:bg-slate-600 mr-3 mb-4;
+}

@@ -1,0 +1,32 @@
+.has-sticky-header {
+  @apply my-5 top-5 rounded-md sticky  z-[999];
+  .app-header {
+    @apply md:mx-6 mx-[15px] rounded-md;
+  }
+  &::after {
+    position: absolute;
+    z-index: -10;
+    --tw-backdrop-blur: blur(12px);
+    backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness)
+      var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale)
+      var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert)
+      var(--tw-backdrop-opacity) var(--tw-backdrop-saturate)
+      var(--tw-backdrop-sepia);
+    --tw-content: "";
+    content: var(--tw-content);
+    background: linear-gradient(
+      180deg,
+      rgba(var(--v-theme-background), 70%) 44%,
+      rgba(var(--v-theme-background), 43%) 73%,
+      rgba(var(--v-theme-background), 0%)
+    );
+    background-repeat: repeat;
+    block-size: 5.5rem;
+    inset-block-start: -1.5rem;
+    inset-inline-end: 0;
+    inset-inline-start: 0;
+    -webkit-mask: linear-gradient(black, black 18%, transparent 100%);
+    mask: linear-gradient(black, black 18%, transparent 100%);
+  }
+}
+@import "menu";

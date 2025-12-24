@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply h-full overflow-x-hidden dark:text-slate-300 text-slate-600 font-normal;
+  }
+  .app-warp {
+    &.light,
+    &.skin--default {
+      @apply bg-slate-100;
+    }
+    &.lght,
+    &.skin--bordered {
+      @apply bg-transparent;
+    }
+    &.dark {
+      @apply bg-[#0f172a] text-slate-300;
+    }
+  }
+  html,
+  body {
+    @apply h-full;
+  }
+
+  .dashcode-app-wrapper {
+    @apply relative;
+  }
+  .single-sidebar-menu .ReactCollapse--collapse {
+    transition: height 400ms;
+  }
+  .space-xy-5 {
+    > div,
+    > button,
+    > a,
+    label,
+    > * {
+      @apply mr-2 mb-2;
+    }
+  }
+  .space-xy-6 {
+    > div,
+    > button,
+    > a,
+    label,
+    > * {
+      @apply mr-4 mb-2;
+    }
+  }
+
+  html[dir="rtl"] {
+    .recharts-wrapper {
+      direction: rtl;
+    }
+    .recharts-yAxis {
+      .recharts-text {
+        text-anchor: start;
+      }
+    }
+  }
+  .dashcode-app {
+    .leaflet-control {
+      z-index: 0 !important;
+    }
+    .leaflet-control-container {
+      z-index: 555 !important;
+      position: relative;
+    }
+    .recharts-curve.recharts-tooltip-cursor {
+      display: none;
+    }
+    .recharts-wrapper.bar-chart {
+      .recharts-tooltip-cursor {
+        fill: transparent;
+      }
+    }
+    .recharts-tooltip-wrapper {
+      border: none !important;
+    }
+
+    // .recharts-cartesian-grid line,
+    // .recharts-polar-grid-angle line,
+    // .recharts-yAxis line,
+    // .recharts-xAxis line {
+    //   @apply stroke-black-200 dark:stroke-slate-700;
+    // }
+  }
+}
+@layer components {
+  @import "components/table.scss";
+  @import "components/map.scss";
+  @import "components/progress";
+  @import "components/tippy";
+  @import "components/swiper";
+  @import "components/alert";
+  @import "components/card";
+  @import "components/auth";
+  @import "components/button";
+  @import "components/badge";
+  @import "components/typography";
+  @import "components/form";
+  @import "components/input-group";
+  @import "components/react-select";
+  @import "components/pagination";
+  @import "components/breadcrumbs";
+  @import "layout/header";
+  @import "layout/footer";
+  @import "layout/sidebar";
+  @import "layout/settings";
+  @import "utility/mix";
+  @import "utility/loading";
+  @import "utility/css-animation";
+  @import "utility/calander";
+  @import "utility/full-calender";
+  @import "components/print.scss";
+}
+@layer utilities {
+}

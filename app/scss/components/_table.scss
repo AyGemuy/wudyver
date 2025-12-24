@@ -1,0 +1,17 @@
+.table-th {
+  @apply text-slate-600 dark:text-slate-300 text-xs  font-semibold  uppercase py-5 px-6 ltr:text-left rtl:text-right;
+}
+
+.table-td {
+  @apply text-slate-600 dark:text-slate-300 text-sm font-normal capitalize px-6 py-5   border-slate-100 dark:border-slate-700;
+}
+
+.table-checkbox {
+  @apply relative before:flex before:flex-col before:items-center before:justify-center   
+  before:w-[18px] before:h-[18px] before:m-[-0.7px] before:bg-slate-100 dark:before:bg-slate-500  before:absolute
+    before:inset-0 before:rounded w-4 h-4 rounded checked:before:bg-slate-900 
+    checked:before:content-[url("https://api.iconify.design/heroicons-outline/check.svg?color=white")] checked:before:leading-[10px]
+    checked:before:ring-2 checked:before:ring-black-500
+    checked:before:ring-offset-2 checked:before:dark:ring-slate-700 
+    checked:before:dark:ring-offset-0;
+}

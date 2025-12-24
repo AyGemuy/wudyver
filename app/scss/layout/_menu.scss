@@ -1,0 +1,52 @@
+.main-menu {
+  > ul {
+    > li {
+      @apply inline-block relative;
+      > a {
+        @apply relative flex capitalize items-start text-sm font-medium leading-6 text-slate-600 dark:text-slate-300 2xl:px-6 xl:px-5 py-6  transition-all duration-150;
+        .icon-box {
+          @apply text-slate-500 dark:text-slate-300 transition-all duration-150 text-lg;
+        }
+      }
+      &:hover {
+        > a {
+          @apply text-primary-500;
+          .icon-box {
+            @apply text-primary-500;
+          }
+        }
+      }
+      &.has-megamenu {
+        @apply static;
+      }
+    }
+  }
+}
+
+.main-menu > ul > li.menu-item-has-children > ul.sub-menu,
+.main-menu > ul > li.menu-item-has-children > .rt-mega-menu {
+  @apply absolute  left-0 min-w-[178px] w-max top-[110%] px-4 py-3  bg-white  
+  rounded-[4px] dark:bg-slate-800 z-[999] invisible opacity-0 transition-all duration-150
+  shadow-base2;
+}
+.main-menu > ul > li.menu-item-has-children > .rt-mega-menu {
+  @apply max-w-[1170px]  left-1/2  -translate-x-1/2;
+}
+.main-menu > ul > li.menu-item-has-children > .rt-mega-menu {
+  @apply w-full;
+}
+.main-menu > ul > li.menu-item-has-children:hover > ul.sub-menu,
+.main-menu > ul > li.menu-item-has-children:hover > .rt-mega-menu {
+  @apply top-full visible opacity-100;
+}
+.main-menu > ul > li.menu-item-has-children > ul.sub-menu li {
+  @apply relative pb-2 last:pb-0;
+}
+.main-menu > ul > li.menu-item-has-children > ul.sub-menu li a {
+  @apply text-sm  font-normal   text-slate-600 dark:text-slate-300 dark:hover:text-primary-500 capitalize py-1 last:pb-0 block hover:text-primary-500;
+}
+.rt-mega-menu {
+  a {
+    @apply dark:text-slate-300 dark:hover:text-primary-500 text-sm  py-[6px] block;
+  }
+}

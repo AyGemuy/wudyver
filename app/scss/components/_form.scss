@@ -1,0 +1,94 @@
+// .form-control {
+//   @apply bg-transparent dark:bg-slate-900 transition duration-300 ease-in-out border border-slate-200
+//    dark:border-slate-700 focus:ring-1 focus:ring-slate-600 focus:outline-none focus:ring-opacity-90 rounded
+//     placeholder:text-slate-400 text-slate-900 text-sm px-3  placeholder:font-normal block w-full h-[40px] dark:text-white;
+// }
+
+.form-label {
+  @apply mb-2 text-slate-600 dark:text-slate-300 text-sm leading-6 capitalize cursor-pointer block w-full font-medium rtl:text-right rtl:block;
+}
+
+.form-control {
+  @apply bg-white dark:bg-slate-900  transition duration-300 ease-in-out border border-slate-200
+   dark:border-slate-700 dark:text-slate-300  focus:ring-1 focus:ring-slate-600
+   dark:focus:ring-slate-900 focus:outline-none focus:ring-opacity-90 rounded
+    placeholder:text-slate-400 text-slate-900 text-sm px-3  placeholder:font-normal dark:placeholder:text-slate-400 block w-full;
+}
+
+.input-description {
+  @apply block text-secondary-500 font-light leading-4 text-xs mt-2;
+}
+.fromGroup {
+  @apply relative;
+  &.has-error {
+    .form-control {
+      @apply border-danger-500 focus:ring-danger-500  focus:ring-opacity-90 focus:ring-1;
+    }
+  }
+  &.is-valid {
+    .form-control {
+      @apply border-success-500 focus:ring-success-500 focus:ring-opacity-90 focus:ring-1;
+    }
+  }
+}
+
+.form-control[readonly] {
+  @apply bg-slate-200 text-slate-400 dark:bg-slate-600 cursor-pointer placeholder:text-slate-400;
+}
+
+.form-control[disabled] {
+  @apply cursor-not-allowed bg-slate-50 text-slate-800 placeholder:text-opacity-60 dark:bg-slate-600;
+}
+
+// vue date range picker css
+.text-vtd-primary-500-600 {
+  color: #0f172a !important;
+}
+.bg-vtd-primary-500-500 {
+  background-color: #0f172a !important;
+}
+.text-vtd-primary-500-500 {
+  color: #0f172a !important;
+}
+
+.dark {
+  .text-vtd-primary-500-600 {
+    color: #f8fafc !important;
+  }
+  .text-vtd-primary-500-500 {
+    color: #f8fafc !important;
+  }
+  .bg-vtd-primary-500-500 {
+    background-color: #334155 !important;
+  }
+}
+
+// file input
+.file-control {
+  @apply bg-transparent dark:bg-slate-900 dark:text-white transition duration-300 ease-in-out border border-slate-200 dark:border-slate-700 focus:ring-1 focus:ring-slate-900 dark:focus:ring-slate-900 focus:outline-none focus:ring-opacity-90 rounded   text-sm ltr:pl-3 rtl:pr-3   placeholder:font-normal;
+}
+.badge-title {
+  @apply bg-slate-900 text-white px-2 py-[3px] rounded text-sm;
+}
+
+// datae picker
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange,
+.flatpickr-day.selected.inRange,
+.flatpickr-day.startRange.inRange,
+.flatpickr-day.endRange.inRange,
+.flatpickr-day.selected:focus,
+.flatpickr-day.startRange:focus,
+.flatpickr-day.endRange:focus,
+.flatpickr-day.selected:hover,
+.flatpickr-day.startRange:hover,
+.flatpickr-day.endRange:hover,
+.flatpickr-day.selected.prevMonthDay,
+.flatpickr-day.startRange.prevMonthDay,
+.flatpickr-day.endRange.prevMonthDay,
+.flatpickr-day.selected.nextMonthDay,
+.flatpickr-day.startRange.nextMonthDay,
+.flatpickr-day.endRange.nextMonthDay {
+  @apply bg-slate-900 border-black-500;
+}

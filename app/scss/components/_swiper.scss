@@ -1,0 +1,21 @@
+.main-caro {
+  .swiper-button-next:after,
+  .swiper-button-prev:after {
+    font-family: unset !important;
+    @apply rtl:rotate-180;
+  }
+  .swiper-button-next:after {
+    content: url("https://api.iconify.design/heroicons-outline/chevron-right.svg?color=white&width=24");
+  }
+  .swiper-button-prev:after {
+    content: url("https://api.iconify.design/heroicons-outline/chevron-left.svg?color=white&width=24");
+  }
+  .swiper-pagination-bullet {
+    height: 2px;
+    width: 24px;
+    @apply rounded-[1px] bg-white bg-opacity-70;
+    &.swiper-pagination-bullet-active {
+      @apply bg-opacity-100;
+    }
+  }
+}
