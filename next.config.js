@@ -8,15 +8,45 @@ const withPWA = require("@ducanh2912/next-pwa").default({
   swcMinify: true,
   disable: false,
   workboxOptions: {
-    disableDevLogs: true
+    disableDevLogs: true,
+    // ========== PERBAIKAN: Exclude API routes dari caching PWA ==========
+    exclude: [/\/api\//, /\/_next\/data\//],
+    runtimeCaching: [
+      {
+        urlPattern: /\/api\//,
+        handler: "NetworkOnly",
+        options: {
+          cacheName: "api-no-cache",
+          networkTimeoutSeconds: 10,
+        },
+      },
+      {
+        urlPattern: /^https?.*/,
+        handler: "NetworkFirst",
+        options: {
+          cacheName: "offlineCache",
+          expiration: {
+            maxEntries: 200,
+          },
+          matchOptions: {
+            ignoreSearch: true,
+          },
+        },
+      },
+    ],
   }
 });
 
 const { createSecureHeaders } = require("next-secure-headers");
 
 const apiConfig = {
-  DOMAIN_URL: "wudysoft.xyz",
-  IS_PRODUCTION: true
+  DOMAIN_URL: process.env.DOMAIN_URL || "wudysoft.xyz",
+  JWT_SECRET: process.env.NEXTAUTH_SECRET,
+  LIMIT_POINTS: 100,
+  LIMIT_DURATION: 60,
+  PAGE_LIMIT_POINTS: 30,
+  PAGE_LIMIT_DURATION: 60,
+  IS_PRODUCTION: process.env.NODE_ENV === "production"
 };
 
 const allowedOrigins = `https://${apiConfig.DOMAIN_URL} https://*.${apiConfig.DOMAIN_URL}`;
@@ -84,6 +114,7 @@ const nextConfig = withPWA({
   compress: true,
   poweredByHeader: false,
   trailingSlash: false,
+  
   async headers() {
     return [
       {
@@ -94,6 +125,7 @@ const nextConfig = withPWA({
         source: "/:path*",
         headers: securityHeaders
       },
+      // Service Worker dan PWA files
       {
         source: "/:path(sw.js|workbox-.*.js|manifest.json)",
         headers: [
@@ -119,27 +151,7 @@ const nextConfig = withPWA({
           }
         ]
       },
-      {
-        source: "/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable"
-          },
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "*"
-          },
-          {
-            key: "Access-Control-Allow-Methods",
-            value: "GET, HEAD, OPTIONS"
-          },
-          {
-            key: "Access-Control-Allow-Headers",
-            value: "*"
-          }
-        ]
-      },
+      // Assets umum
       {
         source: "/assets/:path*",
         headers: [
@@ -169,6 +181,7 @@ const nextConfig = withPWA({
           }
         ]
       },
+      // Images
       {
         source: "/:path*.(jpg|jpeg|png|gif|svg|ico|webp|avif|bmp|tiff)",
         headers: [
@@ -194,6 +207,7 @@ const nextConfig = withPWA({
           }
         ]
       },
+      // Media files
       {
         source: "/:path*.(mp4|webm|ogg|mp3|wav|flac|aac|m4a|oga|weba|mov|avi)",
         headers: [
@@ -219,6 +233,7 @@ const nextConfig = withPWA({
           }
         ]
       },
+      // Documents
       {
         source: "/:path*.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt|rtf|md)",
         headers: [
@@ -244,6 +259,7 @@ const nextConfig = withPWA({
           }
         ]
       },
+      // Data files
       {
         source: "/:path*.(json|xml|csv|yml|yaml|js|ts)",
         headers: [
@@ -269,6 +285,7 @@ const nextConfig = withPWA({
           }
         ]
       },
+      // Fonts
       {
         source: "/:path*.(woff|woff2|ttf|eot|otf|sfnt)",
         headers: [
@@ -290,6 +307,7 @@ const nextConfig = withPWA({
           }
         ]
       },
+      // Archive files
       {
         source: "/:path*.(zip|rar|7z|tar|gz|bz2)",
         headers: [
@@ -311,9 +329,26 @@ const nextConfig = withPWA({
           }
         ]
       },
+      // ========== PERBAIKAN: API routes dengan NO CACHE ==========
       {
         source: "/api/:path*",
         headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+          },
+          {
+            key: "Pragma",
+            value: "no-cache"
+          },
+          {
+            key: "Expires",
+            value: "0"
+          },
+          {
+            key: "Surrogate-Control",
+            value: "no-store"
+          },
           {
             key: "Access-Control-Allow-Credentials",
             value: "true"
@@ -328,11 +363,11 @@ const nextConfig = withPWA({
           },
           {
             key: "Access-Control-Allow-Headers",
-            value: "Content-Type, Authorization, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, Origin, X-CSRF-Token, Range"
+            value: "Content-Type, Authorization, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version, Origin, X-CSRF-Token, Range, Cache-Control, Pragma"
           },
           {
             key: "Access-Control-Expose-Headers",
-            value: "Content-Length, Content-Range"
+            value: "Content-Length, Content-Range, Cache-Control, Expires, Pragma"
           },
           {
             key: "Access-Control-Max-Age",
@@ -340,6 +375,7 @@ const nextConfig = withPWA({
           }
         ]
       },
+      // Next.js internal files
       {
         source: "/_next/static/:path*",
         headers: [
@@ -374,12 +410,21 @@ const nextConfig = withPWA({
           }
         ]
       },
+      // ========== PERBAIKAN: _next/data juga perlu no-cache ==========
       {
         source: "/_next/data/:path*",
         headers: [
           {
             key: "Cache-Control",
-            value: "public, max-age=31536000, immutable"
+            value: "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+          },
+          {
+            key: "Pragma",
+            value: "no-cache"
+          },
+          {
+            key: "Expires",
+            value: "0"
           },
           {
             key: "Access-Control-Allow-Origin",
@@ -393,6 +438,7 @@ const nextConfig = withPWA({
       }
     ];
   },
+  
   experimental: {
     appDir: true,
     nextScriptWorkers: true,
@@ -403,6 +449,7 @@ const nextConfig = withPWA({
       skipValidation: true
     }
   },
+  
   images: {
     domains: [apiConfig.DOMAIN_URL, `www.${apiConfig.DOMAIN_URL}`, "cdn.weatherapi.com", "tile.openstreetmap.org", "www.chess.com", "deckofcardsapi.com", "raw.githubusercontent.com"],
     minimumCacheTTL: 60,
@@ -416,6 +463,7 @@ const nextConfig = withPWA({
     contentDispositionType: "attachment",
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;"
   },
+  
   async rewrites() {
     return [
       {
@@ -431,18 +479,44 @@ const nextConfig = withPWA({
       {
         source: "/static/:path*",
         destination: "/:path*"
+      },
+      // ========== PERBAIKAN: Rewrite untuk menghindari cache ==========
+      {
+        source: "/api/no-cache/:path*",
+        destination: "/api/:path*",
+        has: [
+          {
+            type: "query",
+            key: "_t"
+          }
+        ]
       }
     ];
   },
+  
   async redirects() {
     return [
       {
         source: "/public/:path*",
         destination: "/:path*",
         permanent: true
+      },
+      // ========== PERBAIKAN: Redirect untuk force refresh ==========
+      {
+        source: "/api/refresh/:path*",
+        destination: "/api/:path*?refresh=true&_t=:timestamp",
+        has: [
+          {
+            type: "header",
+            key: "Cache-Control",
+            value: "no-cache"
+          }
+        ],
+        permanent: false
       }
     ];
   },
+  
   webpack: (config, { dev, isServer }) => {
     config.externals.push({
       "utf-8-validate": "commonjs utf-8-validate",
@@ -455,6 +529,8 @@ const nextConfig = withPWA({
         filename: "static/media/[name].[hash][ext]"
       }
     });
+    
+    // ========== PERBAIKAN: Tambahkan webpack plugin untuk no-cache ==========
     if (!dev && !isServer) {
       const WebpackObfuscator = require("webpack-obfuscator");
       config.plugins.push(
@@ -474,14 +550,40 @@ const nextConfig = withPWA({
           disableConsoleOutput: true
         })
       );
+      
+      // Tambahkan banner untuk cache busting
+      const webpack = require('webpack');
+      config.plugins.push(
+        new webpack.BannerPlugin({
+          banner: `Build Time: ${new Date().toISOString()}`,
+          entryOnly: true,
+          include: /\.(js|ts)$/
+        })
+      );
     }
     return config;
   },
+  
   staticPageGenerationTimeout: 120,
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 5
-  }
+  },
+  
+  // ========== PERBAIKAN: Tambahkan generateEtags false untuk API ==========
+  generateEtags: false,
+  
+  // ========== PERBAIKAN: Compress tapi exclude API ==========
+  compress: true,
+  
+  // ========== PERBAIKAN: Cache untuk development ==========
+  webpackDevMiddleware: (config) => {
+    config.watchOptions = {
+      poll: 1000,
+      aggregateTimeout: 300,
+    };
+    return config;
+  },
 });
 
 module.exports = nextConfig;

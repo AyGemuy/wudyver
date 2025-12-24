@@ -173,11 +173,42 @@ async function performTracking(req) {
   }
 }
 
+// Fungsi untuk menghapus cache headers lama dan menambahkan no-cache untuk API
+function addNoCacheHeaders(response) {
+  // Hapus header cache lama jika ada
+  response.headers.delete("Cache-Control");
+  response.headers.delete("Expires");
+  response.headers.delete("Pragma");
+  
+  // Tambahkan header untuk mencegah cache
+  response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+  response.headers.set("Pragma", "no-cache");
+  response.headers.set("Expires", "0");
+  response.headers.set("Surrogate-Control", "no-store");
+  
+  return response;
+}
+
+// Fungsi untuk memeriksa apakah request memerlukan no-cache
+function shouldAddNoCache(pathname) {
+  const apiRoutes = [
+    "/api/visitor",
+    "/api/auth",
+    "/api/general",
+    "/api/dashboard",
+    "/api/analytics",
+    "/api/data",
+    "/api/stats"
+  ];
+  
+  return apiRoutes.some(route => pathname.startsWith(route));
+}
+
 export async function middleware(req) {
   const url = new URL(req.url);
   const { pathname } = url;
   
-  // Skip static assets and service worker files
+  // ========== PERBAIKAN: Skip static assets ==========
   const isStaticAsset = 
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/assets/') ||
@@ -187,6 +218,7 @@ export async function middleware(req) {
     pathname.startsWith('/workbox-') ||
     /\.(jpg|jpeg|png|gif|svg|ico|webp|avif|bmp|tiff|mp4|webm|ogg|mp3|wav|flac|aac|m4a|oga|weba|mov|avi|pdf|doc|docx|xls|xlsx|ppt|pptx|txt|rtf|md|json|xml|csv|yml|yaml|js|ts|woff|woff2|ttf|eot|otf|sfnt|zip|rar|7z|tar|gz|bz2)$/i.test(pathname);
   
+  // Jika ini static asset, langsung return agar next.config.js headers() berlaku
   if (isStaticAsset) {
     console.log(`[Middleware] Skipping static asset: ${pathname}`);
     return NextResponse.next();
@@ -209,6 +241,12 @@ export async function middleware(req) {
       response = addCorsHeaders(response);
       response = addSecurityHeaders(response);
       response = addRateLimitHeaders(response, null, null, "api");
+      
+      // ========== PERBAIKAN: Tambahkan no-cache untuk OPTIONS request ==========
+      if (shouldAddNoCache(pathname)) {
+        response = addNoCacheHeaders(response);
+      }
+      
       return response;
     }
     
@@ -266,6 +304,12 @@ export async function middleware(req) {
       response = addSecurityHeaders(response);
       if (isApiRoute) response = addCorsHeaders(response);
       response = addRateLimitHeaders(response, null, totalLimit, rateLimitType);
+      
+      // ========== PERBAIKAN: Tambahkan no-cache untuk error response ==========
+      if (isApiRoute) {
+        response = addNoCacheHeaders(response);
+      }
+      
       response.headers.set("X-RateLimit-Remaining", "0");
       response.headers.set("X-RateLimit-Reset", Math.ceil((Date.now() + (rateLimiterError.msBeforeNext || 60000)) / 1000).toString());
       
@@ -273,9 +317,14 @@ export async function middleware(req) {
       return response;
     }
     
+    // Tambahkan security headers dan CORS headers
     response = addSecurityHeaders(response);
     if (isApiRoute) {
       response = addCorsHeaders(response);
+      
+      // ========== PERBAIKAN PENTING: Tambahkan no-cache untuk semua API routes ==========
+      response = addNoCacheHeaders(response);
+      console.log(`[Middleware-Cache] Menambahkan no-cache headers untuk API: ${pathname}`);
     }
     
     response = addRateLimitHeaders(response, rateLimiterRes, null, rateLimitType);
@@ -284,6 +333,19 @@ export async function middleware(req) {
     
     if (isApiRoute) {
       console.log(`[Middleware-Auth] API route ${pathname} diakses, melanjutkan tanpa pengecekan autentikasi.`);
+      
+      // ========== PERBAIKAN: Tambahkan timestamp untuk menghindari cache browser ==========
+      if (req.method === "GET") {
+        // Untuk GET request, tambahkan timestamp sebagai query parameter
+        const searchParams = url.searchParams;
+        if (!searchParams.has('_t')) {
+          searchParams.set('_t', Date.now().toString());
+          const newUrl = new URL(req.url);
+          newUrl.search = searchParams.toString();
+          response = NextResponse.rewrite(newUrl);
+        }
+      }
+      
       await performTracking(req);
       return response;
     }
@@ -341,6 +403,8 @@ export async function middleware(req) {
     response = addSecurityHeaders(response);
     if (pathname.startsWith("/api")) {
       response = addCorsHeaders(response);
+      // ========== PERBAIKAN: Tambahkan no-cache untuk error response API ==========
+      response = addNoCacheHeaders(response);
     }
     
     response = addRateLimitHeaders(response, null, null, pathname.startsWith("/api") ? "api" : "page");
