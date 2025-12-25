@@ -1,5 +1,6 @@
 import axios from "axios";
 import FormData from "form-data";
+import SpoofHead from "@/lib/spoof-head";
 class NovaImg {
   constructor() {
     this.cfg = {
@@ -22,7 +23,8 @@ class NovaImg {
         "accept-language": "id-ID",
         origin: "https://novaimg.io",
         referer: "https://novaimg.io/",
-        "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36"
+        "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36",
+        ...SpoofHead()
       },
       pollDelay: 3e3,
       maxRetries: 60

@@ -337,7 +337,9 @@ class VideoSora2API {
     prompt = PROMPT.text,
     imageUrl,
     aspectRatio = "9:16",
-    duration = "10"
+    duration = "10",
+    model = "sora-2-image-to-video",
+    quality = "standard"
   }) {
     try {
       if (!imageUrl) throw new Error("Parameter 'imageUrl' wajib diisi (required).");
@@ -346,8 +348,6 @@ class VideoSora2API {
       } = await this._ensureValidSession({
         key: key
       });
-      const model = "sora-2-image-to-video";
-      const quality = "standard";
       const cost = this._calculateCost(duration, quality, model);
       const userInfo = await this.getUserInfo();
       const currentCredits = userInfo?.credits?.left_credits || 0;

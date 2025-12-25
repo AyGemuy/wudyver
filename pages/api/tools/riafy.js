@@ -154,7 +154,7 @@ class RiafyEnhancer {
 }
 export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
-  const api = new generate();
+  const api = new RiafyEnhancer();
   try {
     const data = await api.generate(params);
     return res.status(200).json(data);

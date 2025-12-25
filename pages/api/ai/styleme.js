@@ -180,8 +180,10 @@ class RestyleAI {
       throw e;
     }
   }
-  async tree({
-    categoryId
+  async products({
+    categoryId,
+    productId,
+    limit
   }) {
     try {
       this.log(`Mencari Tree Produk ID: ${categoryId}...`);
@@ -189,8 +191,8 @@ class RestyleAI {
         methodName: "QueryCategoryProductTree",
         body: {
           categoryId: String(categoryId),
-          productId: "0",
-          limit: "100"
+          productId: String(productId || "0"),
+          limit: String(limit || "100")
         }
       });
       let products = [];
@@ -205,27 +207,11 @@ class RestyleAI {
           }
         });
       }
-      return products;
+      return {
+        products: products
+      };
     } catch (e) {
       this.log(`Tree query error: ${e.message}`);
-      throw e;
-    }
-  }
-  async products({
-    categoryId
-  }) {
-    try {
-      const res = await this.request({
-        methodName: "ProductSearchPage",
-        body: {
-          categoryId: String(categoryId),
-          page: "1",
-          limit: "10"
-        }
-      });
-      return (res?.data?.item || []).filter(p => String(p.productFeeMark) === "0");
-    } catch (e) {
-      this.log(`Products query error: ${e.message}`);
       throw e;
     }
   }
@@ -239,7 +225,10 @@ class RestyleAI {
           categoryId: categoryId || "0"
         }
       });
-      return res?.data?.item || [];
+      const categories = res?.data?.item || [];
+      return {
+        categories: categories
+      };
     } catch (e) {
       this.log(`Categories query error: ${e.message}`);
       throw e;
@@ -344,7 +333,7 @@ export default async function handler(req, res) {
   if (!action) {
     return res.status(400).json({
       error: "Parameter 'action' wajib diisi.",
-      actions: ["categories", "tree", "products", "generate"]
+      actions: ["categories", "products", "generate"]
     });
   }
   const api = new RestyleAI();
@@ -353,14 +342,6 @@ export default async function handler(req, res) {
     switch (action) {
       case "categories":
         response = await api.categories(params);
-        break;
-      case "tree":
-        if (!params.categoryId) {
-          return res.status(400).json({
-            error: "Parameter 'categoryId' wajib diisi untuk action 'tree'."
-          });
-        }
-        response = await api.tree(params);
         break;
       case "products":
         if (!params.categoryId) {
@@ -386,7 +367,7 @@ export default async function handler(req, res) {
       default:
         return res.status(400).json({
           error: `Action tidak valid: ${action}.`,
-          valid_actions: ["categories", "tree", "products", "generate"]
+          valid_actions: ["categories", "products", "generate"]
         });
     }
     return res.status(200).json(response);
