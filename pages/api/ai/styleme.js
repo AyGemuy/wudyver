@@ -183,54 +183,119 @@ class RestyleAI {
   async products({
     categoryId,
     productId,
-    limit
+    limit,
+    ...rest
   }) {
     try {
       this.log(`Mencari Tree Produk ID: ${categoryId}...`);
       const res = await this.request({
         methodName: "QueryCategoryProductTree",
         body: {
-          categoryId: String(categoryId),
+          categoryId: String(categoryId || "0"),
           productId: String(productId || "0"),
-          limit: String(limit || "100")
+          limit: String(limit || "100"),
+          ...rest
         }
       });
-      let products = [];
-      if (res?.data?.item) {
-        res.data.item.forEach(oneCat => {
-          if (oneCat.subItem) {
-            oneCat.subItem.forEach(twoCat => {
-              if (twoCat.productItem) {
-                products.push(...twoCat.productItem.filter(p => String(p.productFeeMark) === "0"));
-              }
-            });
-          }
-        });
-      }
-      return {
-        products: products
-      };
+      return res?.data || [];
     } catch (e) {
       this.log(`Tree query error: ${e.message}`);
       throw e;
     }
   }
   async categories({
-    categoryId
+    categoryId,
+    ...rest
   }) {
     try {
       const res = await this.request({
         methodName: "QueryCategoryList",
         body: {
-          categoryId: categoryId || "0"
+          categoryId: categoryId || "0",
+          ...rest
         }
       });
-      const categories = res?.data?.item || [];
-      return {
-        categories: categories
-      };
+      return res?.data || [];
     } catch (e) {
       this.log(`Categories query error: ${e.message}`);
+      throw e;
+    }
+  }
+  async home({
+    categoryId,
+    ...rest
+  }) {
+    try {
+      const res = await this.request({
+        methodName: "HomePage",
+        body: {
+          categoryId: categoryId || "0",
+          ...rest
+        }
+      });
+      return res?.data || [];
+    } catch (e) {
+      this.log(`Home query error: ${e.message}`);
+      throw e;
+    }
+  }
+  async product_search({
+    categoryId,
+    page,
+    limit,
+    ...rest
+  }) {
+    try {
+      const res = await this.request({
+        methodName: "ProductSearchPage",
+        body: {
+          categoryId: categoryId || "0",
+          page: String(page || ""),
+          limit: String(limit || ""),
+          ...rest
+        }
+      });
+      return res?.data || [];
+    } catch (e) {
+      this.log(`Home query error: ${e.message}`);
+      throw e;
+    }
+  }
+  async category_product({
+    categoryId,
+    page,
+    limit,
+    ...rest
+  }) {
+    try {
+      const res = await this.request({
+        methodName: "CategoryProduct",
+        body: {
+          categoryId: categoryId || "0",
+          page: String(page || ""),
+          limit: String(limit || ""),
+          ...rest
+        }
+      });
+      return res?.data || [];
+    } catch (e) {
+      this.log(`Home query error: ${e.message}`);
+      throw e;
+    }
+  }
+  async product_detail({
+    ...rest
+  }) {
+    try {
+      const res = await this.request({
+        methodName: "ProductDetail",
+        body: {
+          ...rest
+        }
+      });
+      return res?.data || [];
+    } catch (e) {
+      this.log(`Home query error: ${e.message}`);
       throw e;
     }
   }
@@ -333,7 +398,7 @@ export default async function handler(req, res) {
   if (!action) {
     return res.status(400).json({
       error: "Parameter 'action' wajib diisi.",
-      actions: ["categories", "products", "generate"]
+      actions: ["categories", "products", "generate", "home", "product_search", "category_product", "product_detail"]
     });
   }
   const api = new RestyleAI();
@@ -342,6 +407,18 @@ export default async function handler(req, res) {
     switch (action) {
       case "categories":
         response = await api.categories(params);
+        break;
+      case "home":
+        response = await api.home(params);
+        break;
+      case "product_search":
+        response = await api.product_search(params);
+        break;
+      case "category_product":
+        response = await api.category_product(params);
+        break;
+      case "product_detail":
+        response = await api.product_detail(params);
         break;
       case "products":
         if (!params.categoryId) {
@@ -367,7 +444,7 @@ export default async function handler(req, res) {
       default:
         return res.status(400).json({
           error: `Action tidak valid: ${action}.`,
-          valid_actions: ["categories", "products", "generate"]
+          valid_actions: ["categories", "products", "generate", "home", "product_search", "category_product", "product_detail"]
         });
     }
     return res.status(200).json(response);
