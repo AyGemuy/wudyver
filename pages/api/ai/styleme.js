@@ -1,6 +1,45 @@
 import axios from "axios";
 import crypto from "crypto";
 import FormData from "form-data";
+const filterFreeAuto = input => {
+  const seen = new Set();
+  const freeItems = [];
+  const stats = {
+    free: 0,
+    vip: 0,
+    total: 0
+  };
+  let hasProductIdKey = false;
+  const stack = [input];
+  while (stack.length > 0) {
+    const node = stack.pop();
+    if (!node || typeof node !== "object") continue;
+    if ("productId" in node) {
+      hasProductIdKey = true;
+      const id = node.productId;
+      if (!seen.has(id)) {
+        seen.add(id);
+        stats.total++;
+        if (node.productFeeMark === "0") {
+          stats.free++;
+          freeItems.push(node);
+        } else {
+          stats.vip++;
+        }
+      }
+    }
+    const children = node instanceof Map ? Array.from(node.values()) : Object.values(node);
+    for (let i = children.length - 1; i >= 0; i--) {
+      const child = children[i];
+      if (child && typeof child === "object") {
+        stack.push(child);
+      }
+    }
+  }
+  if (!hasProductIdKey) return input;
+  console.log(`[Log] Free: ${stats.free} | VIP: ${stats.vip} | Total Unique: ${stats.total}`);
+  return freeItems;
+};
 class RestyleAI {
   constructor() {
     this.apiEndpoint = "https://interface.stylemeapp.net/api/";
@@ -96,6 +135,7 @@ class RestyleAI {
           "Content-Type": "application/x-www-form-urlencoded"
         }
       });
+      console.log(data);
       return data;
     } catch (e) {
       this.log(`Request error for ${methodName}: ${e.message}`);
@@ -197,7 +237,7 @@ class RestyleAI {
           ...rest
         }
       });
-      return res?.data || [];
+      return filterFreeAuto(res?.data || []);
     } catch (e) {
       this.log(`Tree query error: ${e.message}`);
       throw e;
@@ -211,11 +251,11 @@ class RestyleAI {
       const res = await this.request({
         methodName: "QueryCategoryList",
         body: {
-          categoryId: categoryId || "0",
+          categoryId: String(categoryId || "0"),
           ...rest
         }
       });
-      return res?.data || [];
+      return filterFreeAuto(res?.data || []);
     } catch (e) {
       this.log(`Categories query error: ${e.message}`);
       throw e;
@@ -229,11 +269,11 @@ class RestyleAI {
       const res = await this.request({
         methodName: "HomePage",
         body: {
-          categoryId: categoryId || "0",
+          categoryId: String(categoryId || "0"),
           ...rest
         }
       });
-      return res?.data || [];
+      return filterFreeAuto(res?.data || []);
     } catch (e) {
       this.log(`Home query error: ${e.message}`);
       throw e;
@@ -249,13 +289,13 @@ class RestyleAI {
       const res = await this.request({
         methodName: "ProductSearchPage",
         body: {
-          categoryId: categoryId || "0",
+          categoryId: String(categoryId || "0"),
           page: String(page || ""),
           limit: String(limit || ""),
           ...rest
         }
       });
-      return res?.data || [];
+      return filterFreeAuto(res?.data || []);
     } catch (e) {
       this.log(`Home query error: ${e.message}`);
       throw e;
@@ -271,13 +311,13 @@ class RestyleAI {
       const res = await this.request({
         methodName: "CategoryProduct",
         body: {
-          categoryId: categoryId || "0",
+          categoryId: String(categoryId || "0"),
           page: String(page || ""),
           limit: String(limit || ""),
           ...rest
         }
       });
-      return res?.data || [];
+      return filterFreeAuto(res?.data || []);
     } catch (e) {
       this.log(`Home query error: ${e.message}`);
       throw e;
@@ -293,7 +333,7 @@ class RestyleAI {
           ...rest
         }
       });
-      return res?.data || [];
+      return filterFreeAuto(res?.data || []);
     } catch (e) {
       this.log(`Home query error: ${e.message}`);
       throw e;
@@ -421,11 +461,6 @@ export default async function handler(req, res) {
         response = await api.product_detail(params);
         break;
       case "products":
-        if (!params.categoryId) {
-          return res.status(400).json({
-            error: "Parameter 'categoryId' wajib diisi untuk action 'products'."
-          });
-        }
         response = await api.products(params);
         break;
       case "generate":

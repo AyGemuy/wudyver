@@ -1,8 +1,11 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
+import PROXY from "@/configs/proxy-url";
+const proxy = PROXY.url;
+console.log("CORS proxy", PROXY.url);
 class Modyolo {
   constructor() {
-    this.baseUrl = "https://modyolo.com";
+    this.baseUrl = `${proxy}https://modyolo.com`;
     this.ajaxUrl = `${this.baseUrl}/wp-admin/admin-ajax.php`;
     this.ua = ["Googlebot/2.1 (+http://www.google.com/bot.html)", "Googlebot-News (+http://www.google.com/bot.html)", "Googlebot-Image/1.0", "Googlebot-Video/1.0", "Googlebot-Mobile/2.1 (+http://www.google.com/bot.html)"];
   }
@@ -47,7 +50,7 @@ class Modyolo {
   }
   async search({
     query,
-    limit = 5,
+    limit = 1,
     page = 1,
     ...rest
   }) {

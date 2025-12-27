@@ -1,57 +1,81 @@
-import fetch from "node-fetch";
+import axios from "axios";
+class Carbonara {
+  constructor() {
+    this.api = "https://carbonara.solopov.dev/api/cook";
+    this.ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
+  }
+  out(msg) {
+    console.log(`[Carbon-Log]: ${msg}`);
+  }
+  async generate({
+    code,
+    lang,
+    ...rest
+  }) {
+    this.out("Memulai proses konversi...");
+    try {
+      const text = code || "";
+      const language = lang ? lang : "auto";
+      if (!text) throw new Error("Input 'code' tidak boleh kosong.");
+      const body = {
+        code: text,
+        language: language,
+        theme: rest?.theme || "seti",
+        backgroundColor: rest?.backgroundColor || "rgba(171, 184, 195, 1)",
+        dropShadow: rest?.dropShadow ?? true,
+        dropShadowBlurRadius: rest?.dropShadowBlurRadius || "68px",
+        dropShadowOffsetY: rest?.dropShadowOffsetY || "20px",
+        exportSize: rest?.exportSize || "2x",
+        fontSize: rest?.fontSize || "14px",
+        fontFamily: rest?.fontFamily || "Hack",
+        firstLineNumber: rest?.firstLineNumber || 1,
+        lineHeight: rest?.lineHeight || "133%",
+        lineNumbers: rest?.lineNumbers ?? false,
+        paddingHorizontal: rest?.paddingHorizontal || "56px",
+        paddingVertical: rest?.paddingVertical || "56px",
+        prettify: rest?.prettify ?? false,
+        windowControls: rest?.windowControls ?? true,
+        widthAdjustment: rest?.widthAdjustment ?? true,
+        ...rest
+      };
+      this.out("Mengirim request ke API...");
+      const res = await axios.post(this.api, body, {
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": this.ua
+        },
+        responseType: "arraybuffer"
+      });
+      this.out("Data berhasil diterima.");
+      return {
+        buffer: Buffer.from(res?.data),
+        contentType: res?.headers?.["content-type"] || "image/png"
+      };
+    } catch (err) {
+      this.out(`Gagal: ${err.message}`);
+      return {
+        error: true,
+        message: err?.response?.data?.toString() || err.message
+      };
+    }
+  }
+}
 export default async function handler(req, res) {
-  const {
-    text,
-    type = 1
-  } = req.method === "GET" ? req.query : req.body;
-  if (!text) {
+  const params = req.method === "GET" ? req.query : req.body;
+  if (!params.code) {
     return res.status(400).json({
-      error: "Paramenter 'text' is required."
+      error: "Parameter 'code' diperlukan"
     });
   }
   try {
-    const response = type === "1" ? await CarbonifyV1(text) : await CarbonifyV2(text);
-    res.setHeader("Content-Type", "application/octet-stream");
-    res.send(response);
+    const api = new Carbonara();
+    const result = await api.generate(params);
+    res.setHeader("Content-Type", result.contentType);
+    return res.status(200).send(result.buffer);
   } catch (error) {
-    res.status(500).json({
-      error: error.message
+    console.error("Terjadi kesalahan di handler API:", error.message);
+    return res.status(500).json({
+      error: error.message || "Internal Server Error"
     });
-  }
-}
-async function CarbonifyV1(input) {
-  try {
-    const response = await fetch("https://carbonara.solopov.dev/api/cook", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        code: input
-      })
-    });
-    if (!response.ok) throw new Error("Failed to fetch from CarbonifyV1 API");
-    const buffer = await response.arrayBuffer();
-    return Buffer.from(buffer);
-  } catch (error) {
-    throw new Error(`CarbonifyV1 error: ${error.message}`);
-  }
-}
-async function CarbonifyV2(input) {
-  try {
-    const response = await fetch("https://carbon-api.vercel.app/api", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        code: input
-      })
-    });
-    if (!response.ok) throw new Error("Failed to fetch from CarbonifyV2 API");
-    const buffer = await response.arrayBuffer();
-    return Buffer.from(buffer);
-  } catch (error) {
-    throw new Error(`CarbonifyV2 error: ${error.message}`);
   }
 }

@@ -1,88 +1,66 @@
-import apiConfig from "@/configs/apiConfig";
 import axios from "axios";
-
-function escapeHTML(str) {
-  return str.replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;"
-  })[char]);
-}
-const runPlaywrightCode = async code => {
-  try {
-    const url = `https://${apiConfig.DOMAIN_URL}/api/tools/playwright`;
-    const headers = {
-      accept: "*/*",
-      "content-type": "application/json",
-      "user-agent": "Postify/1.0.0"
-    };
-    const data = {
-      code: code,
-      language: "javascript"
-    };
-    const response = await axios.post(url, data, {
-      headers: headers
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error running playwright code:", error);
-    throw error;
+class CarbonVercel {
+  constructor() {
+    this.url = "https://carbon-api.vercel.app/api";
+    this.ua = "Mozilla/5.0 (Node.js)";
   }
-};
-const snippetMaker = async (text, lang = "js") => {
-  const encodedText = escapeHTML(text);
-  const code = `const { chromium } = require('playwright');
-
-async function snippet(text) {
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
-
-  try {
-    const content = \`<script type="module" src="https://unpkg.com/@deckdeckgo/highlight-code@latest/dist/deckdeckgo-highlight-code/deckdeckgo-highlight-code.esm.js"></script>
-<deckgo-highlight-code language="${lang}">
-  <code slot="code">
-${encodedText}
-  </code>
-</deckgo-highlight-code>\`;
-
-    await page.setContent(content);
-    const screenshotBuffer = await page.screenshot({ type: 'png' });
-    await browser.close();
-    return screenshotBuffer.toString('base64');
-  } catch (error) {
-    console.error('Error fetching data:', error);
-  } finally {
-    await browser.close();
+  log(t) {
+    console.log(`[Carbon-Vercel]: ${t}`);
+  }
+  async generate({
+    code,
+    theme,
+    ...rest
+  }) {
+    this.log("Menyiapkan request...");
+    try {
+      const inputCode = code || "";
+      const inputTheme = theme ? theme : "Seti";
+      if (!inputCode) throw new Error("Parameter 'code' wajib diisi.");
+      const payload = {
+        code: inputCode,
+        theme: inputTheme,
+        ...rest
+      };
+      this.log(`Mengirim kode dengan tema: ${inputTheme}`);
+      const response = await axios.post(this.url, payload, {
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": this.ua
+        },
+        responseType: "arraybuffer"
+      });
+      this.log("Gambar berhasil di-generate.");
+      return {
+        buffer: Buffer.from(response?.data),
+        contentType: response?.headers?.["content-type"] || "image/png"
+      };
+    } catch (err) {
+      this.log(`Error terjadi: ${err.message}`);
+      return {
+        error: true,
+        message: err?.response?.data?.toString() || err.message,
+        status: err?.response?.status || 500
+      };
+    }
   }
 }
-
-snippet('${encodedText}').then(a => console.log(a));`;
-  const res = await runPlaywrightCode(code.trim());
-  return Buffer.from(res.output?.trim() || "", "base64");
-};
 export default async function handler(req, res) {
-  const {
-    method
-  } = req;
-  const {
-    code: text,
-    lang
-  } = req.method === "GET" ? req.query : req.body;
-  if (!text) {
+  const params = req.method === "GET" ? req.query : req.body;
+  if (!params.code) {
     return res.status(400).json({
-      error: "Code parameter is required"
+      error: "Parameter 'code' diperlukan"
     });
   }
   try {
-    const result = await snippetMaker(text, lang);
-    res.setHeader("Content-Type", "image/png");
-    return res.status(200).send(result);
+    const api = new CarbonVercel();
+    const result = await api.generate(params);
+    res.setHeader("Content-Type", result.contentType);
+    return res.status(200).send(result.buffer);
   } catch (error) {
-    console.error(error);
+    console.error("Terjadi kesalahan di handler API:", error.message);
     return res.status(500).json({
-      error: "Failed to generate snippet image"
+      error: error.message || "Internal Server Error"
     });
   }
 }
