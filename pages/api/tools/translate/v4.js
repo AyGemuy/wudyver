@@ -1,30 +1,45 @@
-import fetch from "node-fetch";
-export default async function handler(req, res) {
-  try {
-    const {
-      text,
-      source = "auto",
-      target = "id"
-    } = req.method === "GET" ? req.query : req.body;
-    if (!text) {
-      return res.status(400).json({
-        success: false,
-        message: "Paramenter 'text' diperlukan."
-      });
-    }
-    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source}&tl=${target}&dt=t&q=${encodeURIComponent(text)}`;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-    const data = await response.json();
-    const translatedText = data?.[0]?.[0]?.[0] || "Terjemahan tidak ditemukan.";
-    return res.status(200).json({
-      success: true,
-      translatedText: translatedText
+import axios from "axios";
+class TranslationService {
+  constructor() {
+    this.api = axios.create({
+      baseURL: "https://www.cardscanner.co/api/"
     });
+  }
+  async translate({
+    text,
+    from = "auto",
+    to = "id"
+  }) {
+    try {
+      const {
+        data
+      } = await this.api.post("translate", {
+        text: text,
+        from: from,
+        to: to
+      });
+      return data;
+    } catch (err) {
+      console.error("[!] Error:", err.response?.data || err.message);
+      return null;
+    }
+  }
+}
+export default async function handler(req, res) {
+  const params = req.method === "GET" ? req.query : req.body;
+  if (!params.text) {
+    return res.status(400).json({
+      error: "Parameter 'text' diperlukan"
+    });
+  }
+  const api = new TranslationService();
+  try {
+    const data = await api.translate(params);
+    return res.status(200).json(data);
   } catch (error) {
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses.";
     return res.status(500).json({
-      success: false,
-      message: error.message
+      error: errorMessage
     });
   }
 }

@@ -184,16 +184,17 @@ export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.text) {
     return res.status(400).json({
-      error: "text are required"
+      error: "Parameter 'text' diperlukan"
     });
   }
+  const api = new TranslationService();
   try {
-    const translator = new TranslationService();
-    const response = await translator.translate(params);
-    return res.status(200).json(response);
+    const data = await api.translate(params);
+    return res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({
-      error: error.message || "Internal Server Error"
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses.";
+    return res.status(500).json({
+      error: errorMessage
     });
   }
 }

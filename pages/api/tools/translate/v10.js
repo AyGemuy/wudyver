@@ -1,5 +1,5 @@
 import axios from "axios";
-class LaraTranslate {
+class TranslationService {
   constructor() {
     this.api = {
       base: "https://webapi.laratranslate.com",
@@ -109,16 +109,17 @@ export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.text) {
     return res.status(400).json({
-      error: "Text is required"
+      error: "Parameter 'text' diperlukan"
     });
   }
-  const translator = new LaraTranslate();
+  const api = new TranslationService();
   try {
-    const data = await translator.translate(params);
+    const data = await api.translate(params);
     return res.status(200).json(data);
   } catch (error) {
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses.";
     return res.status(500).json({
-      error: error.message
+      error: errorMessage
     });
   }
 }

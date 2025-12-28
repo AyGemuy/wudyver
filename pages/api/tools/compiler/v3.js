@@ -1,5 +1,5 @@
 import axios from "axios";
-class CodeCompiler {
+class CompilerClient {
   constructor() {
     this.codeIds = {
       kotlin: 2960,
@@ -85,30 +85,47 @@ class CodeCompiler {
       };
     }
   }
+  async run({
+    service = "1",
+    code,
+    lang
+  }) {
+    try {
+      let out;
+      if (service === "1") {
+        out = await this.runoob(code, lang);
+      } else if (service === "2") {
+        out = await this.leez(code);
+      } else {
+        return {
+          error: "Invalid service",
+          available: "1 (Runoob) / 2 (Leez)"
+        };
+      }
+      return out;
+    } catch (error) {
+      return {
+        error: "Execution failed",
+        message: error.message
+      };
+    }
+  }
 }
 export default async function handler(req, res) {
-  const {
-    method
-  } = req;
-  const {
-    code = `console.log('hello')`,
-      lang: language = "javascript",
-      service = "2"
-  } = method === "POST" ? req.body : req.query;
-  if (!code) {
+  const params = req.method === "GET" ? req.query : req.body;
+  if (!params.code) {
     return res.status(400).json({
-      error: `Missing required field: code (required for action)`
+      error: "Parameter 'code' diperlukan"
     });
   }
-  const compiler = new CodeCompiler();
+  const api = new CompilerClient();
   try {
-    const result = service === "1" ? await compiler.runoob(code, language) : service === "2" ? await compiler.leez(code) : res.status(400).json({
-      error: "Invalid service"
-    });
-    return res.status(200).json(result);
+    const data = await api.run(params);
+    return res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({
-      error: error.message
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    return res.status(500).json({
+      error: errorMessage
     });
   }
 }

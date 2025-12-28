@@ -8,7 +8,7 @@ let a = 5;
 let b = 15;
 console.log("Product: " + (a * b));
 `;
-class Compiler {
+class CompilerClient {
   generateUUID() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
       const r = Math.random() * 16 | 0;
@@ -57,7 +57,9 @@ code: code
             ws.close();
           }
         });
-        ws.on("close", () => resolve(result.trim()));
+        ws.on("close", () => resolve({
+          output: result.trim()
+        }));
         ws.on("error", err => reject(err.message));
       } catch (err) {
         reject("Request error: " + err.message);
@@ -69,18 +71,17 @@ export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.code) {
     return res.status(400).json({
-      error: `Missing required field: code (required for action)`
+      error: "Parameter 'code' diperlukan"
     });
   }
-  const myCompiler = new Compiler();
+  const api = new CompilerClient();
   try {
-    const data = await myCompiler.run(params);
-    return res.status(200).json({
-      result: data
-    });
+    const data = await api.run(params);
+    return res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({
-      error: "Internal Server Error"
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    return res.status(500).json({
+      error: errorMessage
     });
   }
 }

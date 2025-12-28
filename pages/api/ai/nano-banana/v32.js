@@ -1,295 +1,263 @@
 import axios from "axios";
+import {
+  CookieJar
+} from "tough-cookie";
+import {
+  wrapper
+} from "axios-cookiejar-support";
 import FormData from "form-data";
 import apiConfig from "@/configs/apiConfig";
+import SpoofHead from "@/lib/spoof-head";
 class NanoBanana {
   constructor() {
-    this.api = axios.create({
-      baseURL: "https://trynanobanana.ai/api",
+    this.jar = new CookieJar();
+    this.client = wrapper(axios.create({
+      jar: this.jar,
+      withCredentials: true,
+      timeout: 6e4,
       headers: {
         accept: "*/*",
-        "accept-language": "id-ID",
-        "content-type": "application/json",
-        origin: "https://trynanobanana.ai",
-        referer: "https://trynanobanana.ai/",
-        "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36"
+        "accept-language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
+        "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36",
+        ...SpoofHead()
       }
-    });
-    this.mailApi = axios.create({
-      baseURL: `https://${apiConfig.DOMAIN_URL}/api/mails/v9`
-    });
-    this.ratios = ["1:1", "3:2", "2:3", "4:3", "3:4", "4:5", "5:4", "16:9", "9:16", "21:9"];
-    this.token = null;
-    this.cookies = null;
+    }));
+    this.registered = false;
+    this.cfg = {
+      base: "https://trynanobanana.ai",
+      mail: `https://${apiConfig.DOMAIN_URL}/api/mails/v9`,
+      folder: "wavespeed/uploads",
+      pollDelay: 3e3,
+      maxAttempts: 60,
+      endpoints: {
+        auth: "/api/auth/sign-up/email",
+        checkin: "/api/credits/daily-checkin",
+        credits: "/api/credits",
+        upload: "/api/storage/upload",
+        nano: {
+          gen: "/api/ai/image/nano-banana/generate",
+          status: "/api/ai/image/nano-banana/status"
+        },
+        wavespeed: {
+          "text-to-image": "/api/ai/image/wavespeed/text-to-image",
+          "image-edit": "/api/ai/image/wavespeed/image-edit",
+          "text-to-video": "/api/ai/video/wavespeed/text-to-video",
+          "image-to-video": "/api/ai/video/wavespeed/image-to-video",
+          "video-edit": "/api/ai/video/wavespeed/video-edit",
+          "wan-animate": "/api/ai/video/wavespeed/wan-animate",
+          status: "/api/ai/video/wavespeed/status"
+        }
+      }
+    };
   }
-  validateRatio(ratio) {
-    return this.ratios.includes(ratio) ? ratio : "3:4";
+  _log(step, msg, type = "info") {
+    const icons = {
+      info: "🔹",
+      error: "❌",
+      warn: "⚠️",
+      success: "✅"
+    };
+    const timestamp = new Date().toLocaleTimeString();
+    console.log(`${timestamp} ${icons[type] || "🔹"} [${step.toUpperCase()}] ${msg}`);
   }
-  async createMail() {
+  async autoRegister() {
     try {
-      console.log("📧 Membuat email...");
+      this._log("auth", "Memulai registrasi akun baru...");
       const {
-        data
-      } = await this.mailApi.get("", {
-        params: {
-          action: "create"
+        data: mailRes
+      } = await axios.get(`${this.cfg.mail}?action=create`);
+      const email = mailRes.email;
+      if (!email) throw new Error("Gagal mengambil email sementara.");
+      this._log("auth", `Email terbuat: ${email}`);
+      await this.client.post(`${this.cfg.base}${this.cfg.endpoints.auth}`, {
+        email: email,
+        password: email,
+        name: email.split("@")[0],
+        callbackURL: "/"
+      }, {
+        headers: {
+          origin: this.cfg.base,
+          referer: `${this.cfg.base}/auth/sign-up`
         }
       });
-      console.log(`✅ Email dibuat: ${data?.email}`);
-      return data?.email || null;
-    } catch (err) {
-      console.error("❌ Gagal membuat email:", err?.message);
-      return null;
-    }
-  }
-  async getOtp(email, max = 30, delay = 3e3) {
-    console.log("🔍 Menunggu OTP...");
-    for (let i = 0; i < max; i++) {
-      try {
+      this._log("auth", "Menunggu email verifikasi...");
+      let verifyLink = null;
+      for (let i = 0; i < this.cfg.maxAttempts; i++) {
         const {
-          data
-        } = await this.mailApi.get("", {
-          params: {
-            action: "message",
-            email: email
+          data: inbox
+        } = await axios.get(`${this.cfg.mail}?action=message&email=${email}`);
+        const match = (inbox?.data?.[0]?.text_content || "").match(/https:\/\/trynanobanana\.ai\/api\/auth\/verify-email\?token=[^\s]+/);
+        if (match) {
+          verifyLink = match[0];
+          break;
+        }
+        await new Promise(r => setTimeout(r, this.cfg.pollDelay));
+      }
+      if (!verifyLink) throw new Error("Link verifikasi tidak ditemukan (Timeout).");
+      await this.client.get(verifyLink);
+      this._log("auth", "Email berhasil diverifikasi.");
+      const {
+        data: status
+      } = await this.client.get(`${this.cfg.base}${this.cfg.endpoints.checkin}`);
+      if (status.canCheckIn) {
+        await this.client.post(`${this.cfg.base}${this.cfg.endpoints.checkin}`, {}, {
+          headers: {
+            "content-length": "0"
           }
         });
-        const msg = data?.data?.[0]?.text_content || "";
-        const match = msg.match(/verify-email\?token=([^\s]+)/);
-        if (match?.[1]) {
-          console.log("✅ OTP diterima");
-          return match[1];
-        }
-      } catch (err) {
-        console.log(`⏳ Mencoba lagi (${i + 1}/${max})...`);
+        this._log("auth", "Daily check-in berhasil.");
       }
-      await new Promise(r => setTimeout(r, delay));
-    }
-    console.error("❌ OTP timeout");
-    return null;
-  }
-  async signup(email, pass) {
-    try {
-      console.log("📝 Registrasi akun...");
-      await this.api.post("/auth/sign-up/email", {
-        email: email,
-        password: pass,
-        name: email,
-        callbackURL: "/"
-      });
-      console.log("✅ Registrasi berhasil");
+      this.registered = true;
+      this._log("auth", `Siap digunakan. Saldo: ${await this.getCredits()} Credits.`, "success");
       return true;
-    } catch (err) {
-      console.error("❌ Gagal registrasi:", err?.message);
-      return false;
-    }
-  }
-  async verify(token) {
-    try {
-      console.log("✔️ Verifikasi email...");
-      const {
-        headers
-      } = await axios.get(`https://trynanobanana.ai/api/auth/verify-email?token=${token}`, {
-        maxRedirects: 0,
-        validateStatus: s => s >= 200 && s < 400
-      });
-      const cookies = headers["set-cookie"]?.join("; ") || "";
-      this.cookies = cookies;
-      this.api.defaults.headers.cookie = cookies;
-      console.log("✅ Email terverifikasi");
-      return true;
-    } catch (err) {
-      console.error("❌ Gagal verifikasi:", err?.message);
-      return false;
-    }
-  }
-  async getSession() {
-    try {
-      console.log("🔐 Mengambil sesi...");
-      const {
-        data
-      } = await this.api.get("/auth/get-session");
-      this.token = data?.session?.token || null;
-      console.log(`✅ Sesi diperoleh: ${data?.user?.email}`);
-      return data || null;
-    } catch (err) {
-      console.error("❌ Gagal ambil sesi:", err?.message);
-      return null;
-    }
-  }
-  async checkin() {
-    try {
-      console.log("🎁 Daily check-in...");
-      const {
-        data
-      } = await this.api.post("/credits/daily-checkin");
-      console.log(`✅ Check-in: ${data?.canCheckIn ? "Berhasil" : "Sudah dilakukan"}`);
-      return data || null;
-    } catch (err) {
-      console.error("❌ Gagal check-in:", err?.message);
-      return null;
+    } catch (e) {
+      this._log("auth", `Gagal: ${e.response?.data?.message || e.message}`, "error");
+      throw e;
     }
   }
   async getCredits() {
     try {
       const {
         data
-      } = await this.api.get("/credits");
-      console.log(`💰 Kredit tersedia: ${data?.credits || 0}`);
-      return data?.credits || 0;
-    } catch (err) {
-      console.error("❌ Gagal cek kredit:", err?.message);
+      } = await this.client.get(`${this.cfg.base}${this.cfg.endpoints.credits}`);
+      return data.credits || 0;
+    } catch (e) {
       return 0;
     }
   }
   async upload(input) {
+    if (!input) return null;
+    if (typeof input === "string" && input.includes("anyvideo.ai")) return input;
     try {
-      console.log("📤 Upload gambar...");
-      const form = new FormData();
-      if (Buffer.isBuffer(input)) {
-        form.append("file", input, {
-          filename: "image.jpg",
-          contentType: "image/jpeg"
-        });
-      } else if (input.startsWith("data:")) {
-        const buf = Buffer.from(input.split(",")[1], "base64");
-        form.append("file", buf, {
-          filename: "image.jpg",
-          contentType: "image/jpeg"
-        });
-      } else {
-        const {
-          data: buf
-        } = await axios.get(input, {
+      let buffer;
+      if (Buffer.isBuffer(input)) buffer = input;
+      else if (input.startsWith("http")) {
+        const res = await axios.get(input, {
           responseType: "arraybuffer"
         });
-        form.append("file", Buffer.from(buf), {
-          filename: "image.jpg",
-          contentType: "image/jpeg"
-        });
-      }
-      form.append("folder", "wavespeed/uploads");
-      const {
-        data
-      } = await this.api.post("/storage/upload", form, {
-        headers: {
-          ...form.getHeaders()
-        }
+        buffer = Buffer.from(res.data);
+      } else if (input.startsWith("data:")) {
+        buffer = Buffer.from(input.split(",")[1], "base64");
+      } else throw new Error("Format input tidak dikenali.");
+      const form = new FormData();
+      form.append("file", buffer, {
+        filename: `media_${Date.now()}.jpg`,
+        contentType: "image/jpeg"
       });
-      console.log(`✅ Upload berhasil: ${data?.url}`);
-      return data?.url || null;
-    } catch (err) {
-      console.error("❌ Gagal upload:", err?.message);
-      return null;
-    }
-  }
-  async gen(payload) {
-    try {
-      console.log("🎨 Membuat task generate...");
+      form.append("folder", this.cfg.folder);
       const {
         data
-      } = await this.api.post("/ai/image/nano-banana/generate", payload);
-      console.log(`✅ Task dibuat: ${data?.taskId}`);
-      return data?.taskId || null;
-    } catch (err) {
-      console.error("❌ Gagal generate:", err?.message);
+      } = await this.client.post(`${this.cfg.base}${this.cfg.endpoints.upload}`, form, {
+        headers: form.getHeaders()
+      });
+      this._log("upload", "Media berhasil diunggah.");
+      return data.url;
+    } catch (e) {
+      this._log("upload", `Gagal: ${e.message}`, "error");
       return null;
     }
   }
-  async poll(taskId, max = 60, delay = 3e3) {
-    console.log("⏳ Polling status...");
-    for (let i = 0; i < max; i++) {
+  async poll(taskId, hub) {
+    const url = hub === "nano" ? `${this.cfg.base}${this.cfg.endpoints.nano.status}/${taskId}` : `${this.cfg.base}${this.cfg.endpoints.wavespeed.status}?taskId=${taskId}`;
+    for (let i = 0; i < this.cfg.maxAttempts; i++) {
       try {
         const {
           data
-        } = await this.api.get(`/ai/image/nano-banana/status/${taskId}`);
-        const status = data?.data?.status || "";
-        if (status === "done") {
-          console.log("✅ Generate selesai!");
-          return data?.data || null;
-        } else if (status === "failed") {
-          console.error("❌ Generate gagal");
-          return null;
+        } = await this.client.get(url);
+        const res = data.data || data;
+        this._log("poll", `Tugas: ${taskId.slice(0, 8)}... | Status: ${res.status} (${i + 1})`);
+        if (["completed", "done", "success"].includes(res.status)) {
+          return res.urls || res.output?.urls || [res.url];
         }
-        console.log(`⏳ Status: ${status} (${i + 1}/${max})...`);
-      } catch (err) {
-        console.log(`⚠️ Error polling (${i + 1}/${max}):`, err?.message);
+        if (res.status === "failed") throw new Error(res.error || "Server merepresentasikan kegagalan.");
+        await new Promise(r => setTimeout(r, this.cfg.pollDelay));
+      } catch (e) {
+        if (i === this.cfg.maxAttempts - 1) throw e;
+        await new Promise(r => setTimeout(r, this.cfg.pollDelay));
       }
-      await new Promise(r => setTimeout(r, delay));
     }
-    console.error("❌ Polling timeout");
-    return null;
-  }
-  async init() {
-    try {
-      const email = await this.createMail();
-      if (!email) return false;
-      if (!await this.signup(email, email)) return false;
-      const token = await this.getOtp(email);
-      if (!token) return false;
-      if (!await this.verify(token)) return false;
-      await this.getSession();
-      await this.checkin();
-      await this.getCredits();
-      return true;
-    } catch (err) {
-      console.error("❌ Init gagal:", err?.message);
-      return false;
-    }
+    throw new Error("Polling Timeout.");
   }
   async generate({
-    prompt,
-    imageUrl,
-    aspect_ratio = "3:4",
-    num_images = 1,
-    output_format = "png",
+    type = "text-to-image",
+    model = null,
+    prompt = "",
+    imageUrl = null,
+    videoUrl = null,
+    aspect_ratio = "4:3",
+    resolution = "720p",
+    duration = 5,
     ...rest
   }) {
+    if (!this.registered) await this.autoRegister();
     try {
-      if (!this.token) {
-        console.log("🔄 Inisialisasi akun...");
-        if (!await this.init()) throw new Error("Init gagal");
-      }
-      const ratio = this.validateRatio(aspect_ratio);
-      const mode = imageUrl ? "image-editing" : "text-to-image";
-      const payload = {
-        mode: mode,
-        prompt: prompt,
-        num_images: num_images,
-        aspect_ratio: ratio,
-        output_format: output_format,
+      const isVideo = ["text-to-video", "image-to-video", "video-edit", "wan-animate"].includes(type);
+      const useNano = !isVideo && (!model || ["nano-banana", "seedream"].includes(model));
+      const hub = useNano ? "nano" : "wavespeed";
+      const endpoint = useNano ? this.cfg.endpoints.nano.gen : this.cfg.endpoints.wavespeed[type];
+      this._log("hub", `Menggunakan HUB: ${hub.toUpperCase()} | Endpoint: ${endpoint}`, "success");
+      let payload = {
+        prompt: prompt.trim(),
         provider: "wavespeed",
-        ...rest
+        seed: rest.seed || -1,
+        enable_prompt_expansion: rest.enable_prompt_expansion ?? true,
+        negative_prompt: rest.negative_prompt || ""
       };
-      if (imageUrl) {
-        const urls = [];
-        const images = Array.isArray(imageUrl) ? imageUrl : [imageUrl];
-        for (const img of images) {
-          const url = await this.upload(img);
-          if (url) {
-            urls.push(url);
-          } else {
-            console.log(`⚠️ Skip gambar: ${img}`);
+      if (hub === "nano") {
+        payload.mode = imageUrl ? "image-editing" : "text-to-image";
+        payload.num_images = rest.num_images || 1;
+        payload.aspect_ratio = aspect_ratio;
+        payload.output_format = "png";
+        if (imageUrl) {
+          const list = Array.isArray(imageUrl) ? imageUrl : [imageUrl];
+          const uploadedUrls = [];
+          for (const img of list) {
+            this._log("upload", `Sedang mengunggah media ${uploadedUrls.length + 1}/${list.length}...`);
+            const url = await this.upload(img);
+            if (url) {
+              uploadedUrls.push(url);
+            }
           }
+          payload.image_urls = uploadedUrls;
         }
-        if (urls.length === 0) throw new Error("Tidak ada gambar berhasil diupload");
-        payload.image_urls = urls;
+      } else {
+        if (type === "text-to-video") {
+          payload.size = rest.size || "1280*720";
+          payload.duration = duration;
+        } else if (type === "image-to-video") {
+          payload.image = await this.upload(imageUrl);
+          payload.model = model || "wan25";
+          payload.resolution = resolution;
+          payload.duration = duration;
+          if (rest.lastImage) payload.last_image = await this.upload(rest.lastImage);
+        } else if (type === "video-edit") {
+          payload.video = await this.upload(videoUrl);
+          payload.resolution = resolution;
+          payload.videoDuration = duration;
+        } else if (type === "wan-animate") {
+          payload.image = await this.upload(imageUrl);
+          payload.video = await this.upload(videoUrl);
+          payload.mode = rest.mode || "animate";
+          payload.resolution = resolution;
+          payload.videoDuration = duration;
+        }
       }
-      const taskId = await this.gen(payload);
-      if (!taskId) throw new Error("Generate gagal");
-      const result = await this.poll(taskId);
-      if (!result) throw new Error("Polling gagal");
+      const {
+        data
+      } = await this.client.post(`${this.cfg.base}${endpoint}`, payload);
+      if (!data.taskId) throw new Error(data.error || "Gagal mendapatkan taskId.");
+      this._log("task", `Task ID: ${data.taskId}. Memulai antrean...`);
+      const results = await this.poll(data.taskId, hub);
       return {
-        result: result?.urls || [],
-        taskId: result?.taskId,
-        model: result?.model,
-        provider: result?.provider,
-        creditsUsed: result?.creditsUsed,
-        completedAt: result?.completedAt,
-        metadata: result?.metadata
+        success: true,
+        hub: hub,
+        type: type,
+        taskId: data.taskId,
+        results: results
       };
-    } catch (err) {
-      console.error("❌ Error:", err?.message);
-      throw err;
+    } catch (e) {
+      this._log("gen", `Error: ${e.response?.data?.message || e.message}`, "error");
+      throw e;
     }
   }
 }

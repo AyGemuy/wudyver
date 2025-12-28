@@ -1,8 +1,5 @@
 import axios from "axios";
-import {
-  FormData,
-  Blob
-} from "formdata-node";
+import FormData from "form-data";
 import crypto from "crypto";
 class OCR {
   constructor(apiKey = "4qlkYrXJ4Z255nLU35mnq84sr1VmMs9j1su18xlK") {
@@ -12,55 +9,63 @@ class OCR {
       accept: "*/*",
       "accept-language": "id-ID,id;q=0.9",
       "cache-control": "no-cache",
-      "content-type": "multipart/form-data",
       origin: "https://www.pen-to-print.com",
       pragma: "no-cache",
-      priority: "u=1, i",
       referer: "https://www.pen-to-print.com/",
-      "sec-ch-ua": `"Chromium";v="131", "Not_A Brand";v="24", "Microsoft Edge Simulate";v="131", "Lemur";v="131"`,
-      "sec-ch-ua-mobile": "?1",
-      "sec-ch-ua-platform": `"Android"`,
-      "sec-fetch-dest": "empty",
-      "sec-fetch-mode": "cors",
-      "sec-fetch-site": "cross-site",
       "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
       "x-api-key": this.apiKey
     };
+  }
+  log(step, message) {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] [OCR_PROCESS] [${step}] ${message}`);
   }
   generateSession() {
     return crypto.randomUUID();
   }
   async generateHash(buffer) {
-    const uint8Array = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", uint8Array);
-    const hashArray = Array.from(new Uint8Array(hashBuffer)).map(byte => byte.toString(16).padStart(2, "0")).join("");
-    let srcHash = "";
-    for (let i = 0; i < 10; i++) {
-      srcHash += hashArray[3 + 3 * i];
+    try {
+      this.log("HASHING", "Memulai pembuatan hash dari buffer...");
+      const hashHex = crypto.createHash("sha256").update(buffer).digest("hex");
+      let srcHash = "";
+      for (let i = 0; i < 10; i++) {
+        srcHash += hashHex[3 + 3 * i];
+      }
+      this.log("HASHING", `Hash berhasil dibuat: ${srcHash}`);
+      return srcHash;
+    } catch (error) {
+      this.log("HASHING_ERROR", error.message);
+      throw error;
     }
-    return srcHash;
   }
   async processImage(input, options = {}) {
     try {
-      const isBuffer = Buffer.isBuffer(input);
-      const isBase64 = typeof input === "string" && input.startsWith("data:");
-      const isUrl = typeof input === "string" && (input.startsWith("http://") || input.startsWith("https://"));
       let imageData;
-      if (isBuffer) {
-        imageData = await this.processBuffer(input, options);
-      } else if (isBase64) {
+      if (Buffer.isBuffer(input)) {
+        this.log("INPUT", "Menerima input berupa Buffer.");
+        imageData = {
+          buffer: input,
+          contentType: options.contentType || "image/jpeg",
+          filename: options.filename || "image.jpg"
+        };
+      } else if (typeof input === "string" && input.startsWith("data:")) {
+        this.log("INPUT", "Menerima input berupa Base64.");
         imageData = await this.processBase64(input);
-      } else if (isUrl) {
+      } else if (typeof input === "string" && input.startsWith("http")) {
+        this.log("INPUT", `Menerima input berupa URL: ${input}`);
         imageData = await this.processUrl(input);
       } else {
-        throw new Error("Unsupported input type. Expected Buffer, base64 string, or URL");
+        throw new Error("Tipe input tidak dikenal (Harus Buffer, Base64, atau URL).");
       }
       const session = this.generateSession();
       const srcHash = await this.generateHash(imageData.buffer);
+      this.log("SESSION", `Generated Session ID: ${session}`);
+      this.log("FORM_DATA", "Menyusun payload multipart/form-data...");
       const form = new FormData();
-      form.append("srcImg", new Blob([imageData.buffer], {
-        type: imageData.contentType
-      }), imageData.filename);
+      form.append("srcImg", imageData.buffer, {
+        filename: imageData.filename,
+        contentType: imageData.contentType
+      });
       form.append("srcHash", srcHash);
       form.append("includeSubScan", "1");
       form.append("userId", "undefined");
@@ -69,96 +74,96 @@ class OCR {
       let response;
       let maxRetries = 30;
       let retryCount = 0;
+      this.log("API_REQUEST", `Mengirim data ke server (Max retry: ${maxRetries})...`);
       while (retryCount < maxRetries) {
-        response = await axios.post(this.baseURL, form, {
-          headers: {
-            ...this.headers,
-            ...form.getHeaders()
+        try {
+          response = await axios.post(this.baseURL, form, {
+            headers: {
+              ...this.headers,
+              ...form.getHeaders()
+            },
+            timeout: 3e4
+          });
+          const data = response.data;
+          if (data.result === "1") {
+            this.log("SUCCESS", "OCR Berhasil diproses!");
+            return data;
           }
-        });
-        if (response.data.result === "1") {
-          break;
+          this.log("WAITING", `Status: ${data.status || "Processing"}... (Tunggu 2 detik | Percobaan: ${retryCount + 1}/${maxRetries})`);
+        } catch (apiErr) {
+          this.log("API_ERROR", `Koneksi gagal pada percobaan ${retryCount + 1}: ${apiErr.message}`);
         }
-        console.log(`Menunggu hasil OCR... (time: ${response.data.time}s, attempt: ${retryCount + 1}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, 2e3));
         retryCount++;
       }
-      if (retryCount >= maxRetries) {
-        throw new Error("OCR processing timeout. Maximum retry attempts reached.");
-      }
-      return response.data;
+      throw new Error("Timeout: Server tidak mengembalikan hasil dalam waktu yang ditentukan.");
     } catch (error) {
-      throw new Error(`Error recognizing image: ${error.message}`);
+      this.log("FATAL_ERROR", error.message);
+      throw error;
     }
   }
   async processUrl(url) {
     try {
+      this.log("FETCH_URL", `Mendownload gambar...`);
       const {
-        data: fileBuffer,
+        data,
         headers
       } = await axios.get(url, {
         responseType: "arraybuffer"
       });
       const contentType = headers["content-type"] || "image/jpeg";
-      const ext = contentType.split("/")[1] || "jpg";
+      this.log("FETCH_URL", `Download selesai. Type: ${contentType}`);
       return {
-        buffer: Buffer.from(fileBuffer),
+        buffer: Buffer.from(data),
         contentType: contentType,
-        filename: `file.${ext}`
+        filename: "downloaded_image.jpg"
       };
     } catch (error) {
-      throw new Error(`Failed to fetch image from URL: ${error.message}`);
+      throw new Error(`Gagal mengambil gambar dari URL: ${error.message}`);
     }
   }
   async processBase64(base64String) {
     try {
-      const base64Data = base64String.replace(/^data:image\/\w+;base64,/, "");
-      const buffer = Buffer.from(base64Data, "base64");
-      let contentType = "image/jpeg";
-      if (base64String.startsWith("data:image/png")) {
-        contentType = "image/png";
-      } else if (base64String.startsWith("data:image/gif")) {
-        contentType = "image/gif";
-      } else if (base64String.startsWith("data:image/webp")) {
-        contentType = "image/webp";
-      } else if (base64String.startsWith("data:image/jpg")) {
-        contentType = "image/jpeg";
-      }
-      const extension = contentType.split("/")[1];
+      this.log("DECODE_BASE64", "Mengonversi base64 ke buffer...");
+      const matches = base64String.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      if (!matches) throw new Error("Format base64 tidak valid.");
+      const contentType = matches[1];
+      const buffer = Buffer.from(matches[2], "base64");
+      this.log("DECODE_BASE64", `Berhasil. Type: ${contentType}, Size: ${buffer.length} bytes`);
       return {
         buffer: buffer,
         contentType: contentType,
-        filename: `file.${extension}`
+        filename: `file.${contentType.split("/")[1]}`
       };
     } catch (error) {
-      throw new Error(`Failed to process base64 image: ${error.message}`);
+      throw new Error(`Gagal memproses Base64: ${error.message}`);
     }
-  }
-  async processBuffer(buffer, options = {}) {
-    return {
-      buffer: buffer,
-      contentType: options.contentType || "image/jpeg",
-      filename: options.filename || "file.jpg"
-    };
   }
 }
 export default async function handler(req, res) {
+  const ocr = new OCR();
+  const startTime = Date.now();
   try {
     const params = req.method === "GET" ? req.query : req.body;
     if (!params.image) {
       return res.status(400).json({
-        error: "Image parameter is required",
-        message: "Please provide an image URL, base64 string, or buffer"
+        error: "Field 'image' (URL/Base64) diperlukan."
       });
     }
-    const ocr = new OCR();
-    const data = await ocr.processImage(params.image, {
+    console.log("--- START OCR JOB ---");
+    const result = await ocr.processImage(params.image, {
       contentType: params.contentType,
       filename: params.filename
     });
-    return res.status(200).json(data);
+    const duration = (Date.now() - startTime) / 1e3;
+    console.log(`--- END OCR JOB (Total: ${duration}s) ---`);
+    return res.status(200).json({
+      success: true,
+      duration: `${duration}s`,
+      ...result
+    });
   } catch (error) {
-    console.error("OCR Handler Error:", error);
+    console.error("[HANDLER_ERROR]", error.message);
     return res.status(500).json({
       success: false,
       error: error.message

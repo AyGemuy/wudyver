@@ -1,5 +1,5 @@
 import axios from "axios";
-class WordviceService {
+class TranslationService {
   constructor() {
     this.apiUrl = "https://sysapi.wordvice.ai/tools/non-member/fetch-llm-result";
     this.headers = {
@@ -42,16 +42,17 @@ export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.text) {
     return res.status(400).json({
-      error: "Text is required"
+      error: "Parameter 'text' diperlukan"
     });
   }
-  const wordvice = new WordviceService();
+  const api = new TranslationService();
   try {
-    const data = await wordvice.translate(params);
+    const data = await api.translate(params);
     return res.status(200).json(data);
   } catch (error) {
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses.";
     return res.status(500).json({
-      error: error.message
+      error: errorMessage
     });
   }
 }

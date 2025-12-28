@@ -1,86 +1,176 @@
 import axios from "axios";
-import {
-  CookieJar
-} from "tough-cookie";
-import {
-  wrapper
-} from "axios-cookiejar-support";
-import {
-  FormData
-} from "formdata-node";
-import * as cheerio from "cheerio";
-class ChatbotAI {
+import crypto from "crypto";
+class ChatGenieAI {
   constructor() {
-    this.jar = new CookieJar();
-    this.client = wrapper(axios.create({
-      jar: this.jar
-    }));
-    this.baseURL = "https://chatbotai.one/wp-admin/admin-ajax.php";
-    this.headers = {
-      accept: "*/*",
-      "accept-language": "id-ID,id;q=0.9",
-      "content-type": "multipart/form-data",
-      origin: "https://chatbotai.one",
-      referer: "https://chatbotai.one/",
-      "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
-    };
+    this.fbKey = "AIzaSyAG325-n4N-5jJDgSHnKuST7XQQsPWingk";
+    this.backendUrl = "https://genie-production-yfvxbm4e6q-uc.a.run.app";
+    this.origin = "https://chatbotai.com";
+    this.internalToken = null;
+    this.chatId = crypto.randomUUID();
+    this.internalMessages = [];
   }
-  async scrapeChatData() {
+  _log(step, detail = "") {
+    console.log(`[ChatGenie][${new Date().toLocaleTimeString()}] ${step} > ${detail}`);
+  }
+  async _authenticate() {
     try {
+      this._log("Auth", "Requesting new anonymous token...");
       const {
         data
-      } = await this.client.get("https://chatbotai.one/", {
-        headers: this.headers
+      } = await axios.post(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${this.fbKey}`, {
+        returnSecureToken: true
       });
-      const $ = cheerio.load(data);
-      const chatData = $(".wpaicg-chat-shortcode").attr();
-      return chatData;
-    } catch (error) {
-      console.error("Error scraping chat data:", error);
-      return null;
+      this.internalToken = data.idToken;
+      return data.idToken;
+    } catch (err) {
+      this._log("Auth Error", err.message);
+      throw err;
     }
   }
-  async sendMessage(message = "halo") {
+  async chat({
+    token,
+    prompt,
+    messages = [],
+    ...rest
+  }) {
     try {
-      const chatData = await this.scrapeChatData();
-      if (!chatData) throw new Error("Gagal mengambil data chatbot");
-      const form = new FormData();
-      form.append("_wpnonce", chatData["data-nonce"] || "");
-      form.append("post_id", chatData["data-post-id"] || "11");
-      form.append("url", chatData["data-url"] || "https://chatbotai.one");
-      form.append("action", "wpaicg_chat_shortcode_message");
-      form.append("message", message);
-      form.append("bot_id", chatData["data-bot-id"] || "0");
-      const {
-        data
-      } = await this.client.post(this.baseURL, form, {
-        headers: this.headers
+      let activeToken = token || this.internalToken;
+      if (!activeToken) {
+        this._log("System", "Token tidak ditemukan, auto-generating...");
+        activeToken = await this._authenticate();
+      }
+      let history = messages.length > 0 ? messages : this.internalMessages;
+      const userMsgId = crypto.randomUUID();
+      const parentId = history.length > 0 ? history[history.length - 1].id : null;
+      const timestamp = Date.now();
+      const userMessage = {
+        id: userMsgId,
+        content: prompt,
+        role: "user",
+        media: null,
+        parentMessageId: parentId,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        searchedUrls: [],
+        type: "message"
+      };
+      history.push(userMessage);
+      this._log("User", `"${prompt.substring(0, 30)}..."`);
+      const completionId = crypto.randomUUID();
+      const url = `${this.backendUrl}/v4/chats/${this.chatId}/completions/${completionId}`;
+      const payload = {
+        models: [{
+          type: "text",
+          name: "OPEN_AI_CHATGPT_5_NANO_MODEL"
+        }, {
+          type: "image",
+          name: "FAL_AI_FLUX_SCHNELL_MODEL"
+        }, {
+          type: "video",
+          name: "FAL_AI_PIKA_V2_TURBO_TEXT_TO_VIDEO_MODEL"
+        }],
+        messages: history,
+        properties: {
+          image: {
+            style: "noStyle",
+            aspectRatio: "square",
+            numImages: 1
+          },
+          video: {
+            style: "default",
+            aspectRatio: "16:9"
+          },
+          response: {
+            followUpQuestions: false,
+            length: "AUTO",
+            tone: "DEFAULT",
+            isTemporaryChat: false
+          },
+          tools: {
+            text2video: {
+              mode: "DISABLED"
+            }
+          }
+        },
+        ...rest
+      };
+      this._log("API", "Sending request to completions...");
+      const response = await axios.post(url, payload, {
+        headers: {
+          authorization: `Bearer ${activeToken}`,
+          "content-type": "application/json",
+          "x-app-origin": "web",
+          "x-accept-language": "en",
+          origin: this.origin,
+          referer: `${this.origin}/`,
+          "user-agent": "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36"
+        }
       });
-      return data;
+      let aiContent = "";
+      const rawData = response.data;
+      if (typeof rawData === "string") {
+        const lines = rawData.split("\n");
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const json = JSON.parse(line.slice(6));
+              if (json.content) aiContent += json.content;
+            } catch (e) {}
+          }
+        }
+      } else {
+        aiContent = rawData.content || "";
+      }
+      const assistantMessage = {
+        id: completionId,
+        content: aiContent,
+        role: "assistant",
+        model: "OPEN_AI_CHATGPT_5_NANO_MODEL",
+        createdAt: Date.now(),
+        type: "message",
+        parentMessageId: userMsgId
+      };
+      history.push(assistantMessage);
+      this.internalMessages = history;
+      this._log("System", "Response AI berhasil diterima.");
+      return {
+        text: aiContent,
+        token: activeToken,
+        chatId: this.chatId,
+        history: history,
+        status: "success"
+      };
     } catch (error) {
-      console.error("Error sending message:", error);
-      return null;
+      this._log("Error", error.response ? `Status: ${error.response.status}` : error.message);
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        this._log("System", "Token invalid/expired, mencoba refresh...");
+        this.internalToken = null;
+        return this.chat({
+          token: null,
+          prompt: prompt,
+          messages: messages,
+          ...rest
+        });
+      }
+      throw error;
     }
   }
 }
 export default async function handler(req, res) {
-  const {
-    prompt
-  } = req.method === "GET" ? req.query : req.body;
-  if (!prompt) return res.status(400).json({
-    error: "Prompt tidak boleh kosong"
-  });
-  try {
-    const chatbot = new ChatbotAI();
-    const response = await chatbot.sendMessage(prompt);
-    return response.data ? res.json({
-      result: response.data
-    }) : res.status(500).json({
-      error: "Gagal mengirim prompt"
+  const params = req.method === "GET" ? req.query : req.body;
+  if (!params.prompt) {
+    return res.status(400).json({
+      error: "Parameter 'prompt' diperlukan"
     });
+  }
+  const api = new ChatGenieAI();
+  try {
+    const data = await api.chat(params);
+    return res.status(200).json(data);
   } catch (error) {
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses.";
     return res.status(500).json({
-      error: error.message
+      error: errorMessage
     });
   }
 }

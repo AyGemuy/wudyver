@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-class JDoodleExecutor {
+class CompilerClient {
   constructor() {
     this.apiUrl = "https://api.jdoodle.com/v1/execute";
     this.clientId = "507d9368ee9ef31e58291ed8703f11c5";
@@ -40,16 +40,17 @@ export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.code) {
     return res.status(400).json({
-      error: `Missing required field: code (required for action)`
+      error: "Parameter 'code' diperlukan"
     });
   }
-  const myCompiler = new JDoodleExecutor();
+  const api = new CompilerClient();
   try {
-    const data = await myCompiler.run(params);
+    const data = await api.run(params);
     return res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({
-      error: "Internal Server Error"
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    return res.status(500).json({
+      error: errorMessage
     });
   }
 }
