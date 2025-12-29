@@ -13,8 +13,8 @@ class HeroQuiz {
   }
   _createHint(name) {
     return name.split("").map((char, index) => {
-      if (index === 0 || /[\s.\-]/.test(char)) return char;
-      return "_";
+      if (char === " ") return "  ";
+      return index % 2 === 0 ? char : "_";
     }).join(" ");
   }
   async generate() {
