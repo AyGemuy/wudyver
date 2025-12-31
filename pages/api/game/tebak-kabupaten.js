@@ -1,8 +1,11 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
+import PROXY from "@/configs/proxy-url";
+const proxy = PROXY.url;
+console.log("CORS proxy", proxy);
 class KabupatenQuiz {
   constructor() {
-    this.base_url = "https://id.wikipedia.org";
+    this.base_url = `${proxy}https://id.wikipedia.org`;
     this.list_url = `${this.base_url}/wiki/Daftar_kabupaten_di_Indonesia`;
     this.headers = {
       accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",

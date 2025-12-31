@@ -1,7 +1,10 @@
 import axios from "axios";
+import PROXY from "@/configs/proxy-url";
+const proxy = PROXY.url;
+console.log("CORS proxy", proxy);
 class AnimalQuiz {
   constructor() {
-    this.base_url = "https://id.wikipedia.org/w/api.php";
+    this.base_url = `${proxy}https://id.wikipedia.org/w/api.php`;
     this.headers = {
       "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36"
     };

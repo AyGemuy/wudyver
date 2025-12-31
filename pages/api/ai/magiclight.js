@@ -1,39 +1,103 @@
 import axios from "axios";
+import * as cheerio from "cheerio";
 import apiConfig from "@/configs/apiConfig";
-import Encoder from "@/lib/encoder";
 import SpoofHead from "@/lib/spoof-head";
+class WudysoftAPI {
+  constructor() {
+    this.client = axios.create({
+      baseURL: `https://${apiConfig.DOMAIN_URL}/api`
+    });
+  }
+  async createPaste(title, content) {
+    try {
+      const response = await this.client.get("/tools/paste/v1", {
+        params: {
+          action: "create",
+          title: title,
+          content: content
+        }
+      });
+      return response.data?.key || null;
+    } catch (error) {
+      console.error(`[ERROR] Gagal dalam 'WudysoftAPI.createPaste': ${error.message}`);
+      throw error;
+    }
+  }
+  async delPaste(key) {
+    try {
+      const response = await this.client.get("/tools/paste/v1", {
+        params: {
+          action: "delete",
+          key: key
+        }
+      });
+      return response.data || null;
+    } catch (error) {
+      console.error(`[ERROR] Gagal dalam 'WudysoftAPI.delPaste' untuk kunci ${key}: ${error.message}`);
+      return false;
+    }
+  }
+  async listPastes() {
+    try {
+      const response = await this.client.get("/tools/paste/v1", {
+        params: {
+          action: "list"
+        }
+      });
+      return response.data || [];
+    } catch (error) {
+      console.error(`[ERROR] Gagal dalam 'WudysoftAPI.listPastes': ${error.message}`);
+      return [];
+    }
+  }
+}
 class MagicLightAPI {
   constructor() {
     this.baseURL = "https://api.magiclight.ai";
-    this.mailAPI = `https://${apiConfig.DOMAIN_URL}/api/mails/v9`;
+    this.serverURL = "https://server.magiclight.ai";
+    this.mailAPI = `https://${apiConfig.DOMAIN_URL}/api/mails/v23`;
     this.token = null;
     this.user = null;
+    this.uuid = null;
+    this.emailId = null;
     this.sessionId = "sess_" + this.randString(14);
     this.password = "@" + this.randString(10);
     this.username = "user_" + this.randString(5);
-    this.affiliation = this.randString(9);
+    this.affiliation = "magiclight.app";
+    this.wudysoft = new WudysoftAPI();
     this.api = axios.create({
       baseURL: this.baseURL,
       timeout: 3e4,
       headers: {
         accept: "application/json, text/plain, */*",
         "content-type": "application/json",
-        "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Mobile Safari/537.36",
+        "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36",
         "custom-client": "mobile",
-        "custom-version": "1.2.5",
+        "custom-version": "1.0.0",
+        referer: "https://m.magiclight.ai/",
+        ...SpoofHead()
+      }
+    });
+    this.serverApi = axios.create({
+      baseURL: this.serverURL,
+      timeout: 3e4,
+      headers: {
+        accept: "application/json, text/plain, */*",
+        "content-type": "application/json",
+        "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36",
+        "custom-client": "mobile",
+        "custom-version": "1.0.0",
         referer: "https://m.magiclight.ai/",
         ...SpoofHead()
       }
     });
     this.api.interceptors.request.use(config => {
-      if (this.token) {
-        config.headers.authorization = `Bearer ${this.token}`;
-      }
+      if (this.token) config.headers.authorization = `Bearer ${this.token}`;
       return config;
     });
-    this.api.interceptors.response.use(response => response, error => {
-      console.error("API Error:", error.response?.data || error.message);
-      return Promise.reject(error);
+    this.serverApi.interceptors.request.use(config => {
+      if (this.token) config.headers.authorization = `Bearer ${this.token}`;
+      return config;
     });
   }
   randString(length) {
@@ -47,22 +111,23 @@ class MagicLightAPI {
   async createTempEmail() {
     try {
       const response = await axios.get(`${this.mailAPI}?action=create`);
-      return response.data.email;
+      this.uuid = response.data.uuid;
+      this.emailId = response.data.email_id;
+      return response.data.email.fullEmail;
     } catch (error) {
       throw new Error(`Failed to create temp email: ${error.message}`);
     }
   }
-  async getOTPFromEmail(email, maxAttempts = 60) {
+  async getOTPFromEmail(maxAttempts = 60) {
     for (let i = 0; i < maxAttempts; i++) {
       try {
-        const response = await axios.get(`${this.mailAPI}?action=message&email=${email}`);
-        const messages = response.data?.data;
+        const response = await axios.get(`${this.mailAPI}?action=messages&uuid=${this.uuid}&email_id=${this.emailId}`);
+        const messages = response.data?.messages;
         if (messages && messages.length > 0) {
-          const textContent = messages[0].text_content;
-          const otpMatch = textContent.match(/\d{6}/);
-          if (otpMatch) {
-            return otpMatch[0];
-          }
+          const html = messages[0].body;
+          const $ = cheerio.load(html);
+          const otp = $("#c").text().trim();
+          if (otp) return otp;
         }
         console.log(`[⌛] Waiting for OTP (${i + 1}/${maxAttempts})...`);
         await new Promise(resolve => setTimeout(resolve, 3e3));
@@ -78,11 +143,11 @@ class MagicLightAPI {
         phone: email,
         captchaCode: "",
         method: "signup",
-        type: "email"
+        type: "email",
+        inviteCode: this.affiliation,
+        bdVid: ""
       });
-      if (response.data.code !== 200) {
-        throw new Error("Failed to send OTP");
-      }
+      if (response.data.code !== 200) throw new Error("Failed to send OTP");
       return true;
     } catch (error) {
       throw new Error(`Failed to send OTP: ${error.message}`);
@@ -98,24 +163,22 @@ class MagicLightAPI {
         code: otp,
         affiliation: this.affiliation
       });
-      if (response.data.code !== 200) {
-        throw new Error("Registration failed");
-      }
+      if (response.data.code !== 200) throw new Error("Registration failed");
       return response.data;
     } catch (error) {
       throw new Error(`Registration failed: ${error.message}`);
     }
   }
-  async loginUser(email, code) {
+  async loginUser(email) {
     try {
       const response = await this.api.post("/api/user/signin", {
         phone: email,
         password: this.password,
-        code: code
+        code: "",
+        inviteCode: this.affiliation,
+        bdVid: ""
       });
-      if (response.data.code !== 200) {
-        throw new Error("Login failed");
-      }
+      if (response.data.code !== 200) throw new Error("Login failed");
       this.token = response.data.data.accessToken;
       this.user = response.data.data.user;
       return response.data;
@@ -123,50 +186,142 @@ class MagicLightAPI {
       throw new Error(`Login failed: ${error.message}`);
     }
   }
-  async ensureAuth() {
-    if (this.token) return;
+  async register() {
+    try {
+      console.log("\n====== MEMULAI PROSES REGISTRASI MAGICLIGHT AI ======");
+      console.log("[🔄] Creating temporary email...");
+      const email = await this.createTempEmail();
+      console.log("[✅] Email created:", email);
+      console.log("[📨] Sending OTP...");
+      await this.sendOTP(email);
+      console.log("[⌛] Waiting for OTP...");
+      const otp = await this.getOTPFromEmail();
+      console.log("[✅] OTP received:", otp);
+      console.log("[📝] Registering user...");
+      await this.registerUser(email, otp);
+      console.log("[🔐] Logging in...");
+      await this.loginUser(email);
+      console.log("[✅] Authentication successful");
+      const sessionKey = await this.saveSession();
+      console.log(`[🔑] Session key created: ${sessionKey}`);
+      console.log("\n[SUCCESS] Registrasi MAGICLIGHT AI berhasil!");
+      return {
+        key: sessionKey,
+        email: email,
+        username: this.username,
+        password: this.password
+      };
+    } catch (error) {
+      console.error(`Proses registrasi MAGICLIGHT AI gagal: ${error.message}`);
+      throw error;
+    }
+  }
+  async saveSession() {
+    const sessionData = {
+      token: this.token,
+      user: this.user,
+      sessionId: this.sessionId,
+      password: this.password,
+      username: this.username
+    };
+    const title = `magiclight-session-${this.randString(8)}`;
+    const key = await this.wudysoft.createPaste(title, JSON.stringify(sessionData));
+    return key;
+  }
+  async loadSession(key) {
+    const sessionString = await this.wudysoft.getPaste(key);
+    if (!sessionString) {
+      throw new Error("Failed to load session from key");
+    }
+    const sessionData = JSON.parse(sessionString);
+    this.token = sessionData.token;
+    this.user = sessionData.user;
+    this.sessionId = sessionData.sessionId;
+    this.password = sessionData.password;
+    this.username = sessionData.username;
+    return sessionData;
+  }
+  async ensureAuth(key = null) {
+    if (key) {
+      try {
+        console.log("[🔑] Loading session from key:", key);
+        await this.loadSession(key);
+        console.log("[✅] Session loaded successfully");
+        return key;
+      } catch (error) {
+        console.log("[⚠️] Failed to load session, creating new one...");
+      }
+    }
+    if (this.token) return null;
     console.log("[🔄] Creating temporary email...");
     const email = await this.createTempEmail();
     console.log("[✅] Email created:", email);
     console.log("[📨] Sending OTP...");
     await this.sendOTP(email);
     console.log("[⌛] Waiting for OTP...");
-    const otp = await this.getOTPFromEmail(email);
+    const otp = await this.getOTPFromEmail();
     console.log("[✅] OTP received:", otp);
     console.log("[📝] Registering user...");
     await this.registerUser(email, otp);
     console.log("[🔐] Logging in...");
-    await this.loginUser(email, otp);
+    await this.loginUser(email);
     console.log("[✅] Authentication successful");
+    const newKey = await this.saveSession();
+    console.log("[🔑] Session key created:", newKey);
+    return newKey;
   }
-  async enc(data) {
-    const {
-      uuid: jsonUuid
-    } = await Encoder.enc({
-      data: data,
-      method: "combined"
+  async processMedia(media) {
+    if (!media) return null;
+    if (typeof media === "string" && media.startsWith("http")) {
+      return media;
+    }
+    let buffer;
+    if (Buffer.isBuffer(media)) {
+      buffer = media;
+    } else if (typeof media === "string") {
+      buffer = Buffer.from(media.replace(/^data:image\/\w+;base64,/, ""), "base64");
+    } else {
+      throw new Error("Invalid media format");
+    }
+    const filename = `personal-lora/${this.randString(8)}-${this.randString(4)}-${this.randString(4)}-${this.randString(4)}-${this.randString(12)}.jpg`;
+    const signResponse = await this.api.post("/api/file/sign-cdn-upload-url", {
+      url: filename
     });
-    return jsonUuid;
+    if (signResponse.data.code !== 200) {
+      throw new Error("Failed to get upload URL");
+    }
+    const uploadUrl = signResponse.data.data;
+    await axios.put(uploadUrl, buffer, {
+      headers: {
+        "Content-Type": "image/jpeg"
+      }
+    });
+    return `https://cdn2-static.magiclight.ai/${filename}`;
   }
-  async dec(uuid) {
-    const decryptedJson = await Encoder.dec({
-      uuid: uuid,
-      method: "combined"
+  async faceDetect(url) {
+    const response = await this.api.post("/api/file/new-face-detect", {
+      url: url,
+      censorType: "HUMAN_FACE"
     });
-    return decryptedJson.text;
+    if (response.data.code !== 200 || !response.data.data.success) {
+      throw new Error("Face detection failed");
+    }
+    return response.data.data;
   }
   async enhance({
-    prompt
+    prompt,
+    key = null
   }) {
     try {
-      await this.ensureAuth();
+      const sessionKey = await this.ensureAuth(key);
       console.log("[✨] Enhancing prompt:", prompt);
       const response = await this.api.post("/api/lora-group/ai-expand", {
         prompt: prompt
       });
       return {
         success: true,
-        data: response.data
+        data: response.data,
+        key: sessionKey || key
       };
     } catch (error) {
       console.error("[❌] Enhance error:", error.message);
@@ -178,17 +333,29 @@ class MagicLightAPI {
   }
   async txt2img(options = {}) {
     try {
-      await this.ensureAuth();
       const {
         prompt = "AI generated",
           name = "gen",
           gender = 1,
           age = 2,
-          styleGroupId = "39",
+          styleGroupId = "2",
           kindId = "1",
-          loraType = 2, ...rest
+          loraType = 2,
+          image = null,
+          key = null, ...rest
       } = options;
+      const sessionKey = await this.ensureAuth(key);
       console.log("[🎨] Generating image for prompt:", prompt);
+      let trainImgUrl = [];
+      if (image) {
+        const uploadedUrl = await this.processMedia(image);
+        await this.faceDetect(uploadedUrl);
+        trainImgUrl = [{
+          type: 5,
+          url: uploadedUrl,
+          text: "Character"
+        }];
+      }
       const response = await this.api.post("/api/task/lora", {
         name: name,
         description: prompt,
@@ -196,7 +363,7 @@ class MagicLightAPI {
         age: age,
         styleGroupId: styleGroupId,
         kindId: kindId,
-        trainImgUrl: [],
+        trainImgUrl: trainImgUrl,
         loraGroupId: "",
         loraType: loraType,
         userDesc: prompt,
@@ -209,17 +376,15 @@ class MagicLightAPI {
         loraGroupId,
         taskId
       } = response.data.data;
-      const taskInfo = {
-        task_id: taskId,
-        type: "txt2img",
-        sessionId: this.sessionId,
-        token: this.token,
-        loraGroupId: loraGroupId
-      };
-      const encryptedTaskId = await this.enc(taskInfo);
       return {
         success: true,
-        task_id: encryptedTaskId,
+        data: {
+          task_id: taskId,
+          loraGroupId: loraGroupId,
+          type: "image",
+          mode: "txt2img"
+        },
+        key: sessionKey || key,
         raw: response.data.data
       };
     } catch (error) {
@@ -232,12 +397,12 @@ class MagicLightAPI {
   }
   async img2vid(options) {
     try {
-      await this.ensureAuth();
       const {
-        imgId = "7353287183458660352",
-          imgUrl = "https://images.magiclight.ai/rp-outputs/7353286857871646720/7353286857867452417/7353286870626484227_BhnE_lo0_0.jpg",
-          projectId = "7353286857871646720",
-          flowId = "7353286857867452417",
+        imgId = null,
+          imgUrl = null,
+          image = null,
+          projectId = null,
+          flowId = null,
           styleId = "1033",
           voiceId = "MM:aojiao_nanyou",
           voiceContent = "AI generated video",
@@ -249,16 +414,22 @@ class MagicLightAPI {
           ratio = 1,
           prompt = "",
           isUpdateDesc = false,
-          forceUsePayCredit = false, ...rest
+          forceUsePayCredit = false,
+          key = null, ...rest
       } = options;
-      if (!imgUrl) {
-        throw new Error("Required parameters: imgUrl");
+      const sessionKey = await this.ensureAuth(key);
+      let finalImgUrl = imgUrl;
+      if (!finalImgUrl && image) {
+        finalImgUrl = await this.processMedia(image);
+      }
+      if (!finalImgUrl) {
+        throw new Error("Required parameters: imgUrl or image");
       }
       console.log("[🎥] Converting image to video...");
       const response = await this.api.post("/api/task/image2video", {
         styleId: styleId,
         imgId: imgId,
-        imgUrl: imgUrl,
+        imgUrl: finalImgUrl,
         voiceId: voiceId,
         voiceContent: voiceContent,
         speed: speed,
@@ -278,16 +449,14 @@ class MagicLightAPI {
         throw new Error("Image to video conversion failed");
       }
       const taskId = response.data.data.id;
-      const taskInfo = {
-        task_id: taskId,
-        type: "img2vid",
-        sessionId: this.sessionId,
-        token: this.token
-      };
-      const encryptedTaskId = await this.enc(taskInfo);
       return {
         success: true,
-        task_id: encryptedTaskId,
+        data: {
+          task_id: taskId,
+          type: "video",
+          mode: "img2vid"
+        },
+        key: sessionKey || key,
         raw: response.data.data
       };
     } catch (error) {
@@ -298,32 +467,87 @@ class MagicLightAPI {
       };
     }
   }
+  async txt2music(options = {}) {
+    try {
+      const {
+        prompt = "AI generated music",
+          style = 1,
+          key = null, ...rest
+      } = options;
+      const sessionKey = await this.ensureAuth(key);
+      console.log("[🎵] Generating music for prompt:", prompt);
+      const response = await this.serverApi.post("/task-schedule/music/create", {
+        prompt: prompt,
+        style: style,
+        ...rest
+      });
+      if (response.data.biz_code !== 1e4) {
+        throw new Error("Music generation failed");
+      }
+      return {
+        success: true,
+        data: {
+          task_id: response.data.data.taskId,
+          musicIds: response.data.data.musicIds,
+          type: "audio",
+          mode: "txt2music"
+        },
+        key: sessionKey || key,
+        raw: response.data.data
+      };
+    } catch (error) {
+      console.error("[❌] txt2music error:", error.message);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
   async status({
-    task_id: encryptedTaskId
+    task_id = null,
+    loraGroupId = null,
+    musicIds = null,
+    type = null,
+    mode = null,
+    key = null
   }) {
     try {
-      console.log("[🔍] Checking status for task:", encryptedTaskId);
-      const taskData = await this.dec(encryptedTaskId);
+      if (!task_id && !loraGroupId && !musicIds) {
+        throw new Error("Required parameters: task_id, loraGroupId, or musicIds");
+      }
+      console.log("[🔍] Checking status...");
+      if (key) {
+        await this.loadSession(key);
+      }
       const tempApi = axios.create({
-        baseURL: this.baseURL,
+        baseURL: mode === "txt2music" ? this.serverURL : this.baseURL,
         headers: {
-          authorization: `Bearer ${taskData.token}`
+          authorization: `Bearer ${this.token}`
         }
       });
-      let endpoint;
-      if (taskData.type === "txt2img") {
-        endpoint = `/api/history-lora/group/${taskData.loraGroupId}`;
-      } else if (taskData.type === "img2vid") {
-        endpoint = `/api/image/${taskData.task_id}`;
+      let endpoint, response;
+      if (type === "image" || mode === "txt2img" || loraGroupId) {
+        endpoint = `/api/history-lora/group/${loraGroupId}`;
+        response = await tempApi.get(endpoint);
+      } else if (type === "video" || mode === "img2vid" || task_id && !musicIds) {
+        endpoint = `/api/image/${task_id}`;
+        response = await tempApi.get(endpoint);
+      } else if (type === "audio" || mode === "txt2music" || musicIds) {
+        endpoint = `/task-schedule/music/list`;
+        response = await tempApi.post(endpoint, {
+          musicIds: Array.isArray(musicIds) ? musicIds : [musicIds],
+          page: 1,
+          pageSize: Array.isArray(musicIds) ? musicIds.length : 1
+        });
       } else {
         throw new Error("Unknown task type");
       }
-      const response = await tempApi.get(endpoint);
       return {
         success: true,
         data: response.data.data,
-        task_type: taskData.type,
-        decrypted_info: taskData
+        task_type: type,
+        mode: mode,
+        key: key
       };
     } catch (error) {
       console.error("[❌] Status check error:", error.message);
@@ -331,6 +555,33 @@ class MagicLightAPI {
         success: false,
         error: error.message
       };
+    }
+  }
+  async list_key() {
+    try {
+      console.log("Proses: Mengambil daftar semua kunci sesi MAGICLIGHT AI...");
+      const allPastes = await this.wudysoft.listPastes();
+      return allPastes.filter(paste => paste.title && paste.title.startsWith("magiclight-session-")).map(paste => paste.key);
+    } catch (error) {
+      console.error("Gagal mengambil daftar kunci:", error.message);
+      throw error;
+    }
+  }
+  async del_key({
+    key
+  }) {
+    if (!key) {
+      console.error("Kunci tidak disediakan untuk dihapus.");
+      return false;
+    }
+    try {
+      console.log(`Proses: Mencoba menghapus kunci: ${key}`);
+      const success = await this.wudysoft.delPaste(key);
+      console.log(success ? `Kunci ${key} berhasil dihapus.` : `Gagal menghapus kunci ${key}.`);
+      return success;
+    } catch (error) {
+      console.error(`Terjadi error saat menghapus kunci ${key}:`, error.message);
+      throw error;
     }
   }
 }
@@ -343,7 +594,7 @@ export default async function handler(req, res) {
     return res.status(400).json({
       error: "Missing required field: action",
       required: {
-        action: "img2vid | txt2img | enhance | status"
+        action: "register | video | image | audio | enhance | status | list_key | del_key"
       }
     });
   }
@@ -351,41 +602,63 @@ export default async function handler(req, res) {
   try {
     let result;
     switch (action) {
-      case "img2vid":
-        if (!params.prompt) {
+      case "register":
+        result = await client.register();
+        break;
+      case "video":
+        if (!params.voiceContent && !params.prompt) {
           return res.status(400).json({
-            error: `Missing required fields for 'txt2vid': prompt`
+            error: `Missing required field for 'video': voiceContent or prompt`
           });
         }
         result = await client.img2vid(params);
         break;
-      case "txt2img":
+      case "image":
         if (!params.prompt) {
           return res.status(400).json({
-            error: `Missing required field for 'txt2img': prompt`
+            error: `Missing required field for 'image': prompt`
           });
         }
         result = await client.txt2img(params);
         break;
+      case "audio":
+        if (!params.prompt) {
+          return res.status(400).json({
+            error: `Missing required field for 'audio': prompt`
+          });
+        }
+        result = await client.txt2music(params);
+        break;
       case "enhance":
         if (!params.prompt) {
           return res.status(400).json({
-            error: `Missing required fields for 'enhance': prompt`
+            error: `Missing required field for 'enhance': prompt`
           });
         }
         result = await client.enhance(params);
         break;
       case "status":
-        if (!params.task_id) {
+        if (!params.task_id && !params.loraGroupId && !params.musicIds) {
           return res.status(400).json({
-            error: `Missing required field for 'status': task_id`
+            error: `Missing required field for 'status': task_id, loraGroupId, or musicIds`
           });
         }
         result = await client.status(params);
         break;
+      case "list_key":
+        result = await client.list_key();
+        break;
+      case "del_key":
+        if (!params.key) {
+          return res.status(400).json({
+            error: `Missing required field for 'del_key': key`
+          });
+        }
+        result = await client.del_key(params);
+        break;
       default:
         return res.status(400).json({
-          error: `Invalid action: ${action}. Allowed actions are: img2vid, txt2img, enhance, status.`
+          error: `Invalid action: ${action}. Allowed actions are: register, video, image, audio, enhance, status, list_key, del_key.`
         });
     }
     return res.status(200).json(result);

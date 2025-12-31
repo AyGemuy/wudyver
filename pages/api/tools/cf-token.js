@@ -1,4 +1,5 @@
 import axios from "axios";
+import apiConfig from "@/configs/apiConfig";
 class CaptchaSolver {
   constructor() {
     this.config = {
@@ -49,9 +50,18 @@ class CaptchaSolver {
           sitekey: sitekey
         }),
         extractToken: data => data?.token
+      },
+      v5: {
+        baseUrl: `https://${apiConfig.DOMAIN_URL}/api/tools/captcha-solver`,
+        method: "GET",
+        defaultPayload: (url, sitekey) => ({
+          url: url,
+          sitekey: sitekey
+        }),
+        extractToken: data => data?.token
       }
     };
-    this.bases = ["v1", "v2", "v3", "v4"];
+    this.bases = ["v1", "v2", "v3", "v4", "v5"];
   }
   decode(str) {
     try {
