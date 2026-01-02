@@ -2,7 +2,7 @@ import axios from "axios";
 class Carbonara {
   constructor() {
     this.api = "https://carbonara.solopov.dev/api/cook";
-    this.ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
+    this.ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
   }
   out(msg) {
     console.log(`[Carbon-Log]: ${msg}`);
@@ -42,14 +42,17 @@ class Carbonara {
       const res = await axios.post(this.api, body, {
         headers: {
           "Content-Type": "application/json",
+          Accept: "application/json, image/png",
           "User-Agent": this.ua
         },
         responseType: "arraybuffer"
       });
       this.out("Data berhasil diterima.");
+      const contentType = res.headers["content-type"] || "image/png";
       return {
-        buffer: Buffer.from(res?.data),
-        contentType: res?.headers?.["content-type"] || "image/png"
+        success: true,
+        buffer: Buffer.from(res.data),
+        contentType: contentType
       };
     } catch (err) {
       this.out(`Gagal: ${err.message}`);
@@ -70,7 +73,18 @@ export default async function handler(req, res) {
   try {
     const api = new Carbonara();
     const result = await api.generate(params);
-    res.setHeader("Content-Type", result.contentType);
+    if (result.error) {
+      console.error("Carbonara Error:", result.message);
+      return res.status(500).json({
+        error: "Gagal membuat gambar",
+        details: result.message
+      });
+    }
+    const finalContentType = result.contentType || "image/png";
+    res.setHeader("Content-Type", finalContentType);
+    if (result.buffer) {
+      res.setHeader("Content-Length", result.buffer.length);
+    }
     return res.status(200).send(result.buffer);
   } catch (error) {
     console.error("Terjadi kesalahan di handler API:", error.message);

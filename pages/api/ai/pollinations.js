@@ -1,240 +1,251 @@
 import axios from "axios";
 import qs from "qs";
+import FormData from "form-data";
 class PolliNations {
   constructor() {
-    this.availableModels = ["flux", "turbo", "gptimage", "dall-e-3", "stabilityai"];
-    this.randomNum = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
-    this.apiClient = axios.create({
-      baseURL: "https://text.pollinations.ai",
+    this.imgbbConfig = {
+      url: "https://api.imgbb.com/1/upload",
+      key: "624e42298985c3cb644f4c12282b8d31",
+      expiration: 21600,
       headers: {
-        "content-type": "application/json",
-        "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
+        "User-Agent": "okhttp/5.3.2",
+        "Accept-Encoding": "gzip"
       }
-    });
-    this.imageClient = axios.create({
-      baseURL: "https://image.pollinations.ai"
-    });
-    this.headers = {
-      "content-type": "application/json",
-      "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
+    };
+    this.browserHeaders = {
+      "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
+      "Content-Type": "application/json",
+      Accept: "*/*"
+    };
+    this.clients = {
+      text: axios.create({
+        baseURL: "https://text.pollinations.ai",
+        headers: this.browserHeaders
+      }),
+      image: axios.create({
+        baseURL: "https://image.pollinations.ai",
+        headers: this.browserHeaders
+      }),
+      gen: axios.create({
+        baseURL: "https://gen.pollinations.ai",
+        headers: this.browserHeaders
+      })
     };
   }
-  async chat({
-    prompt,
-    messages,
-    imageUrl,
-    model = "openai-large",
-    temperature = .8,
-    max_tokens = 16e3,
-    seed = this.randomNum,
-    private: isPrivate = false,
-    stream = false
+  async run({
+    mode,
+    ...params
   }) {
-    console.log("[ChatService] Memulai proses chat...", {
-      model: model,
-      temperature: temperature,
-      max_tokens: max_tokens,
-      seed: seed,
-      private: isPrivate,
-      stream: stream
-    });
-    let imageData = null;
-    if (imageUrl) {
-      console.log("[ChatService] Memproses gambar dari URL...");
-      try {
-        const imageResponse = await axios.get(imageUrl, {
-          responseType: "arraybuffer"
-        });
-        const contentType = imageResponse.headers["content-type"];
-        const base64Image = Buffer.from(imageResponse.data, "binary").toString("base64");
-        imageData = {
+    console.log(`\n[PolliNations] Starting Mode: ${mode?.toUpperCase()}`);
+    try {
+      if (!mode) throw new Error("Parameter 'mode' is required (chat | image | audio)");
+      switch (mode.toLowerCase()) {
+        case "chat":
+          return await this._chat(params);
+        case "image":
+          return await this._image(params);
+        case "audio":
+          return await this._audio(params);
+        default:
+          throw new Error(`Invalid mode: ${mode}. Available: chat, image, audio.`);
+      }
+    } catch (error) {
+      console.error(`[PolliNations] Critical Error in ${mode}:`, error.message);
+      throw error;
+    }
+  }
+  async _chat({
+    messages = [],
+    prompt,
+    media = null,
+    model = "openai",
+    temperature = .7,
+    seed,
+    jsonMode = false
+  }) {
+    try {
+      console.log("[Chat] Initializing...");
+      if (!prompt && (!messages || messages.length === 0)) {
+        throw new Error("Chat requires 'prompt' string or 'messages' array.");
+      }
+      let finalMessages = Array.isArray(messages) ? [...messages] : [];
+      const userContent = [];
+      if (prompt) userContent.push({
+        type: "text",
+        text: prompt
+      });
+      if (media) {
+        console.log("[Chat] Processing media attachment...");
+        const imageUrl = await this._resolveMedia(media);
+        userContent.push({
           type: "image_url",
           image_url: {
-            url: `data:${contentType};base64,${base64Image}`
+            url: imageUrl
           }
-        };
-        console.log("[ChatService] Gambar berhasil diproses dan dienkode ke base64.");
-      } catch (error) {
-        console.error("[ChatService] Gagal memproses gambar:", error.message);
+        });
+        console.log(`[Chat] Media attached: ${imageUrl}`);
       }
-    } else {
-      console.log("[ChatService] Tidak ada URL gambar untuk diproses.");
-    }
-    const payload = {
-      model: model,
-      messages: messages?.length ? messages : [{
-        role: "user",
-        content: prompt
-      }],
-      temperature: temperature,
-      max_tokens: max_tokens,
-      seed: seed,
-      stream: stream,
-      private: isPrivate
-    };
-    payload.messages = payload.messages || [];
-    if (imageData) {
-      const lastMessage = payload.messages[payload.messages.length - 1];
-      if (lastMessage?.content) {
-        payload.messages = [...payload.messages.slice(0, -1), {
-          ...lastMessage,
-          content: Array.isArray(lastMessage.content) ? [...lastMessage.content, imageData] : [{
-            type: "text",
-            text: lastMessage.content
-          }, imageData]
-        }];
-      } else {
-        payload.messages = [...payload.messages, {
+      if (userContent.length > 0) {
+        finalMessages.push({
           role: "user",
-          content: [imageData]
-        }];
+          content: userContent
+        });
       }
-    } else if (prompt && !payload.messages.length) {
-      payload.messages = [{
-        role: "user",
-        content: prompt
-      }];
-    }
-    console.log("[ChatService] Payload permintaan yang dibuat:", payload);
-    try {
-      console.log("[ChatService] Mengirim permintaan ke API...");
-      const response = await this.apiClient.post("/openai", payload);
-      console.log("[ChatService] Permintaan berhasil, menerima respons...");
+      const payload = {
+        model: model,
+        messages: finalMessages,
+        temperature: temperature,
+        stream: false,
+        jsonMode: jsonMode,
+        ...seed && {
+          seed: seed
+        }
+      };
+      console.log("[Chat] Sending payload to OpenAI endpoint...");
+      const response = await this.clients.text.post("/openai", payload);
+      console.log("[Chat] Success.");
       return response.data;
     } catch (error) {
-      console.error("[ChatService] Terjadi kesalahan saat memanggil API:", error.response ? error.response.data : error.message);
-      throw error;
-    } finally {
-      console.log("[ChatService] Proses chat selesai.");
+      console.error("[Chat] Request Failed:", error.response?.data || error.message);
+      throw new Error(`Chat Error: ${error.message}`);
     }
   }
-  async image({
-    prompt = "Cars",
-    model = 1,
+  async _image({
+    prompt,
+    model = "flux",
     width = 1024,
-    height = 1792,
+    height = 1024,
+    seed,
     nologo = true,
     enhance = true,
-    safe = false,
-    seed = this.randomNum
+    safe = true
   }) {
-    let modelApiKey;
     try {
-      modelApiKey = this.availableModels[model - 1] || this.availableModels[0];
-    } catch (e) {
-      console.warn(`[ImageService] Gagal mengakses model ${model}, menggunakan default. Error: ${e.message}`);
-      modelApiKey = this.availableModels[0];
-    }
-    const imageParamsForQs = {
-      width: width,
-      height: height,
-      model: modelApiKey,
-      seed: seed,
-      nologo: nologo,
-      enhance: enhance,
-      safe: safe
-    };
-    Object.keys(imageParamsForQs).forEach(key => {
-      if (imageParamsForQs[key] === undefined || imageParamsForQs[key] === null) {
-        delete imageParamsForQs[key];
-      }
-    });
-    const queryString = qs.stringify(imageParamsForQs);
-    const constructedImageUrl = `/prompt/${encodeURIComponent(prompt)}?${queryString}`;
-    console.log("[clientAI - Image] Fetching image from:", this.imageClient.defaults.baseURL + constructedImageUrl);
-    try {
-      const response = await this.imageClient.get(constructedImageUrl, {
+      if (!prompt) throw new Error("Prompt is required for image generation.");
+      const params = {
+        width: width,
+        height: height,
+        model: model,
+        nologo: nologo,
+        enhance: enhance,
+        safe: safe,
+        seed: seed || Math.floor(Math.random() * 1e9)
+      };
+      const queryString = qs.stringify(params);
+      const url = `/prompt/${encodeURIComponent(prompt)}?${queryString}`;
+      console.log(`[Image] Fetching: ${this.clients.image.defaults.baseURL}${url}`);
+      const response = await this.clients.image.get(url, {
         responseType: "arraybuffer"
       });
-      console.log("[clientAI - Image] Image fetched successfully.");
+      console.log(`[Image] Success (${response.data.length} bytes).`);
       return {
-        data: Buffer.from(response.data, "binary")
+        type: "buffer",
+        mime: "image/jpeg",
+        data: Buffer.from(response.data)
       };
     } catch (error) {
-      console.error("[clientAI - Image] Error fetching image:", error.response ? error.response.data : error.message);
-      throw new Error(`Failed to fetch image: ${error.message}`);
+      console.error("[Image] Generation Failed:", error.message);
+      throw new Error(`Image Gen Error: ${error.message}`);
+    }
+  }
+  async _audio({
+    prompt,
+    model = "openai-audio",
+    voice = "alloy"
+  }) {
+    try {
+      if (!prompt) throw new Error("Prompt/Text is required for audio generation.");
+      const params = {
+        model: model,
+        voice: voice
+      };
+      const queryString = qs.stringify(params);
+      const url = `/text/${encodeURIComponent(prompt)}?${queryString}`;
+      console.log(`[Audio] Fetching: ${this.clients.gen.defaults.baseURL}${url}`);
+      const response = await this.clients.gen.get(url, {
+        responseType: "arraybuffer"
+      });
+      console.log(`[Audio] Success (${response.data.length} bytes).`);
+      return {
+        type: "buffer",
+        mime: "audio/mpeg",
+        data: Buffer.from(response.data)
+      };
+    } catch (error) {
+      console.error("[Audio] Generation Failed:", error.message);
+      throw new Error(`Audio Gen Error: ${error.message}`);
+    }
+  }
+  async _resolveMedia(media) {
+    try {
+      if (typeof media === "string" && (media.startsWith("http://") || media.startsWith("https://"))) {
+        return media;
+      }
+      let bufferToUpload;
+      let filename = "upload.jpg";
+      if (Buffer.isBuffer(media)) {
+        bufferToUpload = media;
+      } else if (typeof media === "string") {
+        const base64Clean = media.replace(/^data:image\/\w+;base64,/, "");
+        bufferToUpload = Buffer.from(base64Clean, "base64");
+      } else {
+        throw new Error("Media format not supported. Use Buffer, Base64 String, or URL.");
+      }
+      return await this._uploadToImgBB(bufferToUpload, filename);
+    } catch (error) {
+      console.error("[ResolveMedia] Error:", error.message);
+      throw error;
+    }
+  }
+  async _uploadToImgBB(buffer, filename) {
+    try {
+      console.log(`[ImgBB] Uploading buffer (${buffer.length} bytes)...`);
+      const form = new FormData();
+      form.append("image", buffer, {
+        filename: filename
+      });
+      const config = {
+        method: "POST",
+        url: this.imgbbConfig.url,
+        params: {
+          key: this.imgbbConfig.key,
+          expiration: this.imgbbConfig.expiration
+        },
+        headers: {
+          ...this.imgbbConfig.headers,
+          ...form.getHeaders()
+        },
+        data: form
+      };
+      const response = await axios.request(config);
+      if (response.data && response.data.success) {
+        const url = response.data.data.url;
+        console.log(`[ImgBB] Upload Success: ${url}`);
+        return url;
+      } else {
+        throw new Error("ImgBB API returned success: false");
+      }
+    } catch (error) {
+      const detail = error.response?.data ? JSON.stringify(error.response.data) : error.message;
+      console.error(`[ImgBB] Upload Failed: ${detail}`);
+      throw new Error("Failed to upload image to ImgBB.");
     }
   }
 }
 export default async function handler(req, res) {
-  const {
-    action,
-    ...params
-  } = req.method === "GET" ? req.query : req.body;
-  if (!action) {
-    return res.status(400).json({
-      error: "Missing required field: action",
-      required: {
-        action: "chat | image"
-      }
-    });
-  }
-  const client = new PolliNations();
+  const params = req.method === "GET" ? req.query : req.body;
+  const api = new PolliNations();
   try {
-    let result;
-    switch (action) {
-      case "chat":
-        if (!params.prompt && (!params.messages || params.messages.length === 0)) {
-          return res.status(400).json({
-            error: `Missing required field: prompt or messages (required for ${action})`
-          });
-        }
-        result = await client.chat(params);
-        return res.status(200).json({
-          success: true,
-          result: result
-        });
-      case "image":
-        if (!params.prompt) {
-          return res.status(400).json({
-            error: `Missing required field: prompt (required for ${action})`
-          });
-        }
-        if (params.model !== undefined) {
-          try {
-            params.model = parseInt(String(params.model), 10);
-            if (isNaN(params.model) || params.model < 0 || params.model >= client.availableModels.length) {
-              console.warn(`[Handler] Invalid model: ${params.model}. Defaulting to 0.`);
-              params.model = 0;
-            }
-          } catch (e) {
-            console.warn(`[Handler] Error parsing model: ${params.model}. Defaulting to 0. Error: ${e.message}`);
-            params.model = 0;
-          }
-        }
-        ["nologo", "enhance", "safe"].forEach(key => {
-          if (params[key] !== undefined && typeof params[key] === "string") {
-            params[key] = params[key].toLowerCase() === "true";
-          }
-        });
-        ["width", "height", "seed"].forEach(key => {
-          if (params[key] !== undefined && typeof params[key] === "string") {
-            try {
-              const numValue = parseInt(params[key], 10);
-              if (!isNaN(numValue)) {
-                params[key] = numValue;
-              } else {
-                delete params[key];
-              }
-            } catch (e) {
-              console.warn(`[Handler] Error parsing numeric param ${key}: ${params[key]}. Removing. Error: ${e.message}`);
-              delete params[key];
-            }
-          }
-        });
-        const imageResult = await client.image(params);
-        res.setHeader("Content-Type", "image/png");
-        return res.status(200).send(imageResult.data);
-      default:
-        return res.status(400).json({
-          error: `Invalid action: ${action}. Allowed: chat | image`
-        });
+    const result = await api.run(input);
+    if (result.type === "buffer") {
+      res.setHeader("Content-Type", result.mime);
+      return res.status(200).send(result.data);
     }
+    return res.status(200).json(result);
   } catch (error) {
-    console.error(`[Handler Error - ${action}]`, error);
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses.";
     return res.status(500).json({
-      error: `Processing error: ${error.message}`,
-      details: error.stack
+      error: errorMessage
     });
   }
 }

@@ -2,7 +2,7 @@ import axios from "axios";
 class CarbonVercel {
   constructor() {
     this.url = "https://carbon-api.vercel.app/api";
-    this.ua = "Mozilla/5.0 (Node.js)";
+    this.ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
   }
   log(t) {
     console.log(`[Carbon-Vercel]: ${t}`);
@@ -15,7 +15,7 @@ class CarbonVercel {
     this.log("Menyiapkan request...");
     try {
       const inputCode = code || "";
-      const inputTheme = theme ? theme : "Seti";
+      const inputTheme = theme ? theme : "seti";
       if (!inputCode) throw new Error("Parameter 'code' wajib diisi.");
       const payload = {
         code: inputCode,
@@ -31,9 +31,11 @@ class CarbonVercel {
         responseType: "arraybuffer"
       });
       this.log("Gambar berhasil di-generate.");
+      const contentType = response.headers["content-type"] || "image/png";
       return {
-        buffer: Buffer.from(response?.data),
-        contentType: response?.headers?.["content-type"] || "image/png"
+        success: true,
+        buffer: Buffer.from(response.data),
+        contentType: contentType
       };
     } catch (err) {
       this.log(`Error terjadi: ${err.message}`);
@@ -55,7 +57,15 @@ export default async function handler(req, res) {
   try {
     const api = new CarbonVercel();
     const result = await api.generate(params);
-    res.setHeader("Content-Type", result.contentType);
+    if (result.error) {
+      console.error("CarbonVercel API Error:", result.message);
+      return res.status(result.status || 500).json({
+        error: "Gagal memproses gambar",
+        details: result.message
+      });
+    }
+    const finalContentType = result.contentType || "image/png";
+    res.setHeader("Content-Type", finalContentType);
     return res.status(200).send(result.buffer);
   } catch (error) {
     console.error("Terjadi kesalahan di handler API:", error.message);

@@ -14,7 +14,7 @@ class KobaltGen {
     console.log(`[Kobalt] ${new Date().toLocaleTimeString()} > ${msg}`);
   }
   async generate({
-    message,
+    text: message,
     ...rest
   }) {
     this.log("Initializing form construction...");
@@ -59,9 +59,9 @@ class KobaltGen {
 }
 export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
-  if (!params.message) {
+  if (!params.text) {
     return res.status(400).json({
-      error: "Parameter 'message' diperlukan"
+      error: "Parameter 'text' diperlukan"
     });
   }
   const api = new KobaltGen();

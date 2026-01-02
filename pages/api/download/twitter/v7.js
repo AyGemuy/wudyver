@@ -1,25 +1,25 @@
 import fetch from "node-fetch";
 import * as cheerio from "cheerio";
-class TWMate {
+class TwitterSaver {
   constructor() {
-    this.baseUrl = "https://twmate.com/id2/";
+    this.baseUrl = "https://twittersaver.net/api/ajaxSearch";
     this.headers = {
       "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
       Accept: "*/*",
       "X-Requested-With": "XMLHttpRequest",
       "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Mobile Safari/537.36",
-      Referer: "https://twmate.com/id2/"
+      Referer: "https://twittersaver.net/id"
     };
   }
   async download({
     url
   }) {
     try {
-      console.log(`[⏳] TWMate Fetching: ${url}`);
+      console.log(`[⏳] TwitterSaver Fetching: ${url}`);
       const bodyData = new URLSearchParams({
-        page: url,
-        ftype: "all",
-        ajax: "1"
+        q: url,
+        lang: "id",
+        cftoken: ""
       });
       const response = await fetch(this.baseUrl, {
         method: "POST",
@@ -27,31 +27,34 @@ class TWMate {
         body: bodyData.toString()
       });
       if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-      const html = await response.text();
-      const $ = cheerio.load(html);
-      const thumbnail = $(".card-img-top.card_media").attr("src");
-      const downloadLinks = [];
-      $(".btn-dl").each((_, el) => {
-        const link = $(el).attr("href");
-        const text = $(el).text().replace("Unduh ", "").trim();
-        if (link) {
-          downloadLinks.push({
-            resolution: text,
-            url: link
+      const jsonResponse = await response.json();
+      if (jsonResponse.status !== "ok" || !jsonResponse.data) {
+        throw new Error("Gagal mendapatkan data dari TwitterSaver");
+      }
+      const $ = cheerio.load(jsonResponse.data);
+      const results = [];
+      $(".download-box li").each((_, el) => {
+        const thumbnail = $(el).find(".download-items__thumb img").attr("src");
+        const downloadUrl = $(el).find(".download-items__btn a").attr("href");
+        const typeText = $(el).find(".download-items__btn a span span").text().trim() || "Download";
+        if (downloadUrl) {
+          results.push({
+            type: typeText.includes("Gambar") ? "image" : "video",
+            text: typeText,
+            thumbnail: thumbnail,
+            url: downloadUrl
           });
         }
       });
-      if (downloadLinks.length === 0) {
-        throw new Error("No download links found. Make sure the URL is valid.");
-      }
+      const twitterId = $("#TwitterId").val();
       return {
         status: "success",
-        source: "TWMate",
-        thumbnail: thumbnail,
-        results: downloadLinks
+        source: "TwitterSaver",
+        twitterId: twitterId,
+        results: results
       };
     } catch (error) {
-      console.error("[❌] TWMate Error:", error.message);
+      console.error("[❌] TwitterSaver Error:", error.message);
       return {
         status: "error",
         message: error.message
@@ -66,7 +69,7 @@ export default async function handler(req, res) {
       error: "Parameter 'url' diperlukan"
     });
   }
-  const api = new TWMate();
+  const api = new TwitterSaver();
   try {
     const data = await api.download(params);
     return res.status(200).json(data);
