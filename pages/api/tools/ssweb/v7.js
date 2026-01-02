@@ -1,42 +1,62 @@
 import axios from "axios";
+import {
+  wrapper
+} from "axios-cookiejar-support";
+import {
+  CookieJar
+} from "tough-cookie";
 class PikwyAPI {
   constructor() {
     this.baseURL = "https://api.pikwy.com/";
+    this.jar = new CookieJar();
+    this.client = wrapper(axios.create({
+      baseURL: this.baseURL,
+      jar: this.jar,
+      withCredentials: true
+    }));
     console.log("[PikwyAPI] Instance created");
   }
-  async generate({
-    url,
-    ...rest
-  } = {}) {
-    const targetUrl = url || rest.u || "https://chatgpt.com/";
-    console.log("[generate] Starting screenshot generation for:", targetUrl);
+  async generate(options = {}) {
+    const url = options.url || options.u || "https://chatgpt.com/";
+    const output = options.output || "buffer";
+    console.log("[generate] Processing:", url);
     try {
       const params = {
-        tkn: rest.tkn || 125,
-        d: rest.d || 3e3,
-        u: encodeURIComponent(targetUrl),
-        fs: rest.fs || 0,
-        w: rest.w || 1280,
-        h: rest.h || 1200,
-        s: rest.s || 100,
-        z: rest.z || 100,
-        f: rest.f || "jpg",
-        rt: rest.rt || "jweb",
-        ...rest
+        tkn: options.tkn || 125,
+        d: options.d || 3e3,
+        u: encodeURIComponent(url),
+        fs: options.fs || 0,
+        w: options.w || 1280,
+        h: options.h || 1200,
+        s: options.s || 100,
+        z: options.z || 100,
+        f: options.f || "jpg",
+        rt: options.rt || "jweb",
+        ...options
       };
-      console.log("[generate] Request parameters:", params);
-      const response = await axios.get(this.baseURL, {
+      const response = await this.client.get("/", {
         params: params
       });
       const data = response?.data || {};
-      console.log("[generate] Raw API response:", data);
-      return data;
+      const iurl = data.iurl || null;
+      if (!iurl) throw new Error(data.msg || "Invalid API Response");
+      const res = await this.client.get(iurl, {
+        responseType: "arraybuffer"
+      });
+      const buffer = Buffer.from(res?.data || "");
+      const mime = res?.headers["content-type"] || "image/jpeg";
+      const finalData = output === "base64" && buffer.toString("base64") || output === "url" && iurl || buffer;
+      return {
+        success: true,
+        data: finalData,
+        mime: mime
+      };
     } catch (error) {
-      console.error("[generate] Error:", error?.response?.status || error?.code || error?.message);
+      console.error("[generate] Error:", error.message);
       return {
         success: false,
-        error: error?.response?.data?.message || error?.message || "Unknown error occurred",
-        code: error?.response?.status || error?.code
+        error: error.response?.data?.message || error.message || "Unknown error",
+        code: error.response?.status || error.code
       };
     }
   }
@@ -45,16 +65,18 @@ export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.url) {
     return res.status(400).json({
-      error: "Url are required"
+      error: "Parameter 'url' diperlukan"
     });
   }
+  const api = new PikwyAPI();
   try {
-    const client = new PikwyAPI();
-    const response = await client.generate(params);
-    return res.status(200).json(response);
+    const result = await api.generate(params);
+    res.setHeader("Content-Type", result.mime);
+    return res.status(200).send(result.data);
   } catch (error) {
-    res.status(500).json({
-      error: error.message || "Internal Server Error"
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    return res.status(500).json({
+      error: errorMessage
     });
   }
 }

@@ -394,70 +394,28 @@ export default async function handler(req, res) {
     action,
     ...params
   } = req.method === "GET" ? req.query : req.body;
+  const supportedActions = ["chat", "graph", "practice", "study", "video"];
   if (!action) {
     return res.status(400).json({
       error: "Action is required."
     });
   }
+  if (!supportedActions.includes(action)) {
+    return res.status(400).json({
+      error: `Invalid action: ${action}. Supported actions are: ${supportedActions.join(", ")}.`
+    });
+  }
+  if (!params.prompt) {
+    return res.status(400).json({
+      error: `Prompt is required for ${action}.`
+    });
+  }
   const api = new MathGPT();
   try {
-    let response;
-    switch (action) {
-      case "chat":
-        if (!params.prompt) {
-          return res.status(400).json({
-            error: "Prompt is required for chat."
-          });
-        }
-        response = await api.chat(params);
-        return res.status(200).json({
-          result: response
-        });
-      case "graph":
-        if (!params.prompt) {
-          return res.status(400).json({
-            error: "Prompt is required for graph."
-          });
-        }
-        response = await api.graph(params);
-        return res.status(200).json({
-          result: response
-        });
-      case "practice":
-        if (!params.prompt) {
-          return res.status(400).json({
-            error: "Prompt is required for practice."
-          });
-        }
-        response = await api.practice(params);
-        return res.status(200).json({
-          result: response
-        });
-      case "study":
-        if (!params.prompt) {
-          return res.status(400).json({
-            error: "Prompt is required for study."
-          });
-        }
-        response = await api.study(params);
-        return res.status(200).json({
-          result: response
-        });
-      case "video":
-        if (!params.prompt) {
-          return res.status(400).json({
-            error: "Prompt is required for video."
-          });
-        }
-        response = await api.video(params);
-        return res.status(200).json({
-          result: response
-        });
-      default:
-        return res.status(400).json({
-          error: `Invalid action: ${action}. Supported actions are 'chat', 'graph', 'practice', 'study', and 'video'.`
-        });
-    }
+    const response = await api[action](params);
+    return res.status(200).json({
+      result: response
+    });
   } catch (error) {
     console.error("API Error:", error);
     return res.status(500).json({

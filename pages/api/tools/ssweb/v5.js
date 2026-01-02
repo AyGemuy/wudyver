@@ -1,78 +1,77 @@
 import axios from "axios";
-import {
-  CookieJar
-} from "tough-cookie";
-import {
-  wrapper
-} from "axios-cookiejar-support";
 import * as cheerio from "cheerio";
-import SpoofHead from "@/lib/spoof-head";
-const jar = new CookieJar();
-const client = wrapper(axios.create({
-  jar: jar
-}));
-class Gen {
+import https from "https";
+import FormData from "form-data";
+class SimpleTools {
+  constructor() {
+    this.baseURL = "https://tools.simpletools.nl";
+    this.apiURL = "/index.php";
+    this.agent = new https.Agent({
+      keepAlive: true,
+      rejectUnauthorized: false,
+      ciphers: "ALL"
+    });
+    this.client = axios.create({
+      baseURL: this.baseURL,
+      httpsAgent: this.agent,
+      timeout: 6e4,
+      headers: {
+        Connection: "keep-alive"
+      }
+    });
+  }
   async generate({
     url,
-    ...rest
+    output = "buffer"
   } = {}) {
-    const u = url ?? rest.url ?? "https://x.com";
-    console.log("[start] generate url:", u);
+    const targetUrl = url || "https://x.com";
+    console.log("[SimpleTools] Attempting SSL Handshake & Generation:", targetUrl);
     try {
-      const payload = new URLSearchParams({
-        module: "tools",
-        task: "tool-detail",
-        tool_file: "url-to-png",
-        do: "list_save",
-        url: u,
-        ...rest
-      });
-      console.log("[request] POST index.php");
-      const res = await client.post("https://tools.simpletools.nl/index.php", payload, {
+      const landing = await this.client.get("/url-to-png.html");
+      const rawCookies = landing.headers["set-cookie"] || [];
+      const cookieHeader = rawCookies.map(c => c.split(";")[0]).join("; ");
+      const form = new FormData();
+      form.append("module", "tools");
+      form.append("task", "tool-detail");
+      form.append("tool_file", "url-to-png");
+      form.append("do", "list_save");
+      form.append("url", targetUrl);
+      const response = await this.client.post(this.apiURL, form, {
         headers: {
-          accept: "*/*",
-          "accept-language": "id-ID",
-          "cache-control": "no-cache",
-          "content-type": "application/x-www-form-urlencoded",
-          origin: "https://tools.simpletools.nl",
-          pragma: "no-cache",
-          referer: "https://tools.simpletools.nl/url-to-png.html",
-          "sec-ch-ua": '"Chromium";v="127", "Not)A;Brand";v="99"',
-          "sec-ch-ua-mobile": "?1",
-          "sec-ch-ua-platform": '"Android"',
-          "sec-fetch-dest": "empty",
-          "sec-fetch-mode": "cors",
-          "sec-fetch-site": "same-origin",
-          "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36",
-          "x-requested-with": "XMLHttpRequest",
-          ...SpoofHead()
+          ...form.getHeaders(),
+          Cookie: cookieHeader,
+          "X-Requested-With": "XMLHttpRequest",
+          Referer: `${this.baseURL}/url-to-png.html`
         }
       });
-      const data = res.data ?? {};
-      const result = {
-        url: null,
-        success: data.status === 1,
-        message: data.msg || ""
-      };
-      if (!data.returnactions_target_element_value) {
-        console.warn("[warn] No HTML result found in response");
-        return result;
-      }
-      const html = data.returnactions_target_element_value;
-      const $ = cheerio.load(html);
-      const downloadLink = $('a.btn-primary[href$=".png"]').attr("href");
-      if (downloadLink) {
-        result.url = downloadLink.startsWith("http") ? downloadLink : `https://tools.simpletools.nl${downloadLink}`;
-      } else {
-        console.warn("[warn] PNG download link not found in HTML");
-      }
-      return result;
-    } catch (e) {
-      console.error("[exception]", e?.response?.status ?? e?.code ?? e?.message);
+      const json = response?.data || {};
+      const htmlContent = json.returnactions_target_element_value || "";
+      if (!htmlContent) throw new Error(json.msg || "Server returned empty response");
+      const $ = cheerio.load(htmlContent);
+      const rawPath = $('a[href$=".png"]').attr("href") || "";
+      const downloadUrl = rawPath.startsWith("http") && rawPath || rawPath && `${this.baseURL}${rawPath}` || null;
+      if (!downloadUrl) throw new Error("PNG Link not found");
+      const imageRes = await this.client.get(downloadUrl, {
+        responseType: "arraybuffer",
+        headers: {
+          Cookie: cookieHeader
+        }
+      });
+      const buffer = Buffer.from(imageRes?.data || "");
+      const mime = imageRes?.headers["content-type"] || "image/png";
+      const finalData = output === "base64" && buffer.toString("base64") || output === "url" && downloadUrl || buffer;
       return {
-        url: null,
+        success: true,
+        data: finalData,
+        mime: mime
+      };
+    } catch (error) {
+      const errorMsg = error.code === "ECONNRESET" ? "TLS Handshake Failed/Connection Reset" : error.message;
+      console.error("[SimpleTools Error]", errorMsg);
+      return {
         success: false,
-        message: e?.message || "Network error"
+        error: errorMsg,
+        data: null
       };
     }
   }
@@ -81,16 +80,18 @@ export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.url) {
     return res.status(400).json({
-      error: "Url are required"
+      error: "Parameter 'url' diperlukan"
     });
   }
+  const api = new SimpleTools();
   try {
-    const client = new Gen();
-    const response = await client.generate(params);
-    return res.status(200).json(response);
+    const result = await api.generate(params);
+    res.setHeader("Content-Type", result.mime);
+    return res.status(200).send(result.data);
   } catch (error) {
-    res.status(500).json({
-      error: error.message || "Internal Server Error"
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    return res.status(500).json({
+      error: errorMessage
     });
   }
 }

@@ -7,10 +7,11 @@ import {
   CookieJar
 } from "tough-cookie";
 import qs from "qs";
-class BrightSEOTools {
+class CheckupTools {
   constructor() {
-    this.baseURL = "https://brightseotools.com";
-    this.path = "/website-screenshot-generator";
+    this.baseURL = "https://checkup.tools";
+    this.path = "/en/website-screenshot-generator";
+    this.outputURL = "/en/website-screenshot-generator/output";
     this.jar = new CookieJar();
     this.client = wrapper(axios.create({
       baseURL: this.baseURL,
@@ -21,57 +22,65 @@ class BrightSEOTools {
   }
   async generate({
     url,
-    type = "desktop",
     output = "buffer"
   } = {}) {
     const targetUrl = url || "https://google.com";
-    console.log("[BrightSEO] Processing:", targetUrl);
+    console.log("[CheckupTools] Generating screenshot for:", targetUrl);
     try {
-      const initialReq = await this.client.get(this.path, {
+      await this.client.get(this.path, {
         headers: {
           accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
           "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36"
         }
       });
-      const $initial = cheerio.load(initialReq.data);
-      const csrfToken = $initial('input[name="_token"]').val();
-      if (!csrfToken) throw new Error("Could not find CSRF token");
       const postData = qs.stringify({
-        _token: csrfToken,
         url: targetUrl,
-        type: type
+        submit: "Submit"
       });
-      const response = await this.client.post(this.path, postData, {
+      const response = await this.client.post(this.outputURL, postData, {
         headers: {
+          accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+          "accept-language": "id-ID",
+          "cache-control": "max-age=0",
           "content-type": "application/x-www-form-urlencoded",
           origin: this.baseURL,
           referer: this.baseURL + this.path,
+          "sec-ch-ua": '"Chromium";v="127", "Not)A;Brand";v="99", "Microsoft Edge Simulate";v="127", "Lemur";v="127"',
+          "sec-ch-ua-mobile": "?1",
+          "sec-ch-ua-platform": '"Android"',
+          "sec-fetch-dest": "document",
+          "sec-fetch-mode": "navigate",
+          "sec-fetch-site": "same-origin",
+          "sec-fetch-user": "?1",
           "upgrade-insecure-requests": "1",
           "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36"
         }
       });
-      const $result = cheerio.load(response.data);
-      const imgPath = $result("img.screenshot").attr("src");
-      if (!imgPath) throw new Error("Screenshot image not found in response");
-      console.log("[BrightSEO] Image URL:", imgPath);
-      const resImage = await this.client.get(imgPath, {
+      const $ = cheerio.load(response.data);
+      const ajaxImgSrc = $("img.imgSrc").attr("src");
+      if (!ajaxImgSrc) {
+        throw new Error("Screenshot image source not found in HTML response");
+      }
+      const downloadUrl = ajaxImgSrc.startsWith("http") && ajaxImgSrc || `${this.baseURL}${ajaxImgSrc.startsWith("/") ? "" : "/"}${ajaxImgSrc}`;
+      console.log("[CheckupTools] Final Image URL:", downloadUrl);
+      const resImage = await this.client.get(downloadUrl, {
         responseType: "arraybuffer"
       });
       const buffer = Buffer.from(resImage?.data || "");
       const mime = resImage?.headers["content-type"] || "image/png";
-      const finalResult = output === "base64" && buffer.toString("base64") || output === "url" && imgPath || buffer;
+      const finalResult = output === "base64" && buffer.toString("base64") || output === "url" && downloadUrl || buffer;
       return {
         success: true,
         data: finalResult,
         mime: mime,
-        url: imgPath
+        url: downloadUrl
       };
     } catch (error) {
-      console.error("[BrightSEO Error]", error.message);
+      console.error("[CheckupTools Error]", error.message);
       return {
         success: false,
-        error: error.response?.data?.message || error.message || "Request failed",
-        status: error.response?.status
+        error: error.message || "Failed to generate screenshot",
+        data: null
       };
     }
   }
@@ -83,7 +92,7 @@ export default async function handler(req, res) {
       error: "Parameter 'url' diperlukan"
     });
   }
-  const api = new BrightSEOTools();
+  const api = new CheckupTools();
   try {
     const result = await api.generate(params);
     res.setHeader("Content-Type", result.mime);

@@ -81,10 +81,7 @@ class ShorticalApi {
         params: params,
         headers: headers
       });
-      return {
-        ...response.data,
-        token: active_token
-      };
+      return response.data;
     } catch (error) {
       throw error;
     }
@@ -96,7 +93,9 @@ class ShorticalApi {
   } = {}) {
     if (token) {
       this.token = token;
-      return token;
+      return {
+        token: token
+      };
     }
     try {
       const final_device_id = device_id || this._rand(16);
@@ -112,18 +111,24 @@ class ShorticalApi {
         data: payload,
         ensure_auth: false
       });
-      const ctoken = backend_res?.token || backend_res;
+      const ctoken = backend_res?.token;
       if (!ctoken || typeof ctoken !== "string") {
-        throw new Error("Respon backend tidak valid (Custom Token hilang)");
+        throw new Error(`Respon backend tidak valid (Custom Token hilang). Response: ${JSON.stringify(backend_res)}`);
       }
       const id_token = await this._token(ctoken);
       this.token = id_token;
       console.log("✔ [Auth] Login Berhasil.");
+      const result = {
+        token: this.token,
+        device_id: this.device_id
+      };
       try {
         await this.check_in();
         console.log("✔ [Auto] Check-in harian selesai.");
-      } catch (err) {}
-      return this.token;
+      } catch (err) {
+        console.log("⚠ Check-in gagal (tidak masalah):", err.message);
+      }
+      return result;
     } catch (error) {
       console.error(`✖ [Auth Error] Proses login gagal: ${error.message}`);
       throw error;
@@ -134,11 +139,15 @@ class ShorticalApi {
   } = {}) {
     try {
       console.log("➤ [User] Mengambil data Claims/Wallet...");
-      return await this._request({
+      const result = await this._request({
         method: "GET",
         url: this.cfg.endpoints.claims,
         token: token
       });
+      return {
+        ...result,
+        token: token || this.token
+      };
     } catch (error) {
       console.error(`✖ [Error] Gagal ambil claims: ${error.message}`);
       throw error;
@@ -154,7 +163,7 @@ class ShorticalApi {
         provider_token: provider_token
       }, ["provider_token"]);
       console.log(`➤ [User] Menghubungkan akun (${type})...`);
-      return await this._request({
+      const result = await this._request({
         method: "POST",
         url: this.cfg.endpoints.link_account,
         data: {
@@ -163,6 +172,10 @@ class ShorticalApi {
         },
         token: token
       });
+      return {
+        ...result,
+        token: token || this.token
+      };
     } catch (error) {
       console.error(`✖ [Error] Gagal link account: ${error.message}`);
       throw error;
@@ -179,12 +192,19 @@ class ShorticalApi {
         page: page
       };
       if (category) params.category = category;
-      return await this._request({
+      const result = await this._request({
         method: "GET",
         url: this.cfg.endpoints.series,
         params: params,
         token: token
       });
+      const response = Array.isArray(result) ? {
+        data: result
+      } : result;
+      return {
+        ...response,
+        token: token || this.token
+      };
     } catch (error) {
       console.error(`✖ [Error] Gagal ambil list series: ${error.message}`);
       throw error;
@@ -198,7 +218,7 @@ class ShorticalApi {
     try {
       const endpoint = version === 1 ? this.cfg.endpoints.more_rec_v1 : this.cfg.endpoints.more_rec_v2;
       console.log(`➤ [Series] Mengambil Rekomendasi (v${version})...`);
-      return await this._request({
+      const result = await this._request({
         method: "GET",
         url: endpoint,
         params: {
@@ -206,6 +226,13 @@ class ShorticalApi {
         },
         token: token
       });
+      const response = Array.isArray(result) ? {
+        data: result
+      } : result;
+      return {
+        ...response,
+        token: token || this.token
+      };
     } catch (error) {
       console.error(`✖ [Error] Gagal ambil rekomendasi: ${error.message}`);
       throw error;
@@ -216,11 +243,18 @@ class ShorticalApi {
   } = {}) {
     try {
       console.log("➤ [Series] Mengambil Top Recommendations...");
-      return await this._request({
+      const result = await this._request({
         method: "GET",
         url: this.cfg.endpoints.top_recs,
         token: token
       });
+      const response = Array.isArray(result) ? {
+        data: result
+      } : result;
+      return {
+        ...response,
+        token: token || this.token
+      };
     } catch (error) {
       console.error(`✖ [Error] Gagal ambil top recs: ${error.message}`);
       throw error;
@@ -231,11 +265,15 @@ class ShorticalApi {
   } = {}) {
     try {
       console.log("➤ [Series] Mengambil data Hero/Banner...");
-      return await this._request({
+      const result = await this._request({
         method: "GET",
         url: this.cfg.endpoints.hero,
         token: token
       });
+      return {
+        ...result,
+        token: token || this.token
+      };
     } catch (error) {
       console.error(`✖ [Error] Gagal ambil Hero Series: ${error.message}`);
       throw error;
@@ -250,11 +288,15 @@ class ShorticalApi {
         series_id: series_id
       }, ["series_id"]);
       console.log(`➤ [Detail] Mengambil info Series ID: ${series_id}...`);
-      return await this._request({
+      const result = await this._request({
         method: "GET",
         url: this.cfg.endpoints.series_detail(series_id),
         token: token
       });
+      return {
+        ...result,
+        token: token || this.token
+      };
     } catch (error) {
       console.error(`✖ [Error] Gagal ambil detail: ${error.message}`);
       throw error;
@@ -269,11 +311,18 @@ class ShorticalApi {
         series_id: series_id
       }, ["series_id"]);
       console.log(`➤ [Detail] Mengambil daftar episode Series ID: ${series_id}...`);
-      return await this._request({
+      const result = await this._request({
         method: "GET",
         url: this.cfg.endpoints.episodes(series_id),
         token: token
       });
+      const response = Array.isArray(result) ? {
+        data: result
+      } : result;
+      return {
+        ...response,
+        token: token || this.token
+      };
     } catch (error) {
       console.error(`✖ [Error] Gagal ambil episodes: ${error.message}`);
       throw error;
@@ -290,11 +339,15 @@ class ShorticalApi {
         episode_number: episode_number
       }, ["series_id", "episode_number"]);
       console.log(`➤ [Stream] Mengambil URL (S${series_id}-E${episode_number})...`);
-      return await this._request({
+      const result = await this._request({
         method: "GET",
         url: this.cfg.endpoints.episode_url(series_id, episode_number),
         token: token
       });
+      return {
+        ...result,
+        token: token || this.token
+      };
     } catch (error) {
       console.error(`✖ [Error] Gagal ambil URL Episode: ${error.message}`);
       throw error;
@@ -312,7 +365,7 @@ class ShorticalApi {
         episode_number: episode_number
       }, ["series_id", "episode_number"]);
       console.log(`➤ [Stream] Update progress (S${series_id}-E${episode_number})...`);
-      return await this._request({
+      const result = await this._request({
         method: "POST",
         url: this.cfg.endpoints.episode_watch(series_id, episode_number),
         data: {
@@ -320,6 +373,10 @@ class ShorticalApi {
         },
         token: token
       });
+      return {
+        ...result,
+        token: token || this.token
+      };
     } catch (error) {
       console.error(`✖ [Error] Gagal update progress: ${error.message}`);
       throw error;
@@ -329,11 +386,15 @@ class ShorticalApi {
     token
   } = {}) {
     try {
-      return await this._request({
+      const result = await this._request({
         method: "GET",
         url: this.cfg.endpoints.check_in,
         token: token
       });
+      return {
+        ...result,
+        token: token || this.token
+      };
     } catch (error) {
       throw error;
     }
@@ -343,11 +404,18 @@ class ShorticalApi {
   } = {}) {
     try {
       console.log("➤ [Reward] Mengambil List General Rewards...");
-      return await this._request({
+      const result = await this._request({
         method: "GET",
         url: this.cfg.endpoints.general_rewards,
         token: token
       });
+      const response = Array.isArray(result) ? {
+        data: result
+      } : result;
+      return {
+        ...response,
+        token: token || this.token
+      };
     } catch (error) {
       console.error(`✖ [Error] Gagal ambil rewards list: ${error.message}`);
       throw error;
@@ -362,11 +430,15 @@ class ShorticalApi {
         label: label
       }, ["label"]);
       console.log(`➤ [Reward] Mengambil info reward: ${label}...`);
-      return await this._request({
+      const result = await this._request({
         method: "GET",
         url: this.cfg.endpoints.reward_label(label),
         token: token
       });
+      return {
+        ...result,
+        token: token || this.token
+      };
     } catch (error) {
       console.error(`✖ [Error] Gagal ambil detail reward: ${error.message}`);
       throw error;
@@ -381,12 +453,16 @@ class ShorticalApi {
         label: label
       }, ["label"]);
       console.log(`➤ [Reward] Claim Reward: ${label}...`);
-      return await this._request({
+      const result = await this._request({
         method: "POST",
         url: this.cfg.endpoints.reward_grant(label),
         data: {},
         token: token
       });
+      return {
+        ...result,
+        token: token || this.token
+      };
     } catch (error) {
       console.error(`✖ [Error] Gagal claim reward: ${error.message}`);
       throw error;
@@ -403,7 +479,7 @@ class ShorticalApi {
         episode_number: episode_number
       }, ["series_id", "episode_number"]);
       console.log(`➤ [Reward] Membuka Episode (Unlock) S${series_id}-E${episode_number}...`);
-      return await this._request({
+      const result = await this._request({
         method: "POST",
         url: this.cfg.endpoints.unlock_episode,
         data: {
@@ -412,6 +488,10 @@ class ShorticalApi {
         },
         token: token
       });
+      return {
+        ...result,
+        token: token || this.token
+      };
     } catch (error) {
       console.error(`✖ [Error] Gagal unlock episode: ${error.message}`);
       throw error;
@@ -436,6 +516,7 @@ export default async function handler(req, res) {
     switch (action) {
       case "login":
         response = await api.login(params);
+        console.log("Login response:", response);
         break;
       case "claims":
         response = await api.get_claims(params);

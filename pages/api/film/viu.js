@@ -56,7 +56,11 @@ class ViuApi {
   async env() {
     try {
       const u = `${this.base}/api/mobile?r=%2Fenv%2Finfo&platform_flag_label=${this.cfg.label}&language_flag_id=${this.cfg.lang}&ut=0&area_id=-1&os_flag_id=${this.cfg.os}&countryCode=`;
-      return await this.req(this.h("GET", u));
+      const result = await this.req(this.h("GET", u));
+      return result ? {
+        ...result,
+        token: this.token
+      } : null;
     } catch (e) {
       console.log(`env error: ${e?.message || e}`);
       return null;
@@ -73,7 +77,10 @@ class ViuApi {
       const res = await this.req(this.h("POST", u, d));
       this.deviceId = res?.deviceId || null;
       console.log(`Device ID: ${this.deviceId}`);
-      return res;
+      return res ? {
+        ...res,
+        token: this.token
+      } : null;
     } catch (e) {
       console.log(`device error: ${e?.message || e}`);
       return null;
@@ -82,7 +89,11 @@ class ViuApi {
   async config() {
     try {
       const u = `${this.base}/api/config`;
-      return await this.req(this.h("GET", u));
+      const result = await this.req(this.h("GET", u));
+      return result ? {
+        ...result,
+        token: this.token
+      } : null;
     } catch (e) {
       console.log(`config error: ${e?.message || e}`);
       return null;
@@ -120,7 +131,10 @@ class ViuApi {
       const res = await this.req(this.h("POST", u, d));
       this.token = res?.token || null;
       console.log(`Token: ${this.token?.slice(0, 50)}...`);
-      return res;
+      return res ? {
+        ...res,
+        token: this.token
+      } : null;
     } catch (e) {
       console.log(`auth error: ${e?.message || e}`);
       return null;
@@ -167,7 +181,11 @@ class ViuApi {
         token: token,
         ...rest
       });
-      return await this.req(this.h("GET", this.q("/home/index"), null, true));
+      const result = await this.req(this.h("GET", this.q("/home/index"), null, true));
+      return result ? {
+        ...result,
+        token: this.token
+      } : null;
     } catch (e) {
       console.log(`home error: ${e?.message || e}`);
       return null;
@@ -182,7 +200,11 @@ class ViuApi {
         token: token,
         ...rest
       });
-      return await this.req(this.h("GET", this.q("/live/list"), null, true));
+      const result = await this.req(this.h("GET", this.q("/live/list"), null, true));
+      return result ? {
+        ...result,
+        token: this.token
+      } : null;
     } catch (e) {
       console.log(`live error: ${e?.message || e}`);
       return null;
@@ -198,9 +220,13 @@ class ViuApi {
         token: token,
         ...rest
       });
-      return await this.req(this.h("GET", this.q("/category/list", {
+      const result = await this.req(this.h("GET", this.q("/category/list", {
         os: os
       }), null, true));
+      return result ? {
+        ...result,
+        token: this.token
+      } : null;
     } catch (e) {
       console.log(`categories error: ${e?.message || e}`);
       return null;
@@ -218,11 +244,15 @@ class ViuApi {
         token: token,
         ...rest
       });
-      return await this.req(this.h("GET", this.q("/category/series", {
+      const result = await this.req(this.h("GET", this.q("/category/series", {
         category_id: category_id,
         tag_id: tag_id,
         release_time: release_time
       }), null, true));
+      return result ? {
+        ...result,
+        token: this.token
+      } : null;
     } catch (e) {
       console.log(`series error: ${e?.message || e}`);
       return null;
@@ -241,12 +271,16 @@ class ViuApi {
         token: token,
         ...rest
       });
-      return await this.req(this.h("GET", this.q("/search/video", {
+      const result = await this.req(this.h("GET", this.q("/search/video", {
         limit: limit,
         page: page,
         has_micro_drama: has_micro_drama,
         "keyword[]": keyword
       }), null, true));
+      return result ? {
+        ...result,
+        token: this.token
+      } : null;
     } catch (e) {
       console.log(`search error: ${e?.message || e}`);
       return null;
@@ -263,10 +297,14 @@ class ViuApi {
         token: token,
         ...rest
       });
-      return await this.req(this.h("GET", this.q("/search/prediction", {
+      const result = await this.req(this.h("GET", this.q("/search/prediction", {
         keyword: keyword,
         has_micro_drama: has_micro_drama
       }), null, true));
+      return result ? {
+        ...result,
+        token: this.token
+      } : null;
     } catch (e) {
       console.log(`predict error: ${e?.message || e}`);
       return null;
@@ -282,9 +320,13 @@ class ViuApi {
         token: token,
         ...rest
       });
-      return await this.req(this.h("GET", this.q("/vod/detail", {
+      const result = await this.req(this.h("GET", this.q("/vod/detail", {
         product_id: product_id
       }), null, true));
+      return result ? {
+        ...result,
+        token: this.token
+      } : null;
     } catch (e) {
       console.log(`detail error: ${e?.message || e}`);
       return null;
@@ -302,11 +344,15 @@ class ViuApi {
         token: token,
         ...rest
       });
-      return await this.req(this.h("GET", this.q("/vod/product-list", {
+      const result = await this.req(this.h("GET", this.q("/vod/product-list", {
         product_id: product_id,
         series_id: series_id,
         size: size
       }), null, true));
+      return result ? {
+        ...result,
+        token: this.token
+      } : null;
     } catch (e) {
       console.log(`episodes error: ${e?.message || e}`);
       return null;
@@ -331,7 +377,11 @@ area_id: this.cfg.area,
 os_flag_id: this.cfg.os,
 countryCode: this.cfg.cc
 })}`;
-      return await this.req(this.h("GET", u, null, true));
+      const result = await this.req(this.h("GET", u, null, true));
+      return result ? {
+        ...result,
+        token: this.token
+      } : null;
     } catch (e) {
       console.log(`play error: ${e?.message || e}`);
       return null;
@@ -421,12 +471,6 @@ export default async function handler(req, res) {
           error: `Action tidak valid: ${action}.`,
           valid_actions: ["env", "config", "home", "live", "categories", "series", "search", "predict", "detail", "episodes", "play"]
         });
-    }
-    if (!response) {
-      return res.status(500).json({
-        status: false,
-        error: "Gagal mendapatkan response dari API VIU."
-      });
     }
     return res.status(200).json(response);
   } catch (error) {
