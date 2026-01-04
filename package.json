@@ -106,6 +106,7 @@
     "@ducanh2912/next-pwa": "latest",
     "node-fetch": "latest",
     "node-html-parser": "latest",
+    "node-tls-client": "latest",
     "ora": "latest",
     "pdfkit": "latest",
     "qrcode": "latest",
