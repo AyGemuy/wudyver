@@ -47,7 +47,7 @@ const createSpinner = text => ora({
   text: text,
   spinner: "moon"
 });
-const Provider = ["Catbox", "Litterbox", "Doodstream", "Fexnet", "DOffice", "Bash", "FileDitch", "Filebin", "Fileio", "Filezone", "FreeImage", "Gofile", "Gozic", "Hostfile", "Imgbb", "Kitc", "Kraken", "MediaUpload", "Eax", "Nullbyte", "Vello", "Lusia", "Pomf2", "Sazumi", "Sohu", "Gizai", "PhoTo", "Sojib", "Instantiated", "Exonity", "Zcy", "BltokProject", "Maricon", "Nauval", "Supa", "Knowee", "Puticu", "Stylar", "Telegraph", "Tmpfiles", "Cloudmini", "Babup", "Transfersh", "Ucarecdn", "Uguu", "UploadEE", "Uploadify", "Videy", "ZippyShare", "Quax", "Aceimg"];
+const Provider = ["Catbox", "Litterbox", "Doodstream", "Fexnet", "DOffice", "Bash", "FileDitch", "Filebin", "Fileio", "Filezone", "FreeImage", "Gofile", "Gozic", "Hostfile", "Imgbb", "Kitc", "Kraken", "MediaUpload", "Eax", "Nullbyte", "Vello", "Lusia", "Pomf2", "Sazumi", "Sohu", "Gizai", "PhoTo", "Sojib", "Instantiated", "Exonity", "Zcy", "BltokProject", "Maricon", "Nauval", "Supa", "Knowee", "Puticu", "Stylar", "Telegraph", "Tmpfiles", "Cloudmini", "Babup", "Transfersh", "Ucarecdn", "Uguu", "UploadEE", "Uploadify", "Videy", "Uplider", "ZippyShare", "Quax", "Aceimg"];
 class Uploader {
   constructor() {
     this.Provider = Provider;
@@ -873,6 +873,27 @@ class Uploader {
       spinner.succeed(chalk.green("Uploaded to Instantiated"));
       const result = await response.json();
       return result.url;
+    } catch (error) {
+      handleError(error, spinner);
+    }
+  }
+  async Uplider(content) {
+    const spinner = createSpinner("Uploading to Uplider").start();
+    try {
+      const {
+        formData
+      } = await createFormData(content, "file"), response = await fetch("https://uplider.my.id/upload", {
+        method: "POST",
+        body: formData,
+        headers: {
+          "User-Agent": fakeUa()
+        }
+      });
+      spinner.succeed(chalk.green("Uploaded to Uplider"));
+      const {
+        url: res_url
+      } = await response.json();
+      return `https://uplider.my.id${res_url}`;
     } catch (error) {
       handleError(error, spinner);
     }

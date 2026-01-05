@@ -1,184 +1,151 @@
 import axios from "axios";
-import SpoofHead from "@/lib/spoof-head";
-class Vider {
+import crypto from "crypto";
+class ViderAI {
   constructor() {
-    this.apiBaseUrl = "https://api.vider.ai/api/freev1";
-    this.headers = {
-      accept: "*/*",
-      "accept-language": "id-ID",
-      "content-type": "application/json",
-      origin: "https://vider.ai",
-      referer: "https://vider.ai/",
-      "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36",
-      ...SpoofHead()
+    this.cfg = {
+      baseUrl: "https://api.vider.ai/api/freev1",
+      headers: {
+        accept: "*/*",
+        "accept-language": "id-ID",
+        "cache-control": "no-cache",
+        "content-type": "application/json",
+        origin: "https://vider.ai",
+        referer: "https://vider.ai/",
+        "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36"
+      },
+      models: {
+        t2i: "free-ai-image-generator",
+        i2i: "free-ai-image-to-image-generator",
+        t2v: "free-ai-video-generator",
+        i2v: "free-ai-image-to-video-generator"
+      }
     };
   }
-  b64ToBlob(base64, contentType = "image/jpeg") {
-    const base64Data = base64.replace(/^data:image\/\w+;base64,/, "");
-    const byteCharacters = atob(base64Data);
-    const byteArrays = [];
-    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-      const slice = byteCharacters.slice(offset, offset + 512);
-      const byteNumbers = new Array(slice.length);
-      for (let i = 0; i < slice.length; i++) {
-        byteNumbers[i] = slice.charCodeAt(i);
-      }
-      byteArrays.push(new Uint8Array(byteNumbers));
-    }
-    return new Blob(byteArrays, {
-      type: contentType
-    });
+  getExt(mime) {
+    const map = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/gif": "gif",
+      "image/webp": "webp",
+      "video/mp4": "mp4"
+    };
+    return map[mime] || "jpg";
   }
-  async urlToBlob(url) {
-    const res = await axios.get(url, {
-      responseType: "blob"
-    });
-    return res.data;
-  }
-  async _uploadImage(imageUrl) {
-    console.log("PROSES: Memulai proses unggah gambar...");
+  async upload(buffer, mimeType = "image/jpeg") {
     try {
-      console.log("  -> Langkah 1: Meminta URL presign untuk unggah...");
-      const presignResponse = await axios.post(`${this.apiBaseUrl}/userFreeSignS3`, {
-        filename: `image-${Date.now()}.jpg`,
+      const ext = this.getExt(mimeType);
+      const filename = `${crypto.randomBytes(16).toString("hex")}.${ext}`;
+      console.log(`[ViderAI] Requesting sign for: ${filename} (${mimeType})`);
+      const signRes = await axios.post(`${this.cfg.baseUrl}/userFreeSignS3`, {
+        filename: filename,
         tryNum: 0
       }, {
-        headers: this.headers
+        headers: this.cfg.headers
       });
-      if (presignResponse.data.code !== 0) {
-        throw new Error(`Gagal mendapatkan URL presign: ${presignResponse.data.info}`);
-      }
-      const {
-        url: uploadUrl,
-        pubUrl
-      } = presignResponse.data.data;
-      console.log("  <- RESPON: URL presign berhasil didapatkan.");
-      console.log(`  -> Langkah 2: Mengunggah gambar...`);
-      const contentType = "image/jpeg";
-      const imageBlob = imageUrl.startsWith("http") ? await this.urlToBlob(imageUrl) : this.b64ToBlob(imageUrl, contentType);
-      await axios.put(uploadUrl, imageBlob, {
+      const uploadData = signRes?.data?.data;
+      if (!uploadData?.url) throw new Error("Failed to get upload signature");
+      await axios.put(uploadData.url, buffer, {
         headers: {
-          "Content-Type": contentType
+          "Content-Type": mimeType
         }
       });
-      console.log("  <- RESPON: Gambar berhasil diunggah.");
-      console.log(`     URL Publik: ${pubUrl}`);
-      return pubUrl;
-    } catch (error) {
-      console.error("❌ EROR selama proses unggah gambar.");
-      if (error.response) {
-        console.error("   Data Respons Eror:", error.response.data);
-        console.error("   Status Eror:", error.response.status);
-      } else {
-        console.error("   Pesan Eror:", error.message);
-      }
-      throw error;
+      console.log(`[ViderAI] Upload success: ${uploadData.pubUrl}`);
+      return uploadData.pubUrl;
+    } catch (e) {
+      console.error(`[ViderAI] Upload Error: ${e.message}`);
+      throw e;
     }
   }
-  async _createTask(model, params) {
-    console.log(`PROSES: Membuat tugas untuk model '${model}'...`);
+  async resolveMedia(media) {
+    if (!media) return "";
+    let buffer;
+    let mimeType = "image/jpeg";
     try {
+      if (typeof media === "string" && (media.startsWith("http://") || media.startsWith("https://"))) {
+        console.log(`[ViderAI] Resolving external URL...`);
+        const res = await axios.get(media, {
+          responseType: "arraybuffer"
+        });
+        buffer = Buffer.from(res.data, "binary");
+        mimeType = res.headers["content-type"] || mimeType;
+      } else if (typeof media === "string" && media.includes("base64,")) {
+        const match = media.match(/^data:(.*?);base64,(.*)$/);
+        if (match) {
+          mimeType = match[1];
+          buffer = Buffer.from(match[2], "base64");
+        } else {
+          buffer = Buffer.from(media, "base64");
+        }
+      } else if (Buffer.isBuffer(media)) {
+        buffer = media;
+      } else {
+        return media;
+      }
+      return await this.upload(buffer, mimeType);
+    } catch (e) {
+      console.error(`[ViderAI] Resolve Media Error: ${e.message}`);
+      return typeof media === "string" ? media : "";
+    }
+  }
+  async generate({
+    prompt,
+    media,
+    video = false,
+    aspectRatio = 2,
+    ...rest
+  }) {
+    try {
+      console.log(`[ViderAI] Starting generation process...`);
+      if (!prompt) throw new Error("Prompt is required");
+      const imageUrl = await this.resolveMedia(media);
+      const mode = video ? imageUrl ? "i2v" : "t2v" : imageUrl ? "i2i" : "t2i";
+      const modelName = this.cfg.models[mode];
+      console.log(`[ViderAI] Mode: ${mode.toUpperCase()} | URL: ${imageUrl || "none"}`);
       const payload = {
         params: {
-          params: params
+          params: {
+            model: modelName,
+            prompt: prompt,
+            aspectRatio: parseInt(aspectRatio),
+            image: imageUrl || "",
+            ...rest
+          }
         }
       };
-      console.log("  -> Mengirim permintaan pembuatan tugas dengan payload:", JSON.stringify(payload, null, 2));
-      const taskResponse = await axios.post(`${this.apiBaseUrl}/task_create/${model}`, payload, {
-        headers: this.headers
+      const response = await axios.post(`${this.cfg.baseUrl}/task_create/${modelName}`, payload, {
+        headers: this.cfg.headers
       });
-      if (taskResponse.data.code !== 0) {
-        throw new Error(`API mengembalikan eror saat membuat tugas: ${taskResponse.data.info}`);
-      }
-      console.log("  <- RESPON: Tugas berhasil dibuat.");
-      console.log("     Data Tugas:", taskResponse.data.data);
-      return taskResponse.data.data;
-    } catch (error) {
-      console.error(`❌ EROR saat membuat tugas untuk model '${model}'.`);
-      if (error.response) {
-        console.error("   Data Respons Eror:", error.response.data);
-        console.error("   Status Eror:", error.response.status);
-      } else {
-        console.error("   Pesan Eror:", error.message);
-      }
-      throw error;
+      const result = response?.data;
+      if (result?.code !== 0) throw new Error(result?.info || "API Error");
+      const taskId = result?.data?.taskId || result?.data?.data?._id;
+      return {
+        status: "queued",
+        mode: mode,
+        task_id: taskId
+      };
+    } catch (e) {
+      const msg = e.response?.data?.info || e.message;
+      console.error(`[ViderAI] Generate Error: ${msg}`);
+      return {
+        status: "error",
+        error: msg
+      };
     }
-  }
-  async txt2vid({
-    prompt,
-    aspectRatio = 2
-  }) {
-    console.log("MEMULAI FUNGSI: txt2vid");
-    const model = "free-ai-video-generator";
-    const params = {
-      model: model,
-      image: "",
-      aspectRatio: aspectRatio,
-      prompt: prompt
-    };
-    return await this._createTask(model, params);
-  }
-  async img2vid({
-    prompt,
-    imageUrl,
-    aspectRatio = 2
-  }) {
-    console.log("MEMULAI FUNGSI: img2vid");
-    const pubUrl = await this._uploadImage(imageUrl);
-    const model = "free-ai-image-to-video-generator";
-    const params = {
-      model: model,
-      image: pubUrl,
-      aspectRatio: aspectRatio,
-      prompt: prompt
-    };
-    return await this._createTask(model, params);
-  }
-  async txt2img({
-    prompt,
-    aspectRatio = 2
-  }) {
-    console.log("MEMULAI FUNGSI: txt2img");
-    const model = "free-ai-image-generator";
-    const params = {
-      model: model,
-      image: "",
-      aspectRatio: aspectRatio,
-      prompt: prompt
-    };
-    return await this._createTask(model, params);
-  }
-  async img2img({
-    prompt,
-    imageUrl
-  }) {
-    console.log("MEMULAI FUNGSI: img2img");
-    const pubUrl = await this._uploadImage(imageUrl);
-    const model = "free-ai-image-to-image-generator";
-    const params = {
-      model: model,
-      image: pubUrl,
-      prompt: prompt
-    };
-    return await this._createTask(model, params);
   }
   async status({
     task_id
   }) {
-    if (!task_id) throw new Error("task_id diperlukan untuk memeriksa status.");
     try {
-      const res = await axios.get(`${this.apiBaseUrl}/task_get/${task_id}`, {
-        headers: this.headers
+      if (!task_id) throw new Error("Task ID required");
+      const response = await axios.get(`${this.cfg.baseUrl}/task_get/${task_id}`, {
+        headers: this.cfg.headers
       });
-      return res.data;
-    } catch (error) {
-      console.error(`❌ EROR saat memeriksa status untuk task_id: ${task_id}.`);
-      if (error.response) {
-        console.error("   Data Respons Eror:", error.response.data);
-      } else {
-        console.error("   Pesan Eror:", error.message);
-      }
-      throw error;
+      return response?.data;
+    } catch (e) {
+      return {
+        status: "error",
+        error: e.message
+      };
     }
   }
 }
@@ -189,62 +156,42 @@ export default async function handler(req, res) {
   } = req.method === "GET" ? req.query : req.body;
   if (!action) {
     return res.status(400).json({
-      error: "Action is required."
+      error: "Parameter 'action' wajib diisi.",
+      actions: ["generate", "status"]
     });
   }
-  const client = new Vider();
+  const api = new ViderAI();
   try {
     let response;
     switch (action) {
-      case "img2vid":
-        if (!params.prompt || !params.imageUrl) {
-          return res.status(400).json({
-            error: "Prompt and imageUrl are required for img2vid."
-          });
-        }
-        response = await client.img2vid(params);
-        return res.status(200).json(response);
-      case "txt2vid":
+      case "generate":
         if (!params.prompt) {
           return res.status(400).json({
-            error: "Prompt is required for txt2vid."
+            error: "Parameter 'prompt' wajib diisi untuk action 'generate'."
           });
         }
-        response = await client.txt2vid(params);
-        return res.status(200).json(response);
-      case "img2img":
-        if (!params.prompt || !params.imageUrl) {
-          return res.status(400).json({
-            error: "Prompt and imageUrl are required for img2img."
-          });
-        }
-        response = await client.img2img(params);
-        return res.status(200).json(response);
-      case "txt2img":
-        if (!params.prompt) {
-          return res.status(400).json({
-            error: "Prompt is required for txt2img."
-          });
-        }
-        response = await client.txt2img(params);
-        return res.status(200).json(response);
+        response = await api.generate(params);
+        break;
       case "status":
         if (!params.task_id) {
           return res.status(400).json({
-            error: "task_id is required for status."
+            error: "Parameter 'task_id' wajib diisi untuk action 'status'."
           });
         }
-        response = await client.status(params);
-        return res.status(200).json(response);
+        response = await api.status(params);
+        break;
       default:
         return res.status(400).json({
-          error: `Invalid action: ${action}. Supported actions are 'img2vid', 'txt2vid', and 'status'.`
+          error: `Action tidak valid: ${action}.`,
+          valid_actions: ["generate", "status"]
         });
     }
+    return res.status(200).json(response);
   } catch (error) {
-    console.error("API Error:", error);
+    console.error(`[FATAL ERROR] Kegagalan pada action '${action}':`, error);
     return res.status(500).json({
-      error: error.message || "Internal Server Error"
+      status: false,
+      error: error.message || "Terjadi kesalahan internal pada server."
     });
   }
 }

@@ -5,63 +5,87 @@ import {
 import {
   wrapper
 } from "axios-cookiejar-support";
+import crypto from "crypto";
 import apiConfig from "@/configs/apiConfig";
 import SpoofHead from "@/lib/spoof-head";
-const err = (msg, field, val) => {
-  const e = new Error(msg);
-  e.name = "ValidationError";
-  e.field = field;
-  e.value = val;
-  return e;
-};
-const V = {
-  str: (v, f, opt = {}) => {
+class ValidationError {
+  constructor(msg, field, val) {
+    this.name = "ValidationError";
+    this.message = msg;
+    this.field = field;
+    this.value = val;
+  }
+}
+class Validator {
+  str(v, f, opt = {}) {
     const {
       min = 1,
         max = null,
         req = true
     } = opt;
-    if (req && (v === undefined || v === null || v === "")) throw err(`${f} required`, f, v);
-    if (v && typeof v !== "string") throw err(`${f} must be string`, f, v);
+    if (req && (v === undefined || v === null || v === "")) {
+      throw new ValidationError(`${f} required`, f, v);
+    }
+    if (v && typeof v !== "string") {
+      throw new ValidationError(`${f} must be string`, f, v);
+    }
     if (v) {
       const t = v.trim();
-      if (t.length < min) throw err(`${f} must be at least ${min} characters`, f, v);
-      if (max && t.length > max) throw err(`${f} must be at most ${max} characters`, f, v);
+      if (t.length < min) {
+        throw new ValidationError(`${f} must be at least ${min} characters`, f, v);
+      }
+      if (max && t.length > max) {
+        throw new ValidationError(`${f} must be at most ${max} characters`, f, v);
+      }
       return t;
     }
     return v;
-  },
-  num: (v, f, opt = {}) => {
+  }
+  num(v, f, opt = {}) {
     const {
       min = null,
         max = null,
         req = true
     } = opt;
-    if (req && (v === undefined || v === null || v === "")) throw err(`${f} required`, f, v);
+    if (req && (v === undefined || v === null || v === "")) {
+      throw new ValidationError(`${f} required`, f, v);
+    }
     if (v !== undefined && v !== null && v !== "") {
       const n = Number(v);
-      if (isNaN(n)) throw err(`${f} must be a number`, f, v);
-      if (min !== null && n < min) throw err(`${f} must be at least ${min}`, f, v);
-      if (max !== null && n > max) throw err(`${f} must be at most ${max}`, f, v);
+      if (isNaN(n)) {
+        throw new ValidationError(`${f} must be a number`, f, v);
+      }
+      if (min !== null && n < min) {
+        throw new ValidationError(`${f} must be at least ${min}`, f, v);
+      }
+      if (max !== null && n > max) {
+        throw new ValidationError(`${f} must be at most ${max}`, f, v);
+      }
       return n;
     }
     return v;
-  },
-  enm: (v, f, opt = {}) => {
+  }
+  enm(v, f, opt = {}) {
     const {
       allowed,
       req = true
     } = opt;
-    if (req && (v === undefined || v === null || v === "")) throw err(`${f} required`, f, v);
+    if (req && (v === undefined || v === null || v === "")) {
+      throw new ValidationError(`${f} required`, f, v);
+    }
     if (v && Array.isArray(allowed)) {
-      if (!allowed.includes(v)) throw err(`${f} must be one of: ${allowed.join(", ")}`, f, v);
+      if (!allowed.includes(v)) {
+        throw new ValidationError(`${f} must be one of: ${allowed.join(", ")}`, f, v);
+      }
     } else if (v) {
-      console.warn(`Validator config warning for ${f}: 'allowed' array missing or invalid in V.enm.`);
+      console.warn(`Validator config warning for ${f}: 'allowed' array missing or invalid.`);
     }
     return v;
-  },
-  bool: (v, f, opt = {}) => {
-    if (v === undefined || v === null) return opt.default !== undefined ? opt.default : false;
+  }
+  bool(v, f, opt = {}) {
+    if (v === undefined || v === null) {
+      return opt.default !== undefined ? opt.default : false;
+    }
     if (typeof v === "boolean") return v;
     if (typeof v === "string") {
       const lower = v.toLowerCase();
@@ -70,22 +94,28 @@ const V = {
     }
     if (typeof v === "number") return v !== 0;
     return !!v;
-  },
-  img: (v, f, opt = {}) => {
+  }
+  img(v, f, opt = {}) {
     const {
       req = true
     } = opt;
-    if (req && !v) throw err(`${f} required`, f, v);
+    if (req && !v) {
+      throw new ValidationError(`${f} required`, f, v);
+    }
     if (!v) return null;
-    if (v instanceof Buffer) return {
-      type: "buffer",
-      data: v
-    };
-    if (typeof v === "string") {
-      if (v.startsWith("data:image/")) return {
-        type: "base64",
+    if (v instanceof Buffer) {
+      return {
+        type: "buffer",
         data: v
       };
+    }
+    if (typeof v === "string") {
+      if (v.startsWith("data:image/")) {
+        return {
+          type: "base64",
+          data: v
+        };
+      }
       if (v.startsWith("http://") || v.startsWith("https://")) {
         try {
           new URL(v);
@@ -94,7 +124,7 @@ const V = {
             data: v
           };
         } catch {
-          throw err(`${f} invalid URL`, f, v);
+          throw new ValidationError(`${f} invalid URL`, f, v);
         }
       }
       return {
@@ -102,298 +132,315 @@ const V = {
         data: v
       };
     }
-    throw err(`${f} must be a Buffer, base64 string, URL, or file path`, f, v);
+    throw new ValidationError(`${f} must be a Buffer, base64 string, URL, or file path`, f, v);
   }
-};
-const validate = (data, rules) => {
-  const errors = [],
-    validated = {};
-  for (const [field, rule] of Object.entries(rules)) {
-    try {
-      if (rule.v) {
-        validated[field] = rule.v(data[field], field, rule.o);
-      } else {
-        validated[field] = data[field];
-      }
-    } catch (e) {
-      errors.push(e.name === "ValidationError" ? e : err(`Validation failed: ${field}`, field, data[field]));
-    }
-  }
-  if (errors.length > 0) {
-    const e = new Error("Validation failed");
-    e.name = "ValidationFailed";
-    e.errors = errors;
-    throw e;
-  }
-  return validated;
-};
-const S = {
-  register: {},
-  credits: {
-    key: {
-      v: V.str,
-      o: {
-        req: false,
-        min: 1,
-        max: 100
+  validate(data, rules) {
+    const errors = [];
+    const validated = {};
+    for (const [field, rule] of Object.entries(rules)) {
+      try {
+        if (rule.v) {
+          validated[field] = rule.v(data[field], field, rule.o);
+        } else {
+          validated[field] = data[field];
+        }
+      } catch (e) {
+        errors.push(e.name === "ValidationError" ? e : new ValidationError(`Validation failed: ${field}`, field, data[field]));
       }
     }
-  },
-  uploadImage: {
-    key: {
-      v: V.str,
-      o: {
-        req: false,
-        min: 1,
-        max: 100
-      }
-    },
-    imageInput: {
-      v: V.img,
-      o: {
-        req: true
-      }
-    },
-    imageType: {
-      v: V.enm,
-      o: {
-        allowed: ["webp", "png", "jpg", "jpeg"],
-        req: true
-      }
+    if (errors.length > 0) {
+      const e = new Error("Validation failed");
+      e.name = "ValidationFailed";
+      e.errors = errors;
+      throw e;
     }
-  },
-  generateVideo: {
-    key: {
-      v: V.str,
-      o: {
-        req: false,
-        min: 1,
-        max: 100
-      }
-    },
-    prompt: {
-      v: V.str,
-      o: {
-        req: true,
-        min: 1,
-        max: 1e3
-      }
-    },
-    ratio: {
-      v: V.enm,
-      o: {
-        req: false,
-        allowed: ["16:9", "9:16", "1:1", "4:3", "3:4"]
-      }
-    },
-    duration: {
-      v: V.num,
-      o: {
-        req: false,
-        min: 1,
-        max: 60
-      }
-    },
-    quality: {
-      v: V.enm,
-      o: {
-        req: false,
-        allowed: ["360p", "480p", "540p", "720p", "1080p"]
-      }
-    },
-    model: {
-      v: V.enm,
-      o: {
-        req: false,
-        allowed: ["pixverse", "pixverse-token", "veo3", "wan25", "sora2", "fast"]
-      }
-    },
-    imageUrl: {
-      v: V.str,
-      o: {
-        req: false,
-        min: 1,
-        max: 1e3
-      }
-    },
-    ispublic: {
-      v: V.bool,
-      o: {
-        req: false,
-        default: false
-      }
-    }
-  },
-  videoStatus: {
-    key: {
-      v: V.str,
-      o: {
-        req: false,
-        min: 1,
-        max: 100
-      }
-    },
-    taskId: {
-      v: V.str,
-      o: {
-        req: true,
-        min: 1,
-        max: 100
-      }
-    },
-    model: {
-      v: V.enm,
-      o: {
-        req: false,
-        allowed: ["pixverse", "pixverse-token", "veo3", "wan25", "sora2", "fast"]
-      }
-    },
-    ispublic: {
-      v: V.bool,
-      o: {
-        req: false,
-        default: false
-      }
-    },
-    quality: {
-      v: V.str,
-      o: {
-        req: false,
-        min: 1,
-        max: 10
-      }
-    },
-    ratio: {
-      v: V.str,
-      o: {
-        req: false,
-        min: 1,
-        max: 10
-      }
-    },
-    prompt: {
-      v: V.str,
-      o: {
-        req: false,
-        min: 1,
-        max: 1e3
-      }
-    }
-  },
-  sessionHealth: {
-    key: {
-      v: V.str,
-      o: {
-        req: false,
-        min: 1,
-        max: 100
-      }
-    }
-  },
-  deleteKey: {
-    key: {
-      v: V.str,
-      o: {
-        req: true,
-        min: 1,
-        max: 100
-      }
-    }
+    return validated;
   }
-};
-const MODELS = {
-  pixverse: {
-    gen: "pixverse/gen",
-    get: "pixverse/get"
-  },
-  "pixverse-token": {
-    gen: "pixverse-token/gen",
-    get: "pixverse-token/get"
-  },
-  veo3: {
-    gen: "veo3/gen",
-    get: "veo3/get"
-  },
-  wan25: {
-    gen: "wavespeed/wan25/gen",
-    get: "wavespeed/wan25/get"
-  },
-  sora2: {
-    gen: "kei/sora2/gen",
-    get: "kei/sora2/get"
-  },
-  fast: {
-    gen: "kei/sora2/gen",
-    get: "kei/sora2/get"
+}
+class ValidationSchemas {
+  constructor() {
+    const V = new Validator();
+    this.register = {};
+    this.credits = {
+      key: {
+        v: V.str.bind(V),
+        o: {
+          req: false,
+          min: 1,
+          max: 100
+        }
+      }
+    };
+    this.uploadImage = {
+      key: {
+        v: V.str.bind(V),
+        o: {
+          req: false,
+          min: 1,
+          max: 100
+        }
+      },
+      imageInput: {
+        v: V.img.bind(V),
+        o: {
+          req: true
+        }
+      },
+      imageType: {
+        v: V.enm.bind(V),
+        o: {
+          allowed: ["webp", "png", "jpg", "jpeg"],
+          req: true
+        }
+      }
+    };
+    this.generateVideo = {
+      key: {
+        v: V.str.bind(V),
+        o: {
+          req: false,
+          min: 1,
+          max: 100
+        }
+      },
+      prompt: {
+        v: V.str.bind(V),
+        o: {
+          req: true,
+          min: 1,
+          max: 1e3
+        }
+      },
+      ratio: {
+        v: V.enm.bind(V),
+        o: {
+          req: false,
+          allowed: ["16:9", "9:16", "1:1", "4:3", "3:4"]
+        }
+      },
+      duration: {
+        v: V.num.bind(V),
+        o: {
+          req: false,
+          min: 1,
+          max: 60
+        }
+      },
+      quality: {
+        v: V.enm.bind(V),
+        o: {
+          req: false,
+          allowed: ["360p", "480p", "540p", "720p", "1080p"]
+        }
+      },
+      model: {
+        v: V.enm.bind(V),
+        o: {
+          req: false,
+          allowed: ["pixverse", "pixverse-token", "veo3", "wan25", "sora2", "fast"]
+        }
+      },
+      imageUrl: {
+        v: V.str.bind(V),
+        o: {
+          req: false,
+          min: 1,
+          max: 1e3
+        }
+      },
+      ispublic: {
+        v: V.bool.bind(V),
+        o: {
+          req: false,
+          default: false
+        }
+      }
+    };
+    this.videoStatus = {
+      key: {
+        v: V.str.bind(V),
+        o: {
+          req: false,
+          min: 1,
+          max: 100
+        }
+      },
+      taskId: {
+        v: V.str.bind(V),
+        o: {
+          req: true,
+          min: 1,
+          max: 100
+        }
+      },
+      model: {
+        v: V.enm.bind(V),
+        o: {
+          req: false,
+          allowed: ["pixverse", "pixverse-token", "veo3", "wan25", "sora2", "fast"]
+        }
+      },
+      ispublic: {
+        v: V.bool.bind(V),
+        o: {
+          req: false,
+          default: false
+        }
+      },
+      quality: {
+        v: V.str.bind(V),
+        o: {
+          req: false,
+          min: 1,
+          max: 10
+        }
+      },
+      ratio: {
+        v: V.str.bind(V),
+        o: {
+          req: false,
+          min: 1,
+          max: 10
+        }
+      },
+      prompt: {
+        v: V.str.bind(V),
+        o: {
+          req: false,
+          min: 1,
+          max: 1e3
+        }
+      }
+    };
+    this.sessionHealth = {
+      key: {
+        v: V.str.bind(V),
+        o: {
+          req: false,
+          min: 1,
+          max: 100
+        }
+      }
+    };
+    this.deleteKey = {
+      key: {
+        v: V.str.bind(V),
+        o: {
+          req: true,
+          min: 1,
+          max: 100
+        }
+      }
+    };
   }
-};
-const b64dec = e => {
-  const l = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-  let h = "",
-    c = 0;
-  e = e.replace(/-/g, "+").replace(/_/g, "/");
-  while (c < e.length) {
-    const i = l.indexOf(e.charAt(c++)),
-      n = l.indexOf(e.charAt(c++));
-    const a = l.indexOf(e.charAt(c++)),
-      o = l.indexOf(e.charAt(c++));
-    const t = i << 2 | n >> 4,
-      r = (15 & n) << 4 | a >> 2,
-      s = (3 & a) << 6 | o;
-    h += String.fromCharCode(t);
-    if (64 != a && 0 != r) h += String.fromCharCode(r);
-    if (64 != o && 0 != s) h += String.fromCharCode(s);
+}
+class ModelEndpoints {
+  constructor() {
+    this.pixverse = {
+      gen: "pixverse/gen",
+      get: "pixverse/get"
+    };
+    this.pixverseToken = {
+      gen: "pixverse-token/gen",
+      get: "pixverse-token/get"
+    };
+    this.veo3 = {
+      gen: "veo3/gen",
+      get: "veo3/get"
+    };
+    this.wan25 = {
+      gen: "wavespeed/wan25/gen",
+      get: "wavespeed/wan25/get"
+    };
+    this.sora2 = {
+      gen: "kei/sora2/gen",
+      get: "kei/sora2/get"
+    };
+    this.fast = {
+      gen: "kei/sora2/gen",
+      get: "kei/sora2/get"
+    };
   }
-  return h;
-};
-const jwtDec = e => {
-  const t = e.split(".");
-  if (3 !== t.length) throw Error("Invalid JWT");
-  return JSON.parse(b64dec(t[1]));
-};
-const genVerifier = () => {
-  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
-    const e = new Uint32Array(56);
-    crypto.getRandomValues(e);
-    return Array.from(e, e => ("0" + e.toString(16)).substr(-2)).join("");
+  get(modelKey) {
+    const key = modelKey === "pixverse-token" ? "pixverseToken" : modelKey;
+    return this[key] || null;
   }
-  const e = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
-  let r = "";
-  for (let s = 0; s < 56; s++) r += e.charAt(Math.floor(Math.random() * e.length));
-  return r;
-};
-const sha256 = async e => {
-  const r = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(e));
-  return Array.from(new Uint8Array(r)).map(e => String.fromCharCode(e)).join("");
-};
-const b64enc = e => {
-  if (typeof btoa !== "undefined") return btoa(e).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  return Buffer.from(e).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-};
-const genChallenge = async e => {
-  if (typeof crypto === "undefined" || !crypto.subtle) return e;
-  return b64enc(await sha256(e));
-};
-const genPKCE = async () => {
-  const verifier = genVerifier();
-  const challenge = await genChallenge(verifier);
-  return {
-    verifier: verifier,
-    challenge: challenge,
-    method: verifier === challenge ? "plain" : "s256"
-  };
-};
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+}
+class CryptoUtils {
+  b64dec(e) {
+    const l = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+    let h = "";
+    let c = 0;
+    e = e.replace(/-/g, "+").replace(/_/g, "/");
+    while (c < e.length) {
+      const i = l.indexOf(e.charAt(c++));
+      const n = l.indexOf(e.charAt(c++));
+      const a = l.indexOf(e.charAt(c++));
+      const o = l.indexOf(e.charAt(c++));
+      const t = i << 2 | n >> 4;
+      const r = (15 & n) << 4 | a >> 2;
+      const s = (3 & a) << 6 | o;
+      h += String.fromCharCode(t);
+      if (64 != a && 0 != r) h += String.fromCharCode(r);
+      if (64 != o && 0 != s) h += String.fromCharCode(s);
+    }
+    return h;
+  }
+  jwtDec(e) {
+    const t = e.split(".");
+    if (3 !== t.length) throw new Error("Invalid JWT");
+    return JSON.parse(this.b64dec(t[1]));
+  }
+  genVerifier() {
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+      const e = new Uint32Array(56);
+      crypto.getRandomValues(e);
+      return Array.from(e, e => ("0" + e.toString(16)).substr(-2)).join("");
+    }
+    const e = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+    let r = "";
+    for (let s = 0; s < 56; s++) {
+      r += e.charAt(Math.floor(Math.random() * e.length));
+    }
+    return r;
+  }
+  async sha256(e) {
+    const r = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(e));
+    return Array.from(new Uint8Array(r)).map(e => String.fromCharCode(e)).join("");
+  }
+  b64enc(e) {
+    if (typeof btoa !== "undefined") {
+      return btoa(e).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    }
+    return Buffer.from(e).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  async genChallenge(e) {
+    if (typeof crypto === "undefined" || !crypto.subtle) return e;
+    return this.b64enc(await this.sha256(e));
+  }
+  async genPKCE() {
+    const verifier = this.genVerifier();
+    const challenge = await this.genChallenge(verifier);
+    return {
+      verifier: verifier,
+      challenge: challenge,
+      method: verifier === challenge ? "plain" : "s256"
+    };
+  }
+  sleep(ms) {
+    return new Promise(r => setTimeout(r, ms));
+  }
+}
 class Wudy {
   constructor() {
-    this.c = axios.create({
+    this.client = axios.create({
       baseURL: `https://${apiConfig.DOMAIN_URL}/api`
     });
   }
   async createEmail() {
     const {
       data
-    } = await this.c.get("/mails/v9", {
+    } = await this.client.get("/mails/v9", {
       params: {
         action: "create"
       }
@@ -405,7 +452,7 @@ class Wudy {
     try {
       const {
         data
-      } = await this.c.get("/mails/v9", {
+      } = await this.client.get("/mails/v9", {
         params: {
           action: "message",
           email: email
@@ -425,7 +472,7 @@ class Wudy {
   async createPaste(title, content) {
     const {
       data
-    } = await this.c.get("/tools/paste/v1", {
+    } = await this.client.get("/tools/paste/v1", {
       params: {
         action: "create",
         title: title,
@@ -437,7 +484,7 @@ class Wudy {
   async getPaste(key) {
     const {
       data
-    } = await this.c.get("/tools/paste/v1", {
+    } = await this.client.get("/tools/paste/v1", {
       params: {
         action: "get",
         key: key
@@ -448,7 +495,7 @@ class Wudy {
   async listPastes() {
     const {
       data
-    } = await this.c.get("/tools/paste/v1", {
+    } = await this.client.get("/tools/paste/v1", {
       params: {
         action: "list"
       }
@@ -458,7 +505,7 @@ class Wudy {
   async delPaste(key) {
     const {
       data
-    } = await this.c.get("/tools/paste/v1", {
+    } = await this.client.get("/tools/paste/v1", {
       params: {
         action: "delete",
         key: key
@@ -471,12 +518,12 @@ class Sora2AI {
   constructor() {
     this.jar = new CookieJar();
     this.skey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpuaHZjd3dtY2ZoZnNmemJxd3lwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzMjEyODcsImV4cCI6MjA3NDg5NzI4N30.pS8v_hxE8KelayuViAlLCFb65rdKBmn8mSzpUu5f_Ss";
-    const h = {
+    const headers = {
       "accept-language": "id-ID",
-      "sec-ch-ua": '"Chromium";v="127"',
+      "sec-ch-ua": '"Chromium";v="127", "Not)A;Brand";v="99", "Microsoft Edge Simulate";v="127", "Lemur";v="127"',
       "sec-ch-ua-mobile": "?1",
       "sec-ch-ua-platform": '"Android"',
-      "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36",
+      "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36",
       ...SpoofHead()
     };
     this.api = wrapper(axios.create({
@@ -484,10 +531,11 @@ class Sora2AI {
       jar: this.jar,
       withCredentials: true,
       headers: {
-        ...h,
-        accept: "application/json",
+        ...headers,
+        accept: "application/json, text/plain, */*",
         "content-type": "application/json",
-        origin: "https://sora2ai.io"
+        origin: "https://sora2ai.io",
+        referer: "https://sora2ai.io/dashboard"
       }
     }));
     this.supa = wrapper(axios.create({
@@ -495,7 +543,7 @@ class Sora2AI {
       jar: this.jar,
       withCredentials: true,
       headers: {
-        ...h,
+        ...headers,
         apikey: this.skey,
         authorization: `Bearer ${this.skey}`,
         "content-type": "application/json;charset=UTF-8"
@@ -507,11 +555,15 @@ class Sora2AI {
       maxRedirects: 0,
       validateStatus: s => s >= 200 && s < 400,
       headers: {
-        ...h,
-        accept: "text/html,application/xhtml+xml"
+        ...headers,
+        accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
       }
     }));
-    this.w = new Wudy();
+    this.wudy = new Wudy();
+    this.crypto = new CryptoUtils();
+    this.validator = new Validator();
+    this.schemas = new ValidationSchemas();
+    this.models = new ModelEndpoints();
   }
   rand() {
     return Math.random().toString(36).substring(2, 12);
@@ -519,7 +571,7 @@ class Sora2AI {
   async getToken(key) {
     try {
       console.log(`🔑 Getting token for key: ${key}`);
-      const saved = await this.w.getPaste(key);
+      const saved = await this.wudy.getPaste(key);
       if (!saved) throw new Error(`Session "${key}" not found`);
       const session = JSON.parse(saved);
       if (!session.access_token) throw new Error("Invalid token");
@@ -551,14 +603,14 @@ class Sora2AI {
               refresh_token: arr[1],
               expires_at: arr[2],
               token_type: "bearer",
-              user: jwtDec(arr[0])
+              user: this.crypto.jwtDec(arr[0])
             };
           }
         }
         if (val.startsWith("base64-")) {
           const session = JSON.parse(Buffer.from(val.replace("base64-", ""), "base64").toString());
           if (session.access_token) {
-            session.user = jwtDec(session.access_token);
+            session.user = this.crypto.jwtDec(session.access_token);
             console.log(`✅ Token extracted (base64 format)`);
             return session;
           }
@@ -575,8 +627,8 @@ class Sora2AI {
   async followRedirects(url) {
     try {
       console.log(`🔗 Following redirects from: ${url}`);
-      let curr = url,
-        count = 0;
+      let curr = url;
+      let count = 0;
       while (count < 10) {
         try {
           const res = await this.browser.get(curr);
@@ -626,7 +678,7 @@ class Sora2AI {
       throw error;
     }
   }
-  async pollToken(max = 30, int = 1e3) {
+  async pollToken(max = 30, interval = 1e3) {
     try {
       console.log(`⏳ Polling for token (max ${max} attempts)...`);
       for (let i = 0; i < max; i++) {
@@ -637,7 +689,7 @@ class Sora2AI {
           await this.completeAuth();
           return session;
         }
-        if (i < max - 1) await sleep(int);
+        if (i < max - 1) await this.crypto.sleep(interval);
       }
       throw new Error("Token timeout");
     } catch (error) {
@@ -645,17 +697,17 @@ class Sora2AI {
       throw error;
     }
   }
-  async waitLink(email, max = 60, int = 3e3) {
+  async waitLink(email, max = 60, interval = 3e3) {
     try {
       console.log(`📧 Waiting for verification link (max ${max} attempts)...`);
       for (let i = 0; i < max; i++) {
         console.log(`  🔄 Checking email ${i + 1}/${max}`);
-        const link = await this.w.checkMsg(email);
+        const link = await this.wudy.checkMsg(email);
         if (link) {
           console.log(`✅ Verification link received!`);
           return link;
         }
-        if (i < max - 1) await sleep(int);
+        if (i < max - 1) await this.crypto.sleep(interval);
       }
       throw new Error("Link timeout");
     } catch (error) {
@@ -667,7 +719,7 @@ class Sora2AI {
     try {
       console.log(`\n🚀 Starting registration process...`);
       console.log(`📧 Creating temporary email...`);
-      const email = await this.w.createEmail();
+      const email = await this.wudy.createEmail();
       if (!email) throw new Error("Email failed");
       console.log(`✅ Email created: ${email}`);
       console.log(`🔒 Generating PKCE credentials...`);
@@ -675,7 +727,7 @@ class Sora2AI {
         verifier,
         challenge,
         method
-      } = await genPKCE();
+      } = await this.crypto.genPKCE();
       await this.jar.setCookie(`sb-jnhvcwwmcfhfsfzbqwyp-auth-token-code-verifier=${verifier}; Path=/; Secure`, "https://sora2ai.io");
       console.log(`✅ PKCE generated (method: ${method})`);
       console.log(`📤 Sending OTP request...`);
@@ -705,7 +757,7 @@ class Sora2AI {
   async register(data = {}) {
     try {
       console.log(`\n📝 Register - Validating input...`);
-      validate(data, S.register);
+      this.validator.validate(data, this.schemas.register);
       const session = await this.performReg();
       console.log(`💾 Saving session to paste...`);
       const toSave = JSON.stringify({
@@ -715,7 +767,7 @@ class Sora2AI {
         refresh_token: session.refresh_token,
         user: session.user
       });
-      const key = await this.w.createPaste(`sora2ai-session-${this.rand()}`, toSave);
+      const key = await this.wudy.createPaste(`sora2ai-session-${this.rand()}`, toSave);
       if (!key) throw new Error("Save failed");
       console.log(`✅ Session saved with key: ${key}`);
       return {
@@ -726,14 +778,17 @@ class Sora2AI {
       };
     } catch (e) {
       console.error(`❌ Register error:`, e.message);
-      if (e.name === "ValidationFailed") throw new Error(`Validation: ${e.errors.map(e => e.message).join(", ")}`);
+      if (e.name === "ValidationFailed") {
+        throw new Error(`Validation: ${e.errors.map(e => e.message).join(", ")}`);
+      }
       throw e;
     }
   }
   async ensureSession(data) {
     try {
       console.log(`\nEnsuring session...`);
-      let session, currKey = data.key;
+      let session;
+      let currKey = data.key;
       if (data.key) {
         try {
           console.log(`Loading session from key: ${data.key}`);
@@ -862,7 +917,7 @@ class Sora2AI {
   async getCredits(data = {}) {
     try {
       console.log(`\n💰 Get Credits - Starting...`);
-      const v = validate(data, S.credits);
+      const v = this.validator.validate(data, this.schemas.credits);
       const {
         key
       } = await this.ensureSession(v);
@@ -875,14 +930,16 @@ class Sora2AI {
       };
     } catch (e) {
       console.error(`❌ Get credits error:`, e.message);
-      if (e.name === "ValidationFailed") throw new Error(`Validation: ${e.errors.map(e => e.message).join(", ")}`);
+      if (e.name === "ValidationFailed") {
+        throw new Error(`Validation: ${e.errors.map(e => e.message).join(", ")}`);
+      }
       throw new Error(e.response?.data?.message || e.message);
     }
   }
   async uploadImage(data = {}) {
     try {
       console.log(`\n🖼️ Upload Image - Starting...`);
-      const v = validate(data, S.uploadImage);
+      const v = this.validator.validate(data, this.schemas.uploadImage);
       const {
         key
       } = await this.ensureSession(v);
@@ -899,19 +956,25 @@ class Sora2AI {
       };
     } catch (e) {
       console.error(`❌ Upload image error:`, e.message);
-      if (e.name === "ValidationFailed") throw new Error(`Validation: ${e.errors.map(e => e.message).join(", ")}`);
+      if (e.name === "ValidationFailed") {
+        throw new Error(`Validation: ${e.errors.map(e => e.message).join(", ")}`);
+      }
       throw new Error(e.response?.data?.message || e.message);
     }
   }
   async generateVideo(data = {}) {
     try {
-      console.log(`\nGenerate Video - Starting...`);
+      console.log(`\n🎬 Generate Video - Starting...`);
       console.log(`Input:`, JSON.stringify(data, null, 2));
       const input = {
         ...data
       };
       input.model = input.model || "sora2";
-      const v = validate(input, S.generateVideo);
+      input.ratio = input.ratio || "16:9";
+      input.duration = input.duration || 10;
+      input.quality = input.quality || "540p";
+      input.ispublic = input.ispublic !== undefined ? input.ispublic : false;
+      const v = this.validator.validate(input, this.schemas.generateVideo);
       console.log(`Validation OK → model: ${v.model}`);
       const {
         key
@@ -921,7 +984,9 @@ class Sora2AI {
         console.log(`Image detected → converting to base64 + presign upload`);
         let imageObj;
         if (typeof v.imageUrl === "object" && v.imageUrl !== null) {
-          imageObj = V.img(v.imageUrl, "imageUrl");
+          imageObj = this.validator.img(v.imageUrl, "imageUrl", {
+            req: false
+          });
         } else {
           if (v.imageUrl.startsWith("data:")) {
             imageObj = {
@@ -950,19 +1015,17 @@ class Sora2AI {
         console.log(`Text-to-video only`);
       }
       const tryGenerate = async modelKey => {
-        const endpoint = MODELS[modelKey];
+        const endpoint = this.models.get(modelKey);
         if (!endpoint) throw new Error(`No endpoint for ${modelKey}`);
         const payload = {
           videoPrompt: v.prompt,
-          videoAspectRatio: v.ratio || "16:9",
-          videoDuration: String(v.duration || 5),
-          videoQuality: v.quality || "540p",
+          videoAspectRatio: v.ratio,
+          videoDuration: v.duration,
+          videoQuality: v.quality,
           videoModel: modelKey === "fast" ? "v4.5" : modelKey,
-          videoPublic: v.ispublic ?? false
+          videoImageUrl: presignedImageUrl || "",
+          videoPublic: v.ispublic
         };
-        if (presignedImageUrl) {
-          payload.videoImageUrl = presignedImageUrl;
-        }
         console.log(`Generating → ${modelKey}`);
         const res = await this.api.post(endpoint.gen, payload);
         return {
@@ -980,7 +1043,9 @@ class Sora2AI {
         for (const fb of fallbacks) {
           try {
             return await tryGenerate(fb);
-          } catch (_) {}
+          } catch (_) {
+            continue;
+          }
         }
         throw e;
       }
@@ -994,7 +1059,7 @@ class Sora2AI {
   }
   async getVideoStatus(data = {}) {
     try {
-      console.log(`\nGet Video Status - Starting...`);
+      console.log(`\n📹 Get Video Status - Starting...`);
       console.log(`Input data:`, JSON.stringify(data, null, 2));
       const input = {
         ...data
@@ -1003,19 +1068,20 @@ class Sora2AI {
         throw new Error("Parameter 'taskId' is required");
       }
       input.model = input.model || "sora2";
-      const v = validate(input, S.videoStatus);
+      input.ispublic = input.ispublic !== undefined ? input.ispublic : false;
+      const v = this.validator.validate(input, this.schemas.videoStatus);
       console.log(`Validation passed - taskId: ${v.taskId}, model: ${v.model}`);
       const {
         key
       } = await this.ensureSession(v);
       const requestStatus = async modelKey => {
-        const endpoint = MODELS[modelKey];
+        const endpoint = this.models.get(modelKey);
         if (!endpoint) {
           throw new Error(`No endpoint defined for model "${modelKey}"`);
         }
         const payload = {
           taskId: v.taskId,
-          videoPublic: v.ispublic ?? false
+          videoPublic: v.ispublic
         };
         if (v.quality) payload.videoQuality = v.quality;
         if (v.ratio) payload.videoAspectRatio = v.ratio;
@@ -1069,7 +1135,7 @@ class Sora2AI {
             break;
           }
           if (modelsToTry.indexOf(modelKey) < modelsToTry.length - 1) {
-            await sleep(500);
+            await this.crypto.sleep(500);
           }
         }
       }
@@ -1088,7 +1154,7 @@ class Sora2AI {
   async checkSessionHealth(data = {}) {
     try {
       console.log(`\n🏥 Check Session Health - Starting...`);
-      const v = validate(data, S.sessionHealth);
+      const v = this.validator.validate(data, this.schemas.sessionHealth);
       const {
         sessionData,
         key
@@ -1112,10 +1178,10 @@ class Sora2AI {
       };
     }
   }
-  async list_key() {
+  async listKeys() {
     try {
       console.log(`\n📋 List Keys - Starting...`);
-      const pastes = await this.w.listPastes();
+      const pastes = await this.wudy.listPastes();
       const keys = pastes.filter(p => p.title?.startsWith("sora2ai-session-")).map(p => p.key);
       console.log(`✅ Found ${keys.length} session keys`);
       return keys;
@@ -1124,12 +1190,12 @@ class Sora2AI {
       throw error;
     }
   }
-  async del_key(data = {}) {
+  async deleteKey(data = {}) {
     try {
       console.log(`\n🗑️ Delete Key - Starting...`);
-      const v = validate(data, S.deleteKey);
+      const v = this.validator.validate(data, this.schemas.deleteKey);
       console.log(`🔑 Deleting key: ${v.key}`);
-      const result = await this.w.delPaste(v.key);
+      const result = await this.wudy.delPaste(v.key);
       console.log(`✅ Key deleted successfully`);
       return result;
     } catch (error) {
@@ -1193,7 +1259,7 @@ export default async function handler(req, res) {
         response = await api.getVideoStatus(params);
         break;
       case "list_key":
-        response = await api.list_key();
+        response = await api.listKeys();
         break;
       case "del_key":
         if (!params.key) {
@@ -1203,7 +1269,7 @@ export default async function handler(req, res) {
             required_params: ["key"]
           });
         }
-        response = await api.del_key(params);
+        response = await api.deleteKey(params);
         break;
       default:
         return res.status(400).json({
