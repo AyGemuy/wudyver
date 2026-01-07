@@ -4,54 +4,24 @@ class CaptchaSolver {
   constructor() {
     this.config = {
       v1: {
-        baseUrl: this.decode("aHR0cHM6Ly9jZi5waXR1Y29kZS5jb20"),
-        method: "POST",
-        defaultPayload: (url, sitekey) => ({
-          url: url,
-          siteKey: sitekey,
-          mode: "turnstile-min"
-        }),
-        extractToken: data => data?.token || data?.solution || data?.data
-      },
-      v2: {
-        baseUrl: this.decode("aHR0cHM6Ly9hbmFib3QubXkuaWQvYXBpL3Rvb2xzL2J5cGFzcw"),
+        baseUrl: "https://tursite.vercel.app/bypass",
         method: "GET",
-        defaultPayload: (url, sitekey, type = "turnstile-min", rest = {}) => ({
-          url: url,
-          siteKey: sitekey,
-          type: type,
-          apikey: "freeApikey",
-          ...rest
-        }),
-        extractToken: data => data?.data?.result?.token
-      },
-      v3: {
-        baseUrl: this.decode("aHR0cHM6Ly9hcGkucGF4c2VuaXgub3JnL3Rvb2xzLw"),
-        method: "GET",
-        endpoint: (act = "turnstile") => {
-          const map = {
-            turnstile: "cf-turnstile-solver",
-            hcaptcha: "hcaptcha-invisible-solver",
-            recaptchav3: "recaptchav3-invis-solver"
-          };
-          return map[act] || "cf-turnstile-solver";
-        },
-        defaultPayload: (url, sitekey) => ({
-          url: url,
-          sitekey: sitekey
-        }),
-        extractToken: data => data?.solution_token
-      },
-      v4: {
-        baseUrl: this.decode("aHR0cHM6Ly90dXJzaXRlLnZlcmNlbC5hcHAvYnlwYXNz"),
-        method: "POST",
         defaultPayload: (url, sitekey) => ({
           url: url,
           sitekey: sitekey
         }),
         extractToken: data => data?.token
       },
-      v5: {
+      v2: {
+        baseUrl: "https://cloudflarebypass.hostrta.win/turnstile",
+        method: "GET",
+        defaultPayload: (url, sitekey) => ({
+          url: url,
+          sitekey: sitekey
+        }),
+        extractToken: data => data?.data?.token
+      },
+      v3: {
         baseUrl: `https://${apiConfig.DOMAIN_URL}/api/tools/captcha-solver`,
         method: "GET",
         defaultPayload: (url, sitekey) => ({
@@ -61,7 +31,7 @@ class CaptchaSolver {
         extractToken: data => data?.token
       }
     };
-    this.bases = ["v1", "v2", "v3", "v4", "v5"];
+    this.bases = ["v1", "v2", "v3"];
   }
   decode(str) {
     try {
@@ -110,14 +80,15 @@ class CaptchaSolver {
         url: apiUrl,
         timeout: 3e4,
         headers: {
-          "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36",
-          ...cfg.method === "POST" && {
-            "Content-Type": "application/json"
-          }
+          "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Mobile Safari/537.36"
         }
       };
-      if (cfg.method === "GET") axiosCfg.params = payload;
-      else axiosCfg.data = payload;
+      if (cfg.method === "GET") {
+        axiosCfg.params = payload;
+      } else {
+        axiosCfg.data = payload;
+        axiosCfg.headers["Content-Type"] = "application/json";
+      }
       this._log("info", `Mengirim ${cfg.method} request...`);
       const response = await axios(axiosCfg);
       const elapsed = ((Date.now() - startTime) / 1e3).toFixed(2);

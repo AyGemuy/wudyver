@@ -1,10 +1,12 @@
 import axios from "axios";
 import crypto from "crypto";
 import qs from "qs";
-
+import PROXY from "@/configs/proxy-url";
+const proxy = PROXY.url;
+console.log("CORS proxy", PROXY.url);
 class ViuApi {
   constructor() {
-    this.base = "https://api-gateway-global.viu.com";
+    this.base = `${proxy}https://api-gateway-global.viu.com`;
     this.token = null;
     this.deviceId = null;
     this.cfg = {
@@ -16,18 +18,14 @@ class ViuApi {
       label: "phone",
       ut: "0"
     };
-    
-    // Buat instance axios
     this.axios = axios.create({
-      timeout: 30000,
-      validateStatus: (status) => status < 500
+      timeout: 3e4,
+      validateStatus: status => status < 500
     });
   }
-
   id() {
     return crypto.randomBytes(16).toString("hex").slice(0, 16);
   }
-
   h(m = "GET", u = "", d = null, auth = false) {
     const h = {
       "User-Agent": "okhttp/4.12.0",
@@ -40,35 +38,32 @@ class ViuApi {
       method: m,
       url: u,
       headers: h,
-      ...(d && { data: d })
+      ...d && {
+        data: d
+      }
     };
   }
-
   async req(cfg) {
     try {
       console.log(`[${cfg.method}] ${cfg.url}`);
-      const { data } = await this.axios.request(cfg);
+      const {
+        data
+      } = await this.axios.request(cfg);
       console.log(`✓ Success`);
-      
-      // Perbaikan: Ekstrak data dengan benar
       let result = null;
-      if (data && typeof data === 'object') {
-        // Jika ada property 'data', gunakan itu
+      if (data && typeof data === "object") {
         if (data.data !== undefined) {
           result = data.data;
         } else {
-          // Jika tidak, gunakan seluruh response
           result = data;
         }
       }
-      
       return result;
     } catch (e) {
       console.log(`✗ Error: ${e?.response?.status || ""} ${e?.message || e}`);
       return null;
     }
   }
-
   async env() {
     try {
       const u = `${this.base}/api/mobile?r=%2Fenv%2Finfo&platform_flag_label=${this.cfg.label}&language_flag_id=${this.cfg.lang}&ut=0&area_id=-1&os_flag_id=${this.cfg.os}&countryCode=`;
@@ -78,7 +73,6 @@ class ViuApi {
       return null;
     }
   }
-
   async device() {
     try {
       const d = qs.stringify({
@@ -88,19 +82,16 @@ class ViuApi {
       });
       const u = `${this.base}/api/user/device?platform_flag_label=${this.cfg.label}&language_flag_id=${this.cfg.lang}&ut=0&area_id=${this.cfg.area}&os_flag_id=${this.cfg.os}&countryCode=${this.cfg.cc}`;
       const res = await this.req(this.h("POST", u, d));
-      
       if (res && res.deviceId) {
         this.deviceId = res.deviceId;
         console.log(`Device ID: ${this.deviceId}`);
       }
-      
       return res;
     } catch (e) {
       console.log(`device error: ${e?.message || e}`);
       return null;
     }
   }
-
   async config() {
     try {
       const u = `${this.base}/api/config`;
@@ -110,8 +101,12 @@ class ViuApi {
       return null;
     }
   }
-
-  async auth({ msisdn, appVersion, buildVersion, ...rest } = {}) {
+  async auth({
+    msisdn,
+    appVersion,
+    buildVersion,
+    ...rest
+  } = {}) {
     try {
       const cf = await this.config();
       const d = qs.stringify({
@@ -136,20 +131,20 @@ class ViuApi {
       });
       const u = `${this.base}/api/auth/token`;
       const res = await this.req(this.h("POST", u, d));
-      
       if (res && res.token) {
         this.token = res.token;
         console.log(`Token: ${this.token?.slice(0, 50)}...`);
       }
-      
       return res;
     } catch (e) {
       console.log(`auth error: ${e?.message || e}`);
       return null;
     }
   }
-
-  async ensureToken({ token, ...rest }) {
+  async ensureToken({
+    token,
+    ...rest
+  }) {
     try {
       if (token) {
         this.token = token;
@@ -164,7 +159,6 @@ class ViuApi {
       console.log(`ensureToken error: ${e?.message || e}`);
     }
   }
-
   q(r, p = {}) {
     const def = {
       platform_flag_label: this.cfg.label,
@@ -174,10 +168,11 @@ class ViuApi {
       os_flag_id: this.cfg.os,
       countryCode: this.cfg.cc
     };
-    return `${this.base}/api/mobile?r=${encodeURIComponent(r)}&${qs.stringify({ ...def, ...p })}`;
+    return `${this.base}/api/mobile?r=${encodeURIComponent(r)}&${qs.stringify({
+...def,
+...p
+})}`;
   }
-
-  // Wrapper untuk menambahkan token ke response
   wrapResponse(result) {
     if (!result) return null;
     return {
@@ -185,10 +180,15 @@ class ViuApi {
       token: this.token
     };
   }
-
-  async home({ token, ...rest } = {}) {
+  async home({
+    token,
+    ...rest
+  } = {}) {
     try {
-      await this.ensureToken({ token, ...rest });
+      await this.ensureToken({
+        token: token,
+        ...rest
+      });
       const result = await this.req(this.h("GET", this.q("/home/index"), null, true));
       return this.wrapResponse(result);
     } catch (e) {
@@ -196,10 +196,15 @@ class ViuApi {
       return null;
     }
   }
-
-  async live({ token, ...rest } = {}) {
+  async live({
+    token,
+    ...rest
+  } = {}) {
     try {
-      await this.ensureToken({ token, ...rest });
+      await this.ensureToken({
+        token: token,
+        ...rest
+      });
       const result = await this.req(this.h("GET", this.q("/live/list"), null, true));
       return this.wrapResponse(result);
     } catch (e) {
@@ -207,25 +212,41 @@ class ViuApi {
       return null;
     }
   }
-
-  async categories({ token, os = "Android", ...rest } = {}) {
+  async categories({
+    token,
+    os = "Android",
+    ...rest
+  } = {}) {
     try {
-      await this.ensureToken({ token, ...rest });
-      const result = await this.req(this.h("GET", this.q("/category/list", { os }), null, true));
+      await this.ensureToken({
+        token: token,
+        ...rest
+      });
+      const result = await this.req(this.h("GET", this.q("/category/list", {
+        os: os
+      }), null, true));
       return this.wrapResponse(result);
     } catch (e) {
       console.log(`categories error: ${e?.message || e}`);
       return null;
     }
   }
-
-  async series({ token, category_id = "579", tag_id = "0", release_time = "0", ...rest } = {}) {
+  async series({
+    token,
+    category_id = "579",
+    tag_id = "0",
+    release_time = "0",
+    ...rest
+  } = {}) {
     try {
-      await this.ensureToken({ token, ...rest });
+      await this.ensureToken({
+        token: token,
+        ...rest
+      });
       const result = await this.req(this.h("GET", this.q("/category/series", {
-        category_id,
-        tag_id,
-        release_time
+        category_id: category_id,
+        tag_id: tag_id,
+        release_time: release_time
       }), null, true));
       return this.wrapResponse(result);
     } catch (e) {
@@ -233,14 +254,23 @@ class ViuApi {
       return null;
     }
   }
-
-  async search({ token, keyword = "", limit = 18, page = 1, has_micro_drama = 1, ...rest } = {}) {
+  async search({
+    token,
+    keyword = "",
+    limit = 18,
+    page = 1,
+    has_micro_drama = 1,
+    ...rest
+  } = {}) {
     try {
-      await this.ensureToken({ token, ...rest });
+      await this.ensureToken({
+        token: token,
+        ...rest
+      });
       const result = await this.req(this.h("GET", this.q("/search/video", {
-        limit,
-        page,
-        has_micro_drama,
+        limit: limit,
+        page: page,
+        has_micro_drama: has_micro_drama,
         "keyword[]": keyword
       }), null, true));
       return this.wrapResponse(result);
@@ -249,13 +279,20 @@ class ViuApi {
       return null;
     }
   }
-
-  async predict({ token, keyword = "", has_micro_drama = 1, ...rest } = {}) {
+  async predict({
+    token,
+    keyword = "",
+    has_micro_drama = 1,
+    ...rest
+  } = {}) {
     try {
-      await this.ensureToken({ token, ...rest });
+      await this.ensureToken({
+        token: token,
+        ...rest
+      });
       const result = await this.req(this.h("GET", this.q("/search/prediction", {
-        keyword,
-        has_micro_drama
+        keyword: keyword,
+        has_micro_drama: has_micro_drama
       }), null, true));
       return this.wrapResponse(result);
     } catch (e) {
@@ -263,12 +300,18 @@ class ViuApi {
       return null;
     }
   }
-
-  async detail({ token, product_id = "", ...rest } = {}) {
+  async detail({
+    token,
+    product_id = "",
+    ...rest
+  } = {}) {
     try {
-      await this.ensureToken({ token, ...rest });
+      await this.ensureToken({
+        token: token,
+        ...rest
+      });
       const result = await this.req(this.h("GET", this.q("/vod/detail", {
-        product_id
+        product_id: product_id
       }), null, true));
       return this.wrapResponse(result);
     } catch (e) {
@@ -276,14 +319,22 @@ class ViuApi {
       return null;
     }
   }
-
-  async episodes({ token, product_id = "", series_id = "", size = 1000, ...rest } = {}) {
+  async episodes({
+    token,
+    product_id = "",
+    series_id = "",
+    size = 1e3,
+    ...rest
+  } = {}) {
     try {
-      await this.ensureToken({ token, ...rest });
+      await this.ensureToken({
+        token: token,
+        ...rest
+      });
       const result = await this.req(this.h("GET", this.q("/vod/product-list", {
-        product_id,
-        series_id,
-        size
+        product_id: product_id,
+        series_id: series_id,
+        size: size
       }), null, true));
       return this.wrapResponse(result);
     } catch (e) {
@@ -291,19 +342,25 @@ class ViuApi {
       return null;
     }
   }
-
-  async play({ token, ccs_product_id = "", ...rest } = {}) {
+  async play({
+    token,
+    ccs_product_id = "",
+    ...rest
+  } = {}) {
     try {
-      await this.ensureToken({ token, ...rest });
+      await this.ensureToken({
+        token: token,
+        ...rest
+      });
       const u = `${this.base}/api/playback/distribute?${qs.stringify({
-        ccs_product_id,
-        platform_flag_label: this.cfg.label,
-        language_flag_id: this.cfg.lang,
-        ut: this.cfg.ut,
-        area_id: this.cfg.area,
-        os_flag_id: this.cfg.os,
-        countryCode: this.cfg.cc
-      })}`;
+ccs_product_id: ccs_product_id,
+platform_flag_label: this.cfg.label,
+language_flag_id: this.cfg.lang,
+ut: this.cfg.ut,
+area_id: this.cfg.area,
+os_flag_id: this.cfg.os,
+countryCode: this.cfg.cc
+})}`;
       const result = await this.req(this.h("GET", u, null, true));
       return this.wrapResponse(result);
     } catch (e) {
@@ -312,19 +369,18 @@ class ViuApi {
     }
   }
 }
-
 export default async function handler(req, res) {
-  const { action, ...params } = req.method === "GET" ? req.query : req.body;
-
+  const {
+    action,
+    ...params
+  } = req.method === "GET" ? req.query : req.body;
   if (!action) {
     return res.status(400).json({
       error: "Parameter 'action' wajib diisi.",
       actions: ["env", "config", "home", "live", "categories", "series", "search", "predict", "detail", "episodes", "play"]
     });
   }
-
   const api = new ViuApi();
-
   try {
     let response;
     switch (action) {
@@ -397,7 +453,6 @@ export default async function handler(req, res) {
           valid_actions: ["env", "config", "home", "live", "categories", "series", "search", "predict", "detail", "episodes", "play"]
         });
     }
-
     return res.status(200).json(response);
   } catch (error) {
     console.error(`[FATAL ERROR] Kegagalan pada action '${action}':`, error);

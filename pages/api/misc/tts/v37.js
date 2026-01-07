@@ -31,8 +31,8 @@ class VoiceAIService {
         }
       });
       const voices = (res.data.voices || []).map(v => {
-        const parts = v.id.split('/');
-        const rawId = parts.slice(-3, -1).join('/');
+        const parts = v.id.split("/");
+        const rawId = parts.slice(-3, -1).join("/");
         return {
           ...v,
           voice_id: rawId

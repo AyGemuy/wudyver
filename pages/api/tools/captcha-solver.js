@@ -102,8 +102,8 @@ class CaptchaSolver {
           this.log(`[${p}] Berhasil diselesaikan!`);
           return {
             token: c.parse(data),
-            status,
-            loop,
+            status: status,
+            loop: loop,
             provider: p
           };
         }
