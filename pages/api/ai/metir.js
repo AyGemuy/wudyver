@@ -1,10 +1,11 @@
 import axios from "axios";
 import crypto from "crypto";
+import apiConfig from "@/configs/apiConfig";
 const CFG = {
   KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlLWRlbW8iLCJpYXQiOjE2NDE3NjkyMDAsImV4cCI6MTc5OTUzNTYwMH0.sDEYG1pJgaORRCuRO-AAwEEfSBGJ_iNDpMQvgIClvGQ",
   AUTH: "https://supabase.metirai.com/auth/v1",
   CHAT: "https://metir-chat.fly.dev/api/chat",
-  MAIL: "https://wudysoft.xyz/api/mails/v9"
+  MAIL: `https://${apiConfig.DOMAIN_URL}/api/mails/v9`
 };
 class MetirAI {
   constructor() {

@@ -1,4 +1,5 @@
 import axios from "axios";
+import * as cheerio from "cheerio";
 import FormData from "form-data";
 import {
   wrapper
@@ -14,7 +15,7 @@ import apiConfig from "@/configs/apiConfig";
 class NanoBanana {
   constructor() {
     this.baseURL = "https://nano-banana-pro.co";
-    this.mailURL = `https://${apiConfig.DOMAIN_URL}/api/mails/v22`;
+    this.mailURL = `https://${apiConfig.DOMAIN_URL}/api/mails/v23`;
     this.jar = new CookieJar();
     this.client = wrapper(axios.create({
       jar: this.jar,
@@ -87,8 +88,9 @@ class NanoBanana {
     try {
       const res = await axios.get(`${this.mailURL}?action=create`);
       const emailData = {
-        id: res?.data?.id,
-        email: res?.data?.email
+        uuid: res?.data?.uuid,
+        email_id: res?.data?.email_id,
+        email: res?.data?.email?.fullEmail
       };
       this.log(`Email dibuat: ${emailData.email}`);
       return emailData;
@@ -96,20 +98,27 @@ class NanoBanana {
       throw new Error("Gagal membuat email temp");
     }
   }
-  async getVerifyLink(mailId) {
+  async getVerifyLink(mailId, uuid) {
     this.log("Menunggu email verifikasi masuk...");
     let attempts = 0;
     while (attempts < 60) {
       try {
         await this.sleep(3e3);
-        const res = await axios.get(`${this.mailURL}?action=inbox&id=${mailId}`);
+        const res = await axios.get(`${this.mailURL}?action=messages&email_id=${mailId}&uuid=${uuid}`);
         const messages = res?.data?.messages || [];
-        const targetMsg = messages.find(m => m.sender?.includes("nano-banana") || m.subject?.toLowerCase().includes("verify"));
-        if (targetMsg) {
+        const targetMessage = messages.find(m => m.htmlBody && m.htmlBody.includes("verify-email"));
+        if (targetMessage) {
           this.log("Email verifikasi ditemukan, membaca isi...");
-          const detail = await axios.get(`${this.mailURL}?action=message&region=${targetMsg.storage.region}&key=${targetMsg.storage.key}`);
-          const link = detail?.data?.extracted_links?.[0]?.href;
-          if (link) return link;
+          const $ = cheerio.load(targetMessage.htmlBody);
+          let link = $('a[href*="verify-email"]').attr("href");
+          if (!link) {
+            const urlRegex = /https:\/\/nano-banana-pro\.co\/api\/auth\/verify-email\?[^"'\s<>]+/;
+            const match = (targetMessage.htmlBody || "").match(urlRegex) || (targetMessage.textBody || "").match(urlRegex);
+            if (match) link = match[0];
+          }
+          if (link) {
+            return link.replace(/&amp;/g, "&");
+          }
         }
       } catch (e) {}
       attempts++;
@@ -206,7 +215,7 @@ class NanoBanana {
       } catch (e) {
         const mail = await this.createMail();
         await this.register(mail.email);
-        const link = await this.getVerifyLink(mail.id);
+        const link = await this.getVerifyLink(mail.email_id, mail.uuid);
         await this.activateSession(link);
         userInfo = await this.getUserInfo();
       }

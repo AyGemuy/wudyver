@@ -1,6 +1,7 @@
 import axios from "axios";
 import https from "https";
 import crypto from "crypto-js";
+import apiConfig from "@/configs/apiConfig";
 class ArtAny {
   constructor() {
     this.agent = new https.Agent({
@@ -15,7 +16,7 @@ class ArtAny {
       baseUrl: "https://www.artany.ai/api",
       supabaseUrl: "https://urrxpnraqkaiickvdtfl.supabase.co",
       supabaseProject: "urrxpnraqkaiickvdtfl",
-      mailApi: "https://wudysoft.xyz/api/mails/v9",
+      mailApi: `https://${apiConfig.DOMAIN_URL}/api/mails/v9`,
       anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVycnhwbnJhcWthaWlja3ZkdGZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwNDMzNjMsImV4cCI6MjA3NDYxOTM2M30.JFp8mnLQRuHAh7oYTGXFGP9K9hShl_MxMFZAesNjtcE",
       models: {
         "volc-omnihuman": {
