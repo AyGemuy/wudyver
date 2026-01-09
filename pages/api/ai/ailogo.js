@@ -138,7 +138,7 @@ export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.prompt) {
     return res.status(400).json({
-      error: "Prompt is required"
+      error: "Parameter 'prompt' diperlukan"
     });
   }
   try {

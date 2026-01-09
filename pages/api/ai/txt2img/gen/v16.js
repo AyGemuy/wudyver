@@ -1,5 +1,5 @@
 import axios from "axios";
-class BlinkshotImageGenerator {
+class Blinkshot {
   constructor() {
     this.apiUrl = "https://www.blinkshot.io/api/generateImages";
     this.headers = {
@@ -43,18 +43,21 @@ export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.prompt) {
     return res.status(400).json({
-      error: "prompt is required"
+      error: "Parameter 'prompt' diperlukan"
     });
   }
-  const generator = new BlinkshotImageGenerator();
+  const api = new Blinkshot();
   try {
-    const b64 = await generator.generate(params);
-    const buffer = Buffer.from(b64, "base64");
-    res.setHeader("Content-Type", "image/png");
-    return res.send(buffer);
-  } catch (e) {
-    res.status(500).json({
-      message: e.message
+    const data = await api.generate(params);
+    if (data) {
+      const imageBuffer = Buffer.from(data, "base64");
+      res.setHeader("Content-Type", "image/png");
+      return res.send(imageBuffer);
+    }
+  } catch (error) {
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses request";
+    return res.status(500).json({
+      error: errorMessage
     });
   }
 }

@@ -4,7 +4,7 @@ import FormData from "form-data";
 import axios from "axios";
 import apiConfig from "@/configs/apiConfig";
 const CONFIG = {
-  URL: "ws://34.60.29.37:8089",
+  URL: "wss://34.60.29.37:8089",
   KEY: "R9fmD6eQd5THwbnJ",
   HEADERS: {
     "User-Agent": "Dart/3.7 (dart:io)",

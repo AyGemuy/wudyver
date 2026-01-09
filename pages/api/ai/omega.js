@@ -183,16 +183,17 @@ export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.prompt) {
     return res.status(400).json({
-      error: "Prompt are required"
+      error: "Parameter 'prompt' diperlukan"
     });
   }
+  const api = new ChatClient();
   try {
-    const api = new ChatClient();
-    const response = await api.chat(params);
-    return res.status(200).json(response);
+    const data = await api.chat(params);
+    return res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({
-      error: error.message || "Internal Server Error"
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    return res.status(500).json({
+      error: errorMessage
     });
   }
 }

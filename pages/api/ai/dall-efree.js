@@ -230,8 +230,7 @@ class Dalle {
       }
       return {
         result: processed,
-        token: jwt,
-        ...res.data
+        token: jwt
       };
     } catch (e) {
       this.log(`Err: ${e.message}`);
