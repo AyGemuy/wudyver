@@ -75,6 +75,7 @@
     "cainode": "latest",
     "canvafy": "latest",
     "chalk": "latest",
+    "child_process": "latest",
     "cheerio": "latest",
     "chess.js": "latest",
     "crypto": "latest",

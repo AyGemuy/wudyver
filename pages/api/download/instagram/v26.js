@@ -56,7 +56,24 @@ class InstaSaver {
           token: token
         }
       });
-      const data = response?.data || null;
+      let data = response?.data || null;
+      if (typeof data === "string") {
+        try {
+          data = JSON.parse(data);
+        } catch (e) {
+          const match = data.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+          if (match) {
+            try {
+              data = JSON.parse(match[0]);
+            } catch (err) {
+              console.error("Gagal mem-parse JSON hasil match:", err);
+              data = null;
+            }
+          } else {
+            data = null;
+          }
+        }
+      }
       const status = data && !data.error ? "Success" : "Failed/Empty";
       console.log(`[LOG] Result: ${status}`);
       return data || {

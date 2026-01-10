@@ -15,6 +15,11 @@ class AssistantClient {
         id: "fal-d8505a2e",
         path: "/fal-d8505a2e/message"
       },
+      s2labs: {
+        referer: "https://s2labs.mintlify.app/",
+        id: "s2labs",
+        path: "/s2labs/message"
+      },
       musixmatch: {
         referer: "https://docs.musixmatch.com/lyrics-api/matcher/matcher-lyrics-get",
         id: "musixmatch",
@@ -23,7 +28,7 @@ class AssistantClient {
     };
   }
   async chat({
-    mode = "fal",
+    mode = "s2labs",
     threadId,
     prompt,
     messages,
