@@ -94,7 +94,9 @@ class CapCutDL {
       throw err;
     }
   }
-  async download(url) {
+  async download({
+    url
+  }) {
     try {
       const id = await this.getId(url);
       if (!id) throw new Error("ID not found");
@@ -114,16 +116,17 @@ export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.url) {
     return res.status(400).json({
-      error: "Url is required"
+      error: "Parameter 'url' diperlukan"
     });
   }
-  const downloader = new CapCutDL();
+  const api = new CapCutDL();
   try {
-    const data = await downloader.download(params);
+    const data = await api.download(params);
     return res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({
-      error: "Internal Server Error"
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    return res.status(500).json({
+      error: errorMessage
     });
   }
 }

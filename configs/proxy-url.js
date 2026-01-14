@@ -7,11 +7,11 @@ class ProxyManager {
       name: "eu",
       url: "https://cors.eu.org/"
     }, {
-      name: "square",
-      url: "https://square.proxyserver2.workers.dev/"
-    }, {
       name: "rpoxy",
       url: "https://rpoxy.apis6.workers.dev/"
+    }, {
+      name: "prox",
+      url: "https://prox.26bruunjorl.workers.dev/"
     }, {
       name: "aged",
       url: "https://aged-hill-ab3a.apis4.workers.dev/"
