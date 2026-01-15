@@ -122,11 +122,9 @@ class YolloAI {
           "x-auth-token": t
         }
       });
-      const results = data?.data?.records || [];
-      console.log("[SEARCH] Found:", results.length, "bots");
       return {
         token: t,
-        data: results
+        data: data?.data
       };
     } catch (e) {
       console.error("[ERROR] search:", e?.message);
@@ -136,6 +134,7 @@ class YolloAI {
   async chat({
     token,
     prompt,
+    image,
     media,
     sessionId,
     botId = 147006,
@@ -162,10 +161,15 @@ class YolloAI {
         }
       }
       if (!sid) throw new Error("Failed to get sessionId");
+      let fileToUpload = image || media;
       let imageUrl = null;
-      if (media) {
+      if (fileToUpload) {
         try {
-          imageUrl = await this.upload(media, t);
+          if (Buffer.isBuffer(fileToUpload) || fileToUpload.startsWith("data:") || typeof fileToUpload === "string" && fileToUpload.startsWith("http")) {
+            imageUrl = await this.upload(fileToUpload, t);
+          } else {
+            imageUrl = await this.upload(fileToUpload, t);
+          }
         } catch (e) {
           console.error("[ERROR] chat.upload:", e?.message);
           throw e;
@@ -176,17 +180,14 @@ class YolloAI {
         return await this.genImg({
           token: t,
           prompt: prompt,
-          baseImage: imageUrl,
+          image: imageUrl,
           sessionId: sid,
           ...rest
         });
       }
       console.log("[CHAT] Sending message...");
-      let msgData;
       try {
-        const {
-          data: msg
-        } = await axios.post(`${this.base}/api/msg/send`, {
+        await axios.post(`${this.base}/api/msg/send`, {
           sessionId: sid,
           msg: prompt
         }, {
@@ -196,12 +197,10 @@ class YolloAI {
             "x-no-show-msg-handle": "true"
           }
         });
-        msgData = msg;
       } catch (e) {
         console.error("[ERROR] chat.send:", e?.message);
         throw e;
       }
-      console.log("[CHAT] Getting history...");
       let conv = [];
       try {
         const {
@@ -255,7 +254,6 @@ class YolloAI {
         console.error("[ERROR] chat.stream:", e?.message);
         throw e;
       }
-      console.log("[CHAT] Saving response...");
       try {
         await axios.post(`${this.base}/api/msg/callback`, {
           sessionId: sid,
@@ -282,24 +280,20 @@ class YolloAI {
       throw e;
     }
   }
-  async upload(media, t) {
+  async upload(media, token) {
     try {
+      const t = token || await this.ensure();
       console.log("[UPLOAD] Processing media...");
       let buffer;
       if (Buffer.isBuffer(media)) {
         buffer = media;
       } else if (media.startsWith("http")) {
-        try {
-          const {
-            data
-          } = await axios.get(media, {
-            responseType: "arraybuffer"
-          });
-          buffer = Buffer.from(data);
-        } catch (e) {
-          console.error("[ERROR] upload.download:", e?.message);
-          throw e;
-        }
+        const {
+          data
+        } = await axios.get(media, {
+          responseType: "arraybuffer"
+        });
+        buffer = Buffer.from(data);
       } else if (media.startsWith("data:")) {
         buffer = Buffer.from(media.split(",")[1], "base64");
       } else {
@@ -329,6 +323,7 @@ class YolloAI {
   async genImg({
     token,
     prompt,
+    image,
     baseImage,
     sessionId,
     size = "2K",
@@ -336,11 +331,12 @@ class YolloAI {
   }) {
     try {
       const t = token || await this.ensure();
+      const inputImage = image || baseImage || "";
       console.log("[IMAGE] Generating:", prompt);
       const {
         data
       } = await axios.post(`${this.base}/api/aiImage/createForChat`, {
-        baseImage: baseImage || "",
+        baseImage: inputImage,
         imageUrls: [],
         prompt: prompt,
         size: size,
@@ -354,13 +350,50 @@ class YolloAI {
       });
       const taskId = data?.data?.result?.generateId;
       const msgId = data?.data?.result?.id;
-      if (!taskId) return {
-        token: t,
-        data: data?.data?.result
-      };
+      if (!msgId && taskId) {
+        return {
+          token: t,
+          data: {
+            generateId: taskId,
+            status: "processing",
+            ...data?.data?.result
+          }
+        };
+      }
+      if (!taskId) {
+        return {
+          token: t,
+          data: data?.data?.result
+        };
+      }
       return await this.poll(taskId, msgId, t);
     } catch (e) {
       console.error("[ERROR] genImg:", e?.message);
+      throw e;
+    }
+  }
+  async checkStatus({
+    token,
+    taskId
+  }) {
+    try {
+      const t = token || await this.ensure();
+      console.log("[STATUS] Checking task:", taskId);
+      const {
+        data
+      } = await axios.get(`${this.base}/api/aiImage/getTaskStatus/${taskId}`, {
+        headers: {
+          ...this.headers,
+          "x-auth-token": t,
+          "x-no-handle": "true"
+        }
+      });
+      return {
+        token: t,
+        data: data?.data
+      };
+    } catch (e) {
+      console.error("[ERROR] checkStatus:", e?.message);
       throw e;
     }
   }
@@ -414,7 +447,7 @@ export default async function handler(req, res) {
   if (!action) {
     return res.status(400).json({
       error: "Parameter 'action' wajib diisi.",
-      actions: ["search", "chat"]
+      actions: ["search", "chat", "upload", "status"]
     });
   }
   const api = new YolloAI();
@@ -437,10 +470,31 @@ export default async function handler(req, res) {
         }
         response = await api.chat(params);
         break;
+      case "upload":
+        const mediaFile = params.image || params.media;
+        if (!mediaFile) {
+          return res.status(400).json({
+            error: "Parameter 'image' atau 'media' wajib diisi untuk action 'upload'."
+          });
+        }
+        const url = await api.upload(mediaFile, params.token);
+        response = {
+          token: params.token || api.token,
+          data: url
+        };
+        break;
+      case "status":
+        if (!params.taskId) {
+          return res.status(400).json({
+            error: "Parameter 'taskId' wajib diisi untuk action 'status'."
+          });
+        }
+        response = await api.checkStatus(params);
+        break;
       default:
         return res.status(400).json({
           error: `Action tidak valid: ${action}.`,
-          valid_actions: ["search", "chat"]
+          valid_actions: ["search", "chat", "upload", "status"]
         });
     }
     return res.status(200).json(response);

@@ -1,207 +1,199 @@
-import axios from "axios";
-import {
-  wrapper
-} from "axios-cookiejar-support";
-import {
-  CookieJar
-} from "tough-cookie";
-import crypto from "crypto";
-class IgDl {
-  constructor() {
-    this.jar = new CookieJar();
-    this.client = wrapper(axios.create({
-      jar: this.jar,
-      withCredentials: true
-    }));
+import vm from "vm";
+import fetch from "node-fetch";
+class InstaDl {
+  constructor(hostName = "fastdl") {
     this.hosts = [{
+      name: "fastdl",
+      base: "https://fastdl.app",
+      api: "https://api-wh.fastdl.app",
+      src: "https://fastdl.app/js/link.chunk.js",
+      mid: 7027,
+      convert: "/api/convert",
+      userInfo: "/api/v1/instagram/userInfo",
+      patcher: js => {
+        js = js.replace(/WjkfYp\[0x10\]\)\(k9vssNM\(0x1e2\),/g, "WjkfYp[0x10])('https://fastdl.app'+k9vssNM(0x1e2),").replace("throw new(ilxnw1X(k9vssNM(WjkfYp[0x23])+WjkfYp[0x15]))(k9vssNM(0x1d9)+k9vssNM(0x1da)+k9vssNM(0x1db)+k9vssNM(0x1dc))", "");
+        return js;
+      }
+    }, {
+      name: "anonyig",
       base: "https://anonyig.com",
-      msec: "/msec",
+      api: null,
+      src: "https://anonyig.com/js/link.chunk.js",
+      mid: 7027,
       convert: "/api/convert",
-      ts: 1762940332915,
-      key: "e9fd4a500d4f0994fc6a6904dfb4a6e854e286cd56f4f8d212dc5a18211057df",
-      payload: {
-        format: "form",
-        ref: "https://anonyig.com/en/"
+      userInfo: "/api/v1/instagram/userInfo",
+      patcher: js => {
+        js = js.split("yEKhXW[0x15])(bgVI0Ri(0x222),").join("yEKhXW[0x15])('https://anonyig.com'+bgVI0Ri(0x222),");
+        js = js.split("throw new(qZpiz_1(bgVI0Ri(yEKhXW[0x26])))(bgVI0Ri(0x218)+bgVI0Ri(0x219)+bgVI0Ri(0x21a)+bgVI0Ri(0x21b)+bgVI0Ri(0x21c)+yEKhXW[0x54])").join("");
+        return js;
       }
     }, {
-      base: "https://gramsnap.com",
-      msec: "/msec",
-      convert: "/api/convert",
-      ts: 1762959817732,
-      key: "3aa76a9fae4e4aeed77942a666b12eb9647244a34f14a4fd4b2c68d9b9200bc1",
-      payload: {
-        format: "form",
-        ref: "https://gramsnap.com/en/"
-      }
-    }, {
+      name: "storiesig",
       base: "https://storiesig.info",
       api: "https://api-wh.storiesig.info",
-      msec: "/msec",
+      src: "https://storiesig.info/js/link.chunk.js",
+      mid: 508,
       convert: "/api/convert",
-      ts: 1762952666265,
-      key: "bd8f830d1f4c85b75fd1c1c76f8fba1f5421189226a8715815450fb2a41bd598",
-      payload: {
-        format: "form",
-        ref: "https://storiesig.info/"
+      userInfo: "/api/v1/instagram/userInfo",
+      patcher: js => {
+        js = js.split("ePePo6u(rIIxMK0(SagBGRn[0x147])+SagBGRn[0x148])(rIIxMK0(0x21a),").join("ePePo6u(rIIxMK0(SagBGRn[0x147])+SagBGRn[0x148])('https://storiesig.info'+rIIxMK0(0x21a),");
+        js = js.split("throw new(ePePo6u(rIIxMK0(SagBGRn[0x22])+SagBGRn[0x23]))(rIIxMK0(0x211)+rIIxMK0(0x212)+rIIxMK0(0x213)+rIIxMK0(0x214)+rIIxMK0(0x215)+SagBGRn[0x11])").join("");
+        return js;
       }
     }, {
+      name: "igram",
       base: "https://igram.world",
       api: "https://api-wh.igram.world",
-      msec: "/msec",
+      src: "https://igram.world/js/link.chunk.js",
+      mid: 3508,
       convert: "/api/convert",
-      ts: 1763129421273,
-      key: "36fc819c862897305f027cda96822a071a4a01b7f46bb4ffaac9b88a649d9c28",
-      payload: {
-        format: "form",
-        ref: "https://igram.world/"
+      userInfo: "/api/v1/instagram/userInfo",
+      patcher: js => {
+        js = js.split("(nDLP6H(0x1f6),").join("('https://igram.world'+nDLP6H(0x1f6),");
+        js = js.split("throw new(Dol0Ew(nDLP6H(O6TR74[0x1e])))(nDLP6H(0x1ee)+nDLP6H(0x1ef)+nDLP6H(0x1f0)+O6TR74[0x24]);").join("O_1ei8j[nDLP6H(O6TR74[0x75])]=O6TR74[0xa];break;");
+        js = js.split("throw new(Dol0Ew(nDLP6H(O6TR74[0x1e])))(nDLP6H(0x1f1)+nDLP6H(0x1f2)+nDLP6H(0x1f3)+nDLP6H(0x1f4));").join("O_1ei8j[nDLP6H(O6TR74[0x75])]=O6TR74[0x33];break;");
+        return js;
       }
     }, {
+      name: "sssinstagram",
       base: "https://sssinstagram.com",
-      msec: "/msec",
+      api: "https://api-wh.sssinstagram.com",
+      src: "https://sssinstagram.com/js/link.chunk.js",
+      mid: 7027,
       convert: "/api/convert",
-      ts: 1763458291571,
-      key: "701c4ea7812a249323c43f2773f893fa2e2522e8fc4b778b418b9a8c1d027483",
-      payload: {
-        format: "json",
-        ref: null
+      userInfo: "/api/v1/instagram/userInfo",
+      patcher: js => {
+        js = js.split("(Q4YjQI(0x216),").join("('https://sssinstagram.com'+Q4YjQI(0x216),");
+        js = js.split("throw new(cPLY5L(Q4YjQI(AH6pOo[0x2b])+AH6pOo[0x1e]))(Q4YjQI(0x20e)+Q4YjQI(0x20f)+Q4YjQI(0x210)+AH6pOo[0x1e]);").join("u5HZsy[Q4YjQI(AH6pOo[0x59])]=AH6pOo[0xa];break;");
+        js = js.split("throw new(cPLY5L(Q4YjQI(AH6pOo[0x2b])+AH6pOo[0x1e]))(Q4YjQI(0x211)+Q4YjQI(0x212)+Q4YjQI(0x213)+Q4YjQI(0x214));").join("u5HZsy[Q4YjQI(AH6pOo[0x59])]=AH6pOo[0x3e];break;");
+        return js;
       }
     }, {
+      name: "instasupersave",
       base: "https://instasupersave.com",
-      msec: "/msec",
+      api: null,
+      src: "https://instasupersave.com/js/link.chunk.js",
+      mid: 3508,
       convert: "/api/convert",
-      ts: 1763015662213,
-      key: "80df0ff6afa58942f6e04e9e5b39acab9a9354776b76f3c05132c7b2cfbc66e6",
-      payload: {
-        format: "form",
-        ref: "https://instasupersave.com/en/"
-      }
-    }, {
-      base: "https://snapinsta.guru",
-      msec: "/msec",
-      convert: "/api/convert",
-      ts: 1763046454092,
-      key: "45b0d27eeb978a1c4f8dd45a7a3f8713fa29f6a5c1c39589acd981b216d57a0d",
-      payload: {
-        format: "form",
-        ref: "https://snapinsta.guru/",
-        xsrf: true
-      }
-    }, {
-      base: "https://picuki.site",
-      msec: "/msec",
-      convert: "/api/convert",
-      ts: 1762941359243,
-      key: "39f50b28e569e266e1b05abb78bf72723d75e37213122c2f0c742d2e6259f3d5",
-      payload: {
-        format: "form",
-        ref: "https://picuki.site/",
-        xsrf: true
+      userInfo: "/api/v1/instagram/userInfo",
+      patcher: js => {
+        js = js.split("(gmOEz6(0x20d),").join("('https://instasupersave.com'+gmOEz6(0x20d),");
+        js = js.split("throw new(Y0arTQ(gmOEz6(OQaFNG[0x1b])+OQaFNG[0x1c]))(gmOEz6(0x203)+gmOEz6(0x204)+gmOEz6(0x205)+gmOEz6(0x206)+gmOEz6(0x207)+OQaFNG[0x25]);").join("ZZteo99[gmOEz6(OQaFNG[0x7e])]=OQaFNG[0xa];break;");
+        js = js.split("&&KA8zVh()){").join("&&true){");
+        return js;
       }
     }];
+    this.cachedModules = null;
+    this.setHost(hostName);
   }
-  hdr(base, api) {
-    const ua = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36";
-    const origin = api || base;
+  setHost(hostName) {
+    const host = this.hosts.find(h => h.name === hostName);
+    if (!host) {
+      throw new Error(`Host "${hostName}" tidak ditemukan. Available hosts: ${this.hosts.map(h => h.name).join(", ")}`);
+    }
+    this.currentHost = host;
+    this.cachedModules = null;
+    return this;
+  }
+  getAvailableHosts() {
+    return this.hosts.map(h => h.name);
+  }
+  async getModules() {
+    if (this.cachedModules) return this.cachedModules;
     const {
-      host
-    } = new URL(origin);
-    return {
-      accept: "application/json, text/plain, */*",
-      "accept-language": "id-ID",
-      origin: base,
-      referer: base + "/",
-      "sec-ch-ua": '"Chromium";v="127", "Not)A;Brand";v="99"',
-      "sec-ch-ua-mobile": "?1",
-      "sec-ch-ua-platform": '"Android"',
-      "sec-fetch-dest": "empty",
-      "sec-fetch-mode": "cors",
-      "sec-fetch-site": api ? "same-site" : "same-origin",
-      "user-agent": ua,
-      authority: host
-    };
+      src,
+      patcher
+    } = this.currentHost;
+    let js = await fetch(src).then(r => r.text());
+    js = patcher(js);
+    global.webpackChunk = [];
+    global.self = global;
+    vm.runInThisContext(js);
+    this.cachedModules = global.webpackChunk[0][1];
+    return this.cachedModules;
   }
-  async ms(base, api, path) {
-    const url = (api || base) + path;
-    console.log(`[TS] GET ${url}`);
-    try {
-      const {
-        data
-      } = await this.client.get(url, {
-        headers: this.hdr(base, api)
-      });
-      console.log(`[TS] ✓ ${data?.msec || 0}`);
-      return Math.floor((data?.msec || 0) * 1e3);
-    } catch (e) {
-      console.log(`[TS] ✗ ${e?.message || "fail"}`);
-      return 0;
+  async generateSignedBody(targetUrl) {
+    const modules = await this.getModules();
+    console.log(modules);
+    const {
+      mid
+    } = this.currentHost;
+    if (!mid) {
+      throw new Error(`Module ID tidak tersedia untuk host "${this.currentHost.name}"`);
     }
-  }
-  sig(url, ab, ts, key) {
-    return crypto.createHash("sha256").update(`${url}${ab}${key}`).digest("hex");
-  }
-  body(url, ab, ts, tsc, sig, fmt) {
-    const obj = {
-      url: url,
-      ts: ab,
-      _ts: ts,
-      _tsc: tsc,
-      _s: sig
-    };
-    return fmt === "json" ? obj : new URLSearchParams({
-      sf_url: url,
-      ...obj
-    }).toString();
-  }
-  async xsrf(base) {
-    try {
-      console.log(`[XSRF] GET ${base}/`);
-      await this.client.get(base + "/", {
-        headers: this.hdr(base)
-      });
-      const cookies = await this.jar.getCookies(base);
-      const xsrf = cookies.find(c => c.key === "XSRF-TOKEN");
-      console.log(`[XSRF] ${xsrf ? "✓" : "✗"}`);
-      return xsrf?.value || null;
-    } catch (e) {
-      console.log(`[XSRF] ✗ ${e?.message || "fail"}`);
-      return null;
+    const cache = {};
+
+    function o(id) {
+      if (cache[id]) return cache[id].exports;
+      const m = cache[id] = {
+        exports: {}
+      };
+      modules[id](m, m.exports, o);
+      return m.exports;
     }
+    o.r = e => Object.defineProperty(e, "__esModule", {
+      value: true
+    });
+    o.d = (e, d) => {
+      for (const k in d) {
+        if (!Object.prototype.hasOwnProperty.call(e, k)) {
+          Object.defineProperty(e, k, {
+            enumerable: true,
+            get: d[k]
+          });
+        }
+      }
+    };
+    const mod = o(mid);
+    const fn = await mod.default;
+    return fn(targetUrl);
   }
   async download({
-    host,
     url,
-    ...rest
+    host
   }) {
-    const h = this.hosts[host || 0];
-    if (!h) throw new Error(`Host ${host} not found`);
-    console.log(`\n[DL] ${h.base}`);
-    console.log(`[DL] URL: ${url}`);
     try {
-      const api = h.api || null;
-      const ms = await this.ms(h.base, api, h.msec);
-      const ab = Date.now();
-      const tsc = ms ? ab - ms : 0;
-      const sig = this.sig(url, ab, h.ts, h.key);
-      const fmt = h.payload?.format || "form";
-      const data = this.body(url, ab, h.ts, tsc, sig, fmt);
-      const hdrs = this.hdr(h.base, api);
-      hdrs["content-type"] = fmt === "json" ? "application/json" : "application/x-www-form-urlencoded;charset=UTF-8";
-      if (h.payload?.xsrf) {
-        const token = await this.xsrf(h.base);
-        if (token) hdrs["x-xsrf-token"] = decodeURIComponent(token);
+      console.log(`[Download] Memulai proses untuk: ${url} pada host: ${host}`);
+      this.setHost(host);
+      const {
+        base,
+        api,
+        convert,
+        userInfo
+      } = this.currentHost;
+      const apiBase = api || base;
+      if (typeof url === "string" && !url.startsWith("https://")) {
+        url = {
+          username: url
+        };
       }
-      const convertUrl = (api || h.base) + h.convert;
-      console.log(`[DL] POST ${convertUrl}`);
-      const cfg = {
-        headers: hdrs,
-        ...rest
+      const signed = await this.generateSignedBody(url);
+      const isUserInfoEndpoint = url?.username;
+      const endpoint = `${apiBase}${isUserInfoEndpoint ? userInfo : convert}`;
+      console.log(`[Download] Request ke endpoint: ${endpoint}`);
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          Accept: "application/json, text/plain, */*",
+          "Content-Type": isUserInfoEndpoint ? "application/json" : "application/x-www-form-urlencoded;charset=utf-8",
+          "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Mobile Safari/537.36",
+          Referer: `${base}/`,
+          Origin: base
+        },
+        body: isUserInfoEndpoint ? JSON.stringify(signed) : new URLSearchParams(signed)
+      });
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const result = await res.json();
+      console.log("[Download] Berhasil mendapatkan data.");
+      return result;
+    } catch (error) {
+      console.error("[Download] Gagal:", error.message);
+      return {
+        success: false,
+        message: error.message
       };
-      const res = await this.client.post(convertUrl, data, cfg);
-      console.log(`[DL] ✓ ${res?.status || 200}\n`);
-      return res?.data || res;
-    } catch (e) {
-      console.log(`[DL] ✗ ${e?.response?.status || 500}: ${e?.message || "fail"}\n`);
-      throw e;
     }
   }
 }
@@ -211,10 +203,9 @@ export default async function handler(req, res) {
     host = 0,
     ...params
   } = req.method === "POST" ? req.body : req.query;
-  console.log(`[API] ${req.method} /api/download`);
-  console.log(`[API] Host: ${host}, URL: ${url || "missing"}`);
+  console.log(`\n[API HANDLER] ${req.method} /api/download`);
+  console.log(`[API HANDLER] Params: url=${url || "MISSING"}, hostIndex=${host}`);
   if (!url) {
-    console.log("[API] ✗ 400 - URL required\n");
     return res.status(400).json({
       success: false,
       error: "URL parameter is required",
@@ -222,41 +213,41 @@ export default async function handler(req, res) {
         method: "GET or POST",
         params: {
           url: "Instagram URL (required)",
-          host: "Host index 0-7 (optional, default: 0)"
-        },
-        example: "/api/download?url=https://instagram.com/reel/ABC123&host=0"
+          host: "Host index 0-5 (optional, default: 0)"
+        }
       }
     });
   }
   try {
-    const dl = new IgDl();
-    const hostNum = parseInt(host) || 0;
-    if (hostNum < 0 || hostNum >= dl.hosts.length) {
-      console.log(`[API] ✗ 400 - Invalid host index\n`);
+    const dl = new InstaDl();
+    const hostIndex = parseInt(host);
+    if (isNaN(hostIndex) || hostIndex < 0 || hostIndex >= dl.hosts.length) {
+      const errorMsg = `Host index must be between 0-${dl.hosts.length - 1}`;
+      console.error(`[API HANDLER] 400 - ${errorMsg}`);
       return res.status(400).json({
         success: false,
-        error: `Host index must be between 0-${dl.hosts.length - 1}`,
+        error: errorMsg,
         availableHosts: dl.hosts.map((h, i) => ({
           index: i,
-          name: h.base.replace("https://", "")
+          name: h.name
         }))
       });
     }
+    const selectedHostName = dl.hosts[hostIndex].name;
     const result = await dl.download({
-      host: hostNum,
+      hostName: selectedHostName,
       url: url,
       ...params
     });
-    console.log("[API] ✓ 200 - Success\n");
+    console.log("[API HANDLER] 200 - Success sending response.");
     return res.status(200).json(result);
   } catch (e) {
+    console.error(`[API HANDLER] 500 - Request Failed:`, e.message);
     const status = e?.response?.status || 500;
     const msg = e?.response?.data?.message || e?.message || "Internal server error";
-    console.log(`[API] ✗ ${status} - ${msg}\n`);
     return res.status(status).json({
       success: false,
-      error: msg,
-      details: e?.response?.data || null
+      error: msg
     });
   }
 }

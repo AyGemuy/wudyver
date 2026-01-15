@@ -33,6 +33,39 @@ class TurnstileSolver {
     });
     this.isInitialized = true;
   }
+  async extractTurnstileParams(url) {
+    try {
+      console.log(`Scraping parameters from ${url}...`);
+      const response = await this.session.get(url);
+      const html = response.body;
+      const sitekeyMatch = html.match(/data-sitekey="([^"]+)"/);
+      const cDataMatch = html.match(/data-cdata="([^"]+)"/);
+      const actionMatch = html.match(/data-action="([^"]+)"/);
+      const chlMatch = html.match(/chlPageData\s*[:=]\s*['"]([^'"]+)['"]/);
+      return {
+        sitekey: sitekeyMatch ? sitekeyMatch[1] : null,
+        cData: cDataMatch ? cDataMatch[1] : "",
+        action: actionMatch ? actionMatch[1] : "",
+        chlPageData: chlMatch ? chlMatch[1] : ""
+      };
+    } catch (error) {
+      console.error("Gagal scraping params:", error.message);
+      return {
+        cData: "",
+        action: "",
+        chlPageData: ""
+      };
+    }
+  }
+  safeParse(response) {
+    const body = response.body || "";
+    try {
+      return JSON.parse(body);
+    } catch (e) {
+      console.log("Response Cloudflare (Raw):", body);
+      return null;
+    }
+  }
   async solve({
     url,
     sitekey
@@ -41,6 +74,11 @@ class TurnstileSolver {
       await this.init();
     }
     const targetUrl = url || "https://challenges.cloudflare.com";
+    const scrapedParams = await this.extractTurnstileParams(targetUrl);
+    const finalSitekey = sitekey || scrapedParams.sitekey;
+    if (!finalSitekey) {
+      throw new Error("Sitekey tidak ditemukan di parameter maupun di halaman target.");
+    }
     try {
       console.log("Loading Turnstile API...");
       const turnstileApiUrl = "https://challenges.cloudflare.com/turnstile/v0/api.js";
@@ -50,6 +88,7 @@ class TurnstileSolver {
         }
       });
       console.log("Requesting Turnstile challenge...");
+      console.log(`Menggunakan params -> Sitekey: ${finalSitekey}, Action: ${scrapedParams.action}, cData: ${scrapedParams.cData}`);
       const challengeResponse = await this.session.post("https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/challenge", {
         headers: {
           "content-type": "application/json",
@@ -57,16 +96,16 @@ class TurnstileSolver {
           referer: targetUrl
         },
         body: JSON.stringify({
-          sitekey: sitekey,
+          sitekey: finalSitekey,
           url: targetUrl,
-          action: "",
-          cData: "",
-          chlPageData: ""
+          action: scrapedParams.action,
+          cData: scrapedParams.cData,
+          chlPageData: scrapedParams.chlPageData
         })
       });
-      const challengeData = await challengeResponse.json();
+      const challengeData = this.safeParse(challengeResponse);
       if (!challengeData || !challengeData.token) {
-        console.log("Solving challenge...");
+        console.log("Mencoba endpoint solve (fallback)...");
         const solveResponse = await this.session.post("https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/solve", {
           headers: {
             "content-type": "application/json",
@@ -74,11 +113,11 @@ class TurnstileSolver {
             referer: targetUrl
           },
           body: JSON.stringify({
-            sitekey: sitekey,
+            sitekey: finalSitekey,
             challenge: challengeData?.challenge || ""
           })
         });
-        const solveData = await solveResponse.json();
+        const solveData = this.safeParse(solveResponse);
         if (solveData && solveData.token) {
           console.log("Turnstile solved successfully!");
           return solveData.token;
@@ -87,7 +126,7 @@ class TurnstileSolver {
         console.log("Turnstile solved successfully!");
         return challengeData.token;
       }
-      throw new Error("Failed to obtain Turnstile token");
+      throw new Error("Gagal mendapatkan token. Cloudflare merespon dengan 'invalid' (Browser Environment Check Failed).");
     } catch (error) {
       console.error("Error solving Turnstile:", error.message);
       throw error;
@@ -95,7 +134,6 @@ class TurnstileSolver {
   }
   async close() {
     if (this.session) {
-      await this.session.close();
       this.session = null;
     }
     if (this.isInitialized) {
@@ -103,18 +141,12 @@ class TurnstileSolver {
       this.isInitialized = false;
     }
   }
-  async getCookies() {
-    if (!this.session) {
-      throw new Error("Session not initialized");
-    }
-    return await this.session.cookies();
-  }
 }
 export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
-  if (!params.sitekey) {
+  if (!params.url) {
     return res.status(400).json({
-      error: "Parameter 'sitekey' diperlukan"
+      error: "Parameter 'url' diperlukan untuk mengambil 'chl' data."
     });
   }
   const api = new TurnstileSolver();
@@ -124,9 +156,8 @@ export default async function handler(req, res) {
       token: data
     });
   } catch (error) {
-    const errorMessage = error.message || "Terjadi kesalahan saat memproses.";
     return res.status(500).json({
-      error: errorMessage
+      error: error.message || "Terjadi kesalahan."
     });
   } finally {
     await api.close();

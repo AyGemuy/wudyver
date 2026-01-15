@@ -1,92 +1,127 @@
+import vm from "vm";
 import axios from "axios";
-import crypto from "crypto";
-import {
-  URLSearchParams
-} from "url";
-class Ummy {
+class FastDL {
   constructor() {
-    this.api = {
-      base: "https://fastdl.app",
-      base_wh: "https://api-wh.fastdl.app",
-      msec: "/msec",
-      convert: "/api/convert"
-    };
-    this.constant = {
-      timestamp: 1763455936795,
-      key: "bbe749c46624c168b1215f159f9712a2a1bdf44ccfba63203b4ccd9955186ebe"
-    };
+    this.cache = null;
+    this.src = "https://fastdl.app/js/link.chunk.js";
+    this.mid = 7027;
     this.headers = {
       accept: "application/json, text/plain, */*",
       "accept-language": "id-ID",
-      "content-type": "application/x-www-form-urlencoded;charset=UTF-8",
       origin: "https://fastdl.app",
       referer: "https://fastdl.app/",
-      priority: "u=1, i",
-      "sec-ch-ua": '"Chromium";v="127", "Not)A;Brand";v="99", "Microsoft Edge Simulate";v="127", "Lemur";v="127"',
+      "sec-ch-ua": '"Chromium";v="127", "Not)A;Brand";v="99"',
       "sec-ch-ua-mobile": "?1",
       "sec-ch-ua-platform": '"Android"',
       "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36"
     };
   }
-  async times() {
+  async _initModules() {
+    if (this.cache) return this.cache;
+    console.log("[1/4] Mengambil script sumber dari FastDL...");
     try {
-      const getHeaders = {
-        "user-agent": this.headers["user-agent"],
-        accept: this.headers["accept"],
-        "accept-language": this.headers["accept-language"],
-        origin: this.headers["origin"],
-        referer: this.headers["referer"]
-      };
       const {
         data
-      } = await axios.get(`${this.api.base}${this.api.msec}`, {
-        headers: getHeaders
-      });
-      return Math.floor(data.msec * 1e3);
-    } catch (error) {
-      console.error("Error fetching timestamp:", error);
-      return 0;
+      } = await axios.get(this.src);
+      let js = data;
+      js = js.split("WjkfYp[0x10])(k9vssNM(0x1e2),").join("WjkfYp[0x10])('https://fastdl.app'+k9vssNM(0x1e2),");
+      js = js.split("throw new(ilxnw1X(k9vssNM(WjkfYp[0x23])+WjkfYp[0x15]))(k9vssNM(0x1d9)+k9vssNM(0x1da)+k9vssNM(0x1db)+k9vssNM(0x1dc))").join("");
+      global.webpackChunk = [];
+      global.self = global;
+      global.window = global;
+      global.location = {
+        hostname: "fastdl.app"
+      };
+      console.log("[1/4] Mengeksekusi script dalam VM...");
+      vm.runInThisContext(js);
+      if (!global.webpackChunk[0]) throw new Error("Webpack chunk tidak ditemukan");
+      this.cache = global.webpackChunk[0][1];
+      return this.cache;
+    } catch (e) {
+      console.error("[Error Init] Gagal menyiapkan modul:", e.message);
+      throw e;
     }
   }
-  async download(url) {
-    const time = await this.times();
-    const time_diff = time ? Date.now() - time : 0;
-    const ts_value = time ? time : Date.now();
-    const hash = `${url}${ts_value}${this.constant.key}`;
-    const signatureBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(hash));
-    const signature = Array.from(new Uint8Array(signatureBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
-    const postData = {
-      sf_url: url,
-      ts: ts_value.toString(),
-      _ts: this.constant.timestamp.toString(),
-      _tsc: time_diff.toString(),
-      _s: signature
-    };
-    const formUrlEncodedBody = new URLSearchParams(postData).toString();
-    const convertUrl = `${this.api.base_wh}${this.api.convert}`;
-    const {
-      data
-    } = await axios.post(convertUrl, formUrlEncodedBody, {
-      headers: this.headers
-    });
-    return data;
+  async _generateSignature(target) {
+    console.log("[2/4] Menghasilkan signature untuk target...");
+    try {
+      const modules = await this._initModules();
+      const cache = {};
+      const req = id => {
+        if (cache[id]) return cache[id].exports;
+        const m = cache[id] = {
+          exports: {}
+        };
+        if (!modules[id]) throw new Error(`Modul ID ${id} hilang (Obfuscation update?)`);
+        modules[id](m, m.exports, req);
+        return m.exports;
+      };
+      req.r = e => Object.defineProperty(e, "__esModule", {
+        value: true
+      });
+      req.d = (e, d) => {
+        for (const k in d) Object.defineProperty(e, k, {
+          get: d[k]
+        });
+      };
+      const signerFn = await req(this.mid).default;
+      const signedBody = await signerFn(target);
+      console.log("[2/4] Signature berhasil dibuat.");
+      return signedBody;
+    } catch (e) {
+      console.error("[Error Sign] Gagal signing body:", e.message);
+      throw e;
+    }
+  }
+  async download({
+    url
+  }) {
+    console.log(`\n=== Mulai Proses: ${url.substring(0, 30)}... ===`);
+    const isUser = typeof url === "string" && !url.startsWith("http");
+    const target = isUser ? {
+      username: url
+    } : url;
+    const endpoint = isUser ? "https://api-wh.fastdl.app/api/v1/instagram/userInfo" : "https://api-wh.fastdl.app/api/convert";
+    try {
+      const signedBody = await this._generateSignature(target);
+      console.log(`[3/4] Mengirim request ke API (${isUser ? "UserInfo" : "Convert"})...`);
+      const config = {
+        headers: {
+          ...this.headers,
+          "content-type": isUser ? "application/json" : "application/x-www-form-urlencoded;charset=UTF-8"
+        }
+      };
+      const payload = isUser ? signedBody : new URLSearchParams(signedBody);
+      const {
+        data
+      } = await axios.post(endpoint, payload, config);
+      console.log("[4/4] Respons diterima dari server.");
+      return data;
+    } catch (e) {
+      console.error("[Error Download] Terjadi kesalahan utama:", e.message);
+      if (e.response) {
+        console.error("Status Code:", e.response.status);
+        console.error("Response Data:", JSON.stringify(e.response.data));
+      }
+      return null;
+    }
   }
 }
 export default async function handler(req, res) {
-  try {
-    const {
-      url
-    } = req.method === "GET" ? req.query : req.body;
-    if (!url) return res.status(400).json({
-      error: "No URL provided"
+  const params = req.method === "GET" ? req.query : req.body;
+  if (!params.url) {
+    return res.status(400).json({
+      error: "Parameter 'url' diperlukan"
     });
-    const downloader = new Ummy();
-    const result = await downloader.download(url);
-    return res.status(200).json(result);
+  }
+  const api = new FastDL();
+  try {
+    const data = await api.download(params);
+    return res.status(200).json(data);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      error: error.message || "An unexpected error occurred"
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    return res.status(500).json({
+      error: errorMessage
     });
   }
 }

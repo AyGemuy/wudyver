@@ -856,6 +856,7 @@ export default function handler(req, res) {
     { path: "/api/ai/oms", name: "Oms", params: [{ "name": "prompt", "in": "query", "required": false }], },
     { path: "/api/ai/roleplai", name: "Roleplai", params: [{ "name": "prompt", "in": "query", "required": false }], },
     { path: "/api/ai/oiihub", name: "Oiihub", params: [{ "name": "prompt", "in": "query", "required": false }], },
+    { path: "/api/ai/dreemy", name: "Dreemy", params: [{ "name": "prompt", "in": "query", "required": false }], },
     { path: "/api/anime/baca-komik/v1", name: "V1", params: [{ "name": "prompt", "in": "query", "required": false }], },
     { path: "/api/anime/baca-komik/v2", name: "V2", params: [{ "name": "prompt", "in": "query", "required": false }], },
     { path: "/api/anime/baca-komik/v3", name: "V3", params: [{ "name": "prompt", "in": "query", "required": false }], },

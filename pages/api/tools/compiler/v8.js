@@ -1,10 +1,6 @@
 import {
   exec
 } from "child_process";
-import {
-  promisify
-} from "util";
-const runCmd = promisify(exec);
 class Term {
   constructor() {
     this.to = 3e4;
@@ -58,48 +54,58 @@ class Term {
     if (low === "php") return `${bin} -r "${safe}"`;
     return `${bin} ${c}`;
   }
-  async exec({
+  safeRun({
     code,
     lang,
     file,
     cwd,
     env
   }) {
-    try {
-      const clean = this.chk(code);
-      const cmd = this.fmt(clean, lang, file);
-      const opt = {
-        timeout: this.to,
-        maxBuffer: this.buf,
-        cwd: cwd || process.cwd(),
-        shell: "/bin/bash",
-        env: env ? {
-          ...process.env,
-          ...env
-        } : process.env
-      };
-      const start = Date.now();
-      const {
-        stdout,
-        stderr
-      } = await runCmd(cmd, opt);
-      return {
-        ok: true,
-        out: stdout || stderr || "",
-        cmd: cmd,
-        lang: lang || "shell",
-        time: `${Date.now() - start}ms`,
-        ts: new Date().toISOString()
-      };
-    } catch (e) {
-      return {
-        ok: false,
-        err: e.killed ? "Timeout" : e.message || "Unknown Error",
-        code: e.code || 1,
-        cmd: code,
-        ts: new Date().toISOString()
-      };
-    }
+    return new Promise(resolve => {
+      try {
+        const clean = this.chk(code);
+        const cmd = this.fmt(clean, lang, file);
+        const opt = {
+          timeout: this.to,
+          maxBuffer: this.buf,
+          cwd: cwd || process.cwd(),
+          shell: "/bin/bash",
+          env: env ? {
+            ...process.env,
+            ...env
+          } : process.env
+        };
+        const start = Date.now();
+        exec(cmd, opt, (error, stdout, stderr) => {
+          if (error) {
+            resolve({
+              ok: false,
+              err: error.killed ? "Timeout" : error.message || "Unknown Error",
+              code: error.code || 1,
+              cmd: code,
+              ts: new Date().toISOString()
+            });
+          } else {
+            resolve({
+              ok: true,
+              out: stdout || stderr || "",
+              cmd: cmd,
+              lang: lang || "shell",
+              time: `${Date.now() - start}ms`,
+              ts: new Date().toISOString()
+            });
+          }
+        });
+      } catch (e) {
+        resolve({
+          ok: false,
+          err: e.message || "Unknown Error",
+          code: 1,
+          cmd: code,
+          ts: new Date().toISOString()
+        });
+      }
+    });
   }
 }
 export default async function handler(req, res) {
@@ -112,7 +118,7 @@ export default async function handler(req, res) {
   }
   const api = new Term();
   try {
-    const result = await api.exec(p);
+    const result = await api.safeRun(p);
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({
