@@ -14,7 +14,7 @@ class IPVoid {
       withCredentials: true
     }));
   }
-  async fetchSource({
+  async download({
     url: targetUrl
   }) {
     const endpoint = "https://www.apivoid.com/tools/view-html-page-source/";
@@ -57,17 +57,19 @@ class IPVoid {
 export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.url) {
-    return res.status(400).send("URL is required");
+    return res.status(400).json({
+      error: "Parameter 'url' diperlukan"
+    });
   }
+  const api = new IPVoid();
   try {
-    const ipvoid = new IPVoid();
-    const result = await ipvoid.fetchSource(params);
+    const result = await api.download(params);
     res.setHeader("Content-Type", "text/html");
     return res.status(200).send(result);
   } catch (error) {
-    console.error("❌ Handler Error:", error.message);
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
     return res.status(500).json({
-      error: error.message
+      error: errorMessage
     });
   }
 }

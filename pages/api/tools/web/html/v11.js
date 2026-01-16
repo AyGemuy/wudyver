@@ -21,7 +21,10 @@ class FireCrawl {
       }
     });
   }
-  async scrape(url) {
+  async download({
+    url,
+    ...rest
+  }) {
     try {
       const data = {
         url: url,
@@ -29,7 +32,8 @@ class FireCrawl {
         onlyMainContent: false,
         excludeTags: [""],
         includeTags: [""],
-        origin: "website-preview"
+        origin: "website-preview",
+        ...rest
       };
       const response = await this.client.post(this.url, data);
       const {
@@ -45,18 +49,21 @@ class FireCrawl {
   }
 }
 export default async function handler(req, res) {
-  const {
-    url
-  } = req.method === "GET" ? req.query : req.body;
-  if (!url) {
-    return res.status(400).send("URL is required");
+  const params = req.method === "GET" ? req.query : req.body;
+  if (!params.url) {
+    return res.status(400).json({
+      error: "Parameter 'url' diperlukan"
+    });
   }
+  const api = new FireCrawl();
   try {
-    const fetcher = new FireCrawl();
-    const result = await fetcher.scrape(url);
+    const result = await api.download(params);
     res.setHeader("Content-Type", "text/html");
     return res.status(200).send(result);
   } catch (error) {
-    res.status(500).send(error.message);
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    return res.status(500).json({
+      error: errorMessage
+    });
   }
 }

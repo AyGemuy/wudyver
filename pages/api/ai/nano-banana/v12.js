@@ -1,114 +1,186 @@
 import axios from "axios";
 import FormData from "form-data";
-import PROXY from "@/configs/proxy-url";
-class BananaAIClient {
-  constructor(options = {}) {
-    const defaultProxies = [PROXY.url];
-    console.log("CORS proxy", PROXY.url);
-    this.proxies = options.proxies || defaultProxies;
+import https from "https";
+import SpoofHead from "@/lib/spoof-head";
+class BananaAI {
+  constructor() {
     this.targetUrl = "https://bananaai.live";
+    this.cookieJar = {};
+    this.httpsAgent = new https.Agent({
+      rejectUnauthorized: false,
+      keepAlive: true
+    });
     this.api = axios.create({
+      baseURL: this.targetUrl,
+      httpsAgent: this.httpsAgent,
       headers: {
-        "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36",
-        Referer: `${this.targetUrl}/`,
-        Origin: this.targetUrl
+        accept: "*/*",
+        "accept-language": "id-ID",
+        "cache-control": "no-cache",
+        pragma: "no-cache",
+        priority: "u=1, i",
+        origin: this.targetUrl,
+        referer: `${this.targetUrl}/`,
+        "sec-ch-ua": '"Chromium";v="127", "Not)A;Brand";v="99", "Microsoft Edge Simulate";v="127", "Lemur";v="127"',
+        "sec-ch-ua-mobile": "?1",
+        "sec-ch-ua-platform": '"Android"',
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+        "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36",
+        ...SpoofHead()
       }
     });
+    this.api.interceptors.response.use(response => {
+      this._extractCookies(response.headers);
+      return response;
+    }, error => {
+      if (error.response) {
+        this._extractCookies(error.response.headers);
+      }
+      return Promise.reject(error);
+    });
+    this.api.interceptors.request.use(config => {
+      const cookieString = this._buildCookieString();
+      if (cookieString) {
+        config.headers["Cookie"] = cookieString;
+      }
+      return config;
+    });
   }
-  async _fetchUrlAsBuffer(url) {
-    try {
-      const response = await this.api.get(url, {
-        responseType: "arraybuffer"
+  _extractCookies(headers) {
+    const setCookie = headers["set-cookie"];
+    if (setCookie) {
+      const cookies = Array.isArray(setCookie) ? setCookie : [setCookie];
+      cookies.forEach(cookieStr => {
+        const parts = cookieStr.split(";")[0].split("=");
+        const key = parts[0].trim();
+        const value = parts.slice(1).join("=").trim();
+        if (key && value) {
+          this.cookieJar[key] = value;
+        }
       });
-      return Buffer.from(response.data);
+    }
+  }
+  _buildCookieString() {
+    return Object.entries(this.cookieJar).map(([key, val]) => `${key}=${val}`).join("; ");
+  }
+  async _resolveMedia(media) {
+    try {
+      if (Buffer.isBuffer(media)) {
+        console.log("   -> Media dideteksi sebagai Buffer.");
+        return media;
+      }
+      if (typeof media === "string") {
+        if (/^https?:\/\//.test(media)) {
+          console.log(`   -> Mengunduh media dari URL: ${media}`);
+          const response = await axios.get(media, {
+            responseType: "arraybuffer",
+            httpsAgent: this.httpsAgent,
+            headers: {
+              "User-Agent": "Mozilla/5.0"
+            }
+          });
+          return Buffer.from(response.data);
+        }
+        console.log("   -> Media dideteksi sebagai Base64.");
+        const base64Data = media.replace(/^data:image\/\w+;base64,/, "");
+        return Buffer.from(base64Data, "base64");
+      }
+      throw new Error("Format media tidak dikenali (bukan Buffer, URL, atau Base64 string)");
     } catch (error) {
-      console.error(`Gagal mengambil gambar dari URL: ${url}`, error.message);
+      console.error("   [x] Gagal memproses media:", error.message);
       return null;
     }
   }
-  async _normalizeImageToBuffer(data) {
-    if (Buffer.isBuffer(data)) return data;
-    if (typeof data === "string") {
-      return data.startsWith("http") ? this._fetchUrlAsBuffer(data) : Buffer.from(data, "base64");
-    }
-    console.error("Format gambar tidak didukung:", typeof data);
-    return null;
-  }
   async generate({
     prompt,
-    imageUrl,
-    ...rest
+    imageUrl
   }) {
-    for (const proxy of this.proxies) {
-      try {
-        const baseUrl = `${proxy}/${this.targetUrl}`;
-        this.api.defaults.baseURL = baseUrl;
-        console.log(`\n--- Mencoba dengan proxy: ${proxy} ---`);
-        console.log("1. Mendapatkan token CSRF...");
-        const csrfResponse = await this.api.get("/api/auth/csrf");
-        const csrfToken = csrfResponse.data?.csrfToken || "";
-        const csrfCookie = csrfResponse.headers["set-cookie"]?.[0]?.split(";")[0] || "";
-        if (!csrfToken || !csrfCookie) throw new Error("Gagal mendapatkan token CSRF.");
-        console.log("   -> Token CSRF diterima.");
-        const form = new FormData();
-        const mode = imageUrl ? "image-to-image" : "text-to-image";
-        form.append("prompt", prompt);
-        form.append("mode", mode);
-        if (imageUrl) {
-          const images = Array.isArray(imageUrl) ? imageUrl : [imageUrl];
-          console.log(`2. Memproses ${images.length} gambar untuk mode ${mode}...`);
-          for (const img of images) {
-            const buffer = await this._normalizeImageToBuffer(img);
-            if (buffer) form.append("images", buffer, {
-              filename: "image.png",
-              contentType: "image/png"
-            });
-          }
-        } else {
-          console.log(`2. Memulai mode ${mode}...`);
-        }
-        console.log("3. Membuat tugas generasi...");
-        const createResponse = await this.api.post("/api/generate/create", form, {
-          headers: {
-            ...form.getHeaders(),
-            Cookie: `${csrfCookie}; __Host-authjs.csrf-token=${encodeURIComponent(csrfToken)}`
-          }
-        });
-        const taskId = createResponse.data?.data?.taskId || null;
-        if (!taskId) throw new Error("Gagal membuat tugas. Respons: " + JSON.stringify(createResponse.data));
-        console.log(`   -> Tugas dibuat dengan ID: ${taskId}`);
-        console.log("4. Memulai polling untuk hasil gambar...");
-        let finalStatusData;
-        while (true) {
-          await new Promise(resolve => setTimeout(resolve, 3e3));
-          const statusResponse = await this.api.get(`/api/generate/status?taskId=${taskId}`, {
-            headers: {
-              Cookie: csrfCookie
-            }
-          });
-          const currentStatusData = statusResponse.data?.data;
-          const state = currentStatusData?.state || "checking";
-          const resultUrl = currentStatusData?.response?.resultImageUrl;
-          if (resultUrl) {
-            console.log(`   -> URL gambar hasil ditemukan. Tugas selesai (status: ${state}).`);
-            finalStatusData = currentStatusData;
-            break;
-          }
-          console.log(`   -> Status saat ini: ${state}, menunggu URL hasil...`);
-          if (state === "error") {
-            throw new Error(`Tugas gagal: ${currentStatusData?.errorMessage || "API Error"}`);
-          }
-        }
-        console.log("5. Proses berhasil diselesaikan dengan proxy ini.");
-        return {
-          result: finalStatusData?.response?.resultImageUrl,
-          mode: mode
-        };
-      } catch (error) {
-        console.error(`Proxy ${proxy} gagal. Error: ${error.message}. Mencoba proxy berikutnya...`);
+    console.log("\n=== Memulai BananaAI Generate ===");
+    try {
+      if (Object.keys(this.cookieJar).length === 0) {
+        console.log("[1/4] Menginisialisasi sesi & cookie...");
+        await this.api.get("/api/auth/csrf");
+      } else {
+        console.log("[1/4] Menggunakan sesi cookie yang tersimpan.");
       }
+      console.log("[2/4] Mempersiapkan payload data...");
+      const form = new FormData();
+      const mode = imageUrl ? "image-to-image" : "text-to-image";
+      form.append("prompt", prompt);
+      form.append("mode", mode);
+      if (imageUrl) {
+        const images = Array.isArray(imageUrl) ? imageUrl : [imageUrl];
+        console.log(`      Mode: ${mode} (${images.length} gambar)`);
+        for (const [index, img] of images.entries()) {
+          const buffer = await this._resolveMedia(img);
+          if (buffer) {
+            form.append("images", buffer, {
+              filename: `image_${index}.jpg`,
+              contentType: "image/jpeg"
+            });
+          } else {
+            console.warn(`      [!] Gambar ke-${index + 1} gagal diproses, dilewati.`);
+          }
+        }
+      } else {
+        console.log(`      Mode: ${mode}`);
+      }
+      console.log("[3/4] Mengirim permintaan pembuatan tugas...");
+      const createHeaders = {
+        ...form.getHeaders()
+      };
+      const createResponse = await this.api.post("/api/generate/create", form, {
+        headers: createHeaders
+      });
+      const taskId = createResponse.data?.data?.taskId;
+      if (!taskId) {
+        throw new Error(`Gagal membuat tugas. Response: ${JSON.stringify(createResponse.data)}`);
+      }
+      console.log(`      Task ID diterima: ${taskId}`);
+      console.log("[4/4] Menunggu hasil (Polling)...");
+      let finalResult = null;
+      let attempt = 0;
+      while (true) {
+        attempt++;
+        await new Promise(resolve => setTimeout(resolve, 3e3));
+        const statusResponse = await this.api.get(`/api/generate/status?taskId=${taskId}`);
+        const statusData = statusResponse.data?.data;
+        if (!statusData) {
+          console.log(`      Attempt ${attempt}: Tidak ada data status...`);
+          continue;
+        }
+        const state = statusData.state || "unknown";
+        console.log(`      Attempt ${attempt}: Status = ${state}`);
+        if (statusData.response?.resultImageUrl) {
+          finalResult = statusData.response.resultImageUrl;
+          console.log("   -> Selesai! Gambar ditemukan.");
+          break;
+        }
+        if (state === "error" || state === "failed") {
+          throw new Error(`Tugas gagal dari server: ${statusData.errorMessage || "Unknown Error"}`);
+        }
+        if (attempt > 20) {
+          throw new Error("Polling timeout (terlalu lama).");
+        }
+      }
+      console.log("=== Proses Selesai ===\n");
+      return {
+        status: true,
+        mode: mode,
+        result: finalResult,
+        taskId: taskId
+      };
+    } catch (error) {
+      console.error("\n[x] Terjadi Kesalahan Fatal:");
+      console.error(`    Pesan: ${error.message}`);
+      if (error.response) {
+        console.error(`    HTTP Status: ${error.response.status}`);
+        console.error(`    Response Data:`, JSON.stringify(error.response.data));
+      }
+      throw error;
     }
-    throw new Error("Semua proxy gagal. Tidak dapat menyelesaikan permintaan.");
   }
 }
 export default async function handler(req, res) {
@@ -118,7 +190,7 @@ export default async function handler(req, res) {
       error: "Parameter 'prompt' diperlukan"
     });
   }
-  const api = new BananaAIClient();
+  const api = new BananaAI();
   try {
     const data = await api.generate(params);
     return res.status(200).json(data);

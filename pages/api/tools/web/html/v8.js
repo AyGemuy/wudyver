@@ -37,7 +37,9 @@ class FetchFox {
       throw error;
     }
   }
-  async fetchAllData(url) {
+  async download({
+    url
+  }) {
     const result = await this.fetchData(`https://fetchfox.ai/api/v2/fetch?url=${encodeURIComponent(url)}`);
     if (result.html) {
       const htmlResponse = await this.fetchData(result.html);
@@ -47,18 +49,21 @@ class FetchFox {
   }
 }
 export default async function handler(req, res) {
-  const {
-    url
-  } = req.method === "GET" ? req.query : req.body;
-  if (!url) {
-    return res.status(400).send("URL is required");
+  const params = req.method === "GET" ? req.query : req.body;
+  if (!params.url) {
+    return res.status(400).json({
+      error: "Parameter 'url' diperlukan"
+    });
   }
+  const api = new FetchFox();
   try {
-    const fetchFox = new FetchFox();
-    const result = await fetchFox.fetchAllData(url);
+    const result = await api.download(params);
     res.setHeader("Content-Type", "text/html");
     return res.status(200).send(result);
   } catch (error) {
-    res.status(500).send(error.message);
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    return res.status(500).json({
+      error: errorMessage
+    });
   }
 }

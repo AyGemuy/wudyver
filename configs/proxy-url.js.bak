@@ -25,6 +25,9 @@ class ProxyManager {
       name: "icy",
       url: "https://icy-morning-72e2.apis2.workers.dev/"
     }, {
+      name: "surf",
+      url: "https://young-surf-7189.apis7.workers.dev/"
+    }, {
       name: "fazri",
       url: "https://cors.fazri.workers.dev/"
     }, {

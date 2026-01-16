@@ -24,7 +24,12 @@ class OneHitSniffer {
       "sec-ch-ua-platform": '"Android"'
     };
   }
-  async sendRequest(url, method = "GET", agent = "23") {
+  async download({
+    url,
+    method = "GET",
+    agent = "23",
+    ...rest
+  }) {
     try {
       const data = qs.stringify({
         action: "sniffer",
@@ -32,7 +37,8 @@ class OneHitSniffer {
         x: "54",
         y: "39",
         user_agent: agent,
-        request_method: method
+        request_method: method,
+        ...rest
       });
       const response = await axios.post(this.baseUrl, data, {
         headers: this.headers,
@@ -49,20 +55,21 @@ class OneHitSniffer {
   }
 }
 export default async function handler(req, res) {
-  const {
-    url,
-    method,
-    agent
-  } = req.method === "GET" ? req.query : req.body;
-  if (!url) {
-    return res.status(400).send("URL is required");
+  const params = req.method === "GET" ? req.query : req.body;
+  if (!params.url) {
+    return res.status(400).json({
+      error: "Parameter 'url' diperlukan"
+    });
   }
+  const api = new OneHitSniffer();
   try {
-    const sniffer = new OneHitSniffer();
-    const result = await sniffer.sendRequest(url, method, agent);
+    const result = await api.download(params);
     res.setHeader("Content-Type", "text/html");
     return res.status(200).send(result);
   } catch (error) {
-    res.status(500).send(error.message);
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    return res.status(500).json({
+      error: errorMessage
+    });
   }
 }

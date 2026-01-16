@@ -11,7 +11,8 @@ class InstaDl {
       convert: "/api/convert",
       userInfo: "/api/v1/instagram/userInfo",
       patcher: js => {
-        js = js.replace(/WjkfYp\[0x10\]\)\(k9vssNM\(0x1e2\),/g, "WjkfYp[0x10])('https://fastdl.app'+k9vssNM(0x1e2),").replace("throw new(ilxnw1X(k9vssNM(WjkfYp[0x23])+WjkfYp[0x15]))(k9vssNM(0x1d9)+k9vssNM(0x1da)+k9vssNM(0x1db)+k9vssNM(0x1dc))", "");
+        js = js.split("WjkfYp[0x10])(k9vssNM(0x1e2),").join("WjkfYp[0x10])('https://fastdl.app'+k9vssNM(0x1e2),");
+        js = js.split("throw new(ilxnw1X(k9vssNM(WjkfYp[0x23])+WjkfYp[0x15]))(k9vssNM(0x1d9)+k9vssNM(0x1da)+k9vssNM(0x1db)+k9vssNM(0x1dc))").join("");
         return js;
       }
     }, {
@@ -194,17 +195,34 @@ class InstaDl {
         success: false,
         message: error.message
       };
+    } finally {
+      this.clearCache();
+    }
+  }
+  clearCache() {
+    try {
+      console.log("[Cache] Membersihkan cache...");
+      this.cachedModules = null;
+      if (global.webpackChunk) {
+        delete global.webpackChunk;
+      }
+      if (global.self && global.self === global) {
+        delete global.self;
+      }
+      console.log("[Cache] Cache berhasil dibersihkan.");
+    } catch (error) {
+      console.error("[Cache] Gagal membersihkan cache:", error.message);
     }
   }
 }
 export default async function handler(req, res) {
   const {
     url,
-    host = 0,
+    host = "0",
     ...params
   } = req.method === "POST" ? req.body : req.query;
   console.log(`\n[API HANDLER] ${req.method} /api/download`);
-  console.log(`[API HANDLER] Params: url=${url || "MISSING"}, hostIndex=${host}`);
+  console.log(`[API HANDLER] Params: url=${url || "MISSING"}, host=${host}`);
   if (!url) {
     return res.status(400).json({
       success: false,
@@ -213,30 +231,53 @@ export default async function handler(req, res) {
         method: "GET or POST",
         params: {
           url: "Instagram URL (required)",
-          host: "Host index 0-5 (optional, default: 0)"
+          host: "Host name or index 0-5 (optional, default: 0 or 'fastdl')"
+        },
+        examples: {
+          byIndex: "?url=https://instagram.com/p/xxx&host=0",
+          byName: "?url=https://instagram.com/p/xxx&host=fastdl"
         }
       }
     });
   }
+  const dl = new InstaDl();
   try {
-    const dl = new InstaDl();
-    const hostIndex = parseInt(host);
-    if (isNaN(hostIndex) || hostIndex < 0 || hostIndex >= dl.hosts.length) {
-      const errorMsg = `Host index must be between 0-${dl.hosts.length - 1}`;
-      console.error(`[API HANDLER] 400 - ${errorMsg}`);
-      return res.status(400).json({
-        success: false,
-        error: errorMsg,
-        availableHosts: dl.hosts.map((h, i) => ({
-          index: i,
-          name: h.name
-        }))
-      });
+    let selectedHostName;
+    const hostAsNumber = parseInt(host);
+    if (!isNaN(hostAsNumber)) {
+      if (hostAsNumber < 0 || hostAsNumber >= dl.hosts.length) {
+        const errorMsg = `Host index must be between 0-${dl.hosts.length - 1}`;
+        console.error(`[API HANDLER] 400 - ${errorMsg}`);
+        return res.status(400).json({
+          success: false,
+          error: errorMsg,
+          availableHosts: dl.hosts.map((h, i) => ({
+            index: i,
+            name: h.name
+          }))
+        });
+      }
+      selectedHostName = dl.hosts[hostAsNumber].name;
+    } else {
+      const hostFound = dl.hosts.find(h => h.name.toLowerCase() === host.toLowerCase());
+      if (!hostFound) {
+        const errorMsg = `Host "${host}" not found`;
+        console.error(`[API HANDLER] 400 - ${errorMsg}`);
+        return res.status(400).json({
+          success: false,
+          error: errorMsg,
+          availableHosts: dl.hosts.map((h, i) => ({
+            index: i,
+            name: h.name
+          }))
+        });
+      }
+      selectedHostName = hostFound.name;
     }
-    const selectedHostName = dl.hosts[hostIndex].name;
+    console.log(`[API HANDLER] Using host: ${selectedHostName}`);
     const result = await dl.download({
-      hostName: selectedHostName,
       url: url,
+      host: selectedHostName,
       ...params
     });
     console.log("[API HANDLER] 200 - Success sending response.");
@@ -249,5 +290,11 @@ export default async function handler(req, res) {
       success: false,
       error: msg
     });
+  } finally {
+    try {
+      dl.clearCache();
+    } catch (cleanupError) {
+      console.error("[API HANDLER] Gagal membersihkan cache:", cleanupError.message);
+    }
   }
 }

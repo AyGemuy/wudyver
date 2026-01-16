@@ -1,5 +1,6 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
+import SpoofHead from "@/lib/spoof-head";
 class AkunLamaMail {
   constructor() {
     this.BASE_URL = "https://akunlama.com/api/v1/mail";
@@ -9,7 +10,8 @@ class AkunLamaMail {
       headers: {
         accept: "application/json, text/plain, */*",
         "accept-language": "id-ID",
-        "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36"
+        "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36",
+        ...SpoofHead()
       }
     });
     console.log("Proses: Instance AkunLamaMail dibuat.");

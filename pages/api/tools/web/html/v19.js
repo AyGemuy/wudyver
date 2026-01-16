@@ -14,7 +14,7 @@ class TrevorFox {
       withCredentials: true
     }));
   }
-  async fetchSource({
+  async download({
     url: targetUrl
   }) {
     const endpoint = "https://trevorfox.com/view-source/";
@@ -61,17 +61,19 @@ class TrevorFox {
 export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.url) {
-    return res.status(400).send("URL is required");
+    return res.status(400).json({
+      error: "Parameter 'url' diperlukan"
+    });
   }
+  const api = new TrevorFox();
   try {
-    const trevorfox = new TrevorFox();
-    const result = await trevorfox.fetchSource(params);
+    const result = await api.download(params);
     res.setHeader("Content-Type", "text/html");
     return res.status(200).send(result);
   } catch (error) {
-    console.error("❌ Handler Error:", error && error.message ? error.message : error);
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
     return res.status(500).json({
-      error: error.message || String(error)
+      error: errorMessage
     });
   }
 }

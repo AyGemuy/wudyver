@@ -8,7 +8,7 @@ class WebContentExtractor {
       Referer: "https://yourgpt.ai/tools/webpage-content-extractor"
     };
   }
-  async extract({
+  async download({
     url,
     format = "text",
     textOnly = false,
@@ -47,14 +47,19 @@ class WebContentExtractor {
 export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.url) {
-    return res.status(400).send("URL is required");
+    return res.status(400).json({
+      error: "Parameter 'url' diperlukan"
+    });
   }
+  const api = new WebContentExtractor();
   try {
-    const extractor = new WebContentExtractor();
-    const result = await extractor.extract(params);
+    const result = await api.download(params);
     res.setHeader("Content-Type", "text/html");
     return res.status(200).send(result);
   } catch (error) {
-    res.status(500).send(error.message);
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    return res.status(500).json({
+      error: errorMessage
+    });
   }
 }

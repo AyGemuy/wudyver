@@ -73,6 +73,27 @@ class FastDL {
       throw e;
     }
   }
+  clearCache() {
+    try {
+      console.log("[Cache] Membersihkan cache dan global variables...");
+      this.cache = null;
+      if (global.webpackChunk) {
+        delete global.webpackChunk;
+      }
+      if (global.self && global.self === global) {
+        delete global.self;
+      }
+      if (global.window && global.window === global) {
+        delete global.window;
+      }
+      if (global.location) {
+        delete global.location;
+      }
+      console.log("[Cache] Cache berhasil dibersihkan.");
+    } catch (error) {
+      console.error("[Cache] Gagal membersihkan cache:", error.message);
+    }
+  }
   async download({
     url
   }) {
@@ -104,6 +125,8 @@ class FastDL {
         console.error("Response Data:", JSON.stringify(e.response.data));
       }
       return null;
+    } finally {
+      this.clearCache();
     }
   }
 }
@@ -111,7 +134,17 @@ export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.url) {
     return res.status(400).json({
-      error: "Parameter 'url' diperlukan"
+      error: "Parameter 'url' diperlukan",
+      usage: {
+        method: "GET or POST",
+        params: {
+          url: "Instagram URL or username (required)"
+        },
+        examples: {
+          post: "?url=https://instagram.com/p/xxx",
+          user: "?url=username"
+        }
+      }
     });
   }
   const api = new FastDL();
@@ -123,5 +156,11 @@ export default async function handler(req, res) {
     return res.status(500).json({
       error: errorMessage
     });
+  } finally {
+    try {
+      api.clearCache();
+    } catch (cleanupError) {
+      console.error("[Handler] Gagal membersihkan cache:", cleanupError.message);
+    }
   }
 }

@@ -17,7 +17,10 @@ class Web2Zip {
       length: length
     }, () => characters[Math.floor(Math.random() * characters.length)]).join("");
   }
-  async getZip(url, file = "index") {
+  async download({
+    url,
+    file = "index"
+  }) {
     const template = this.generateTemplate();
     const data = new URLSearchParams({
       url: url,
@@ -37,19 +40,21 @@ class Web2Zip {
   }
 }
 export default async function handler(req, res) {
-  const {
-    url,
-    file
-  } = req.method === "GET" ? req.query : req.body;
-  if (!url) {
-    return res.status(400).send("URL is required");
+  const params = req.method === "GET" ? req.query : req.body;
+  if (!params.url) {
+    return res.status(400).json({
+      error: "Parameter 'url' diperlukan"
+    });
   }
+  const api = new Web2Zip();
   try {
-    const web = new Web2Zip();
-    const result = await web.getZip(url, file);
+    const result = await api.download(params);
     res.setHeader("Content-Type", "text/html");
     return res.status(200).send(result);
   } catch (error) {
-    res.status(500).send(error.message);
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    return res.status(500).json({
+      error: errorMessage
+    });
   }
 }

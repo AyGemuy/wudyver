@@ -19,7 +19,9 @@ class HtmlValidator {
       "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
     };
   }
-  async validate(url) {
+  async download({
+    url
+  }) {
     try {
       const encodedUrl = encodeURIComponent(url);
       const validateUrl = `${this.baseUrl}?showsource=yes&doc=${encodedUrl}`;
@@ -41,18 +43,21 @@ class HtmlValidator {
   }
 }
 export default async function handler(req, res) {
-  const {
-    url
-  } = req.method === "GET" ? req.query : req.body;
-  if (!url) {
-    return res.status(400).send("URL is required");
+  const params = req.method === "GET" ? req.query : req.body;
+  if (!params.url) {
+    return res.status(400).json({
+      error: "Parameter 'url' diperlukan"
+    });
   }
+  const api = new HtmlValidator();
   try {
-    const validator = new HtmlValidator();
-    const result = await validator.validate(url);
+    const result = await api.download(params);
     res.setHeader("Content-Type", "text/html");
     return res.status(200).send(result);
   } catch (error) {
-    res.status(500).send(error.message);
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    return res.status(500).json({
+      error: errorMessage
+    });
   }
 }

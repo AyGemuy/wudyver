@@ -34,7 +34,9 @@ class HtmlFetcher {
       });
     });
   }
-  async fetchHtml(targetUrl) {
+  async download({
+    url: targetUrl
+  }) {
     try {
       const xsrfToken = await this.getToken();
       if (!xsrfToken) throw new Error("Gagal mendapatkan XSRF-TOKEN");
@@ -58,18 +60,21 @@ class HtmlFetcher {
   }
 }
 export default async function handler(req, res) {
-  const {
-    url
-  } = req.method === "GET" ? req.query : req.body;
-  if (!url) {
-    return res.status(400).send("URL is required");
+  const params = req.method === "GET" ? req.query : req.body;
+  if (!params.url) {
+    return res.status(400).json({
+      error: "Parameter 'url' diperlukan"
+    });
   }
+  const api = new HtmlFetcher();
   try {
-    const fetcher = new HtmlFetcher();
-    const result = await fetcher.fetchHtml(url);
+    const result = await api.download(params);
     res.setHeader("Content-Type", "text/html");
     return res.status(200).send(result);
   } catch (error) {
-    res.status(500).send(error.message);
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    return res.status(500).json({
+      error: errorMessage
+    });
   }
 }

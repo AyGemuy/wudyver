@@ -5,7 +5,7 @@ class Dotriz {
       withCredentials: true
     });
   }
-  async fetchSource({
+  async download({
     url: targetUrl
   }) {
     const endpoint = `https://dotriz.com/tools/view-page-source/extract.php`;
@@ -45,17 +45,19 @@ class Dotriz {
 export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.url) {
-    return res.status(400).send("URL is required");
+    return res.status(400).json({
+      error: "Parameter 'url' diperlukan"
+    });
   }
+  const api = new Dotriz();
   try {
-    const dotriz = new Dotriz();
-    const result = await dotriz.fetchSource(params);
+    const result = await api.download(params);
     res.setHeader("Content-Type", "text/html");
     return res.status(200).send(result);
   } catch (error) {
-    console.error("❌ Handler Error:", error.message);
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
     return res.status(500).json({
-      error: error.message
+      error: errorMessage
     });
   }
 }

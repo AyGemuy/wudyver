@@ -5,6 +5,7 @@ import {
 import {
   wrapper
 } from "axios-cookiejar-support";
+import SpoofHead from "@/lib/spoof-head";
 class TempMailLAClient {
   constructor() {
     this.apiBase = "https://tempmail.la/api/mail";
@@ -28,7 +29,8 @@ class TempMailLAClient {
         "sec-fetch-dest": "empty",
         "sec-fetch-mode": "cors",
         "sec-fetch-site": "same-origin",
-        "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36"
+        "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36",
+        ...SpoofHead()
       },
       timeout: 3e4
     }));

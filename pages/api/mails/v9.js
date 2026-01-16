@@ -1,4 +1,5 @@
 import axios from "axios";
+import SpoofHead from "@/lib/spoof-head";
 class WebhookFetcher {
   constructor(baseURL = "https://webhook.site") {
     this.baseURL = baseURL;
@@ -17,7 +18,8 @@ class WebhookFetcher {
         "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36",
         "sec-ch-ua": '"Chromium";v="131", "Not_A Brand";v="24", "Microsoft Edge Simulate";v="131", "Lemur";v="131"',
         "sec-ch-ua-mobile": "?1",
-        "sec-ch-ua-platform": '"Android"'
+        "sec-ch-ua-platform": '"Android"',
+        ...SpoofHead()
       },
       withCredentials: true
     });
