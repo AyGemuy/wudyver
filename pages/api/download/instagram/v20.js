@@ -107,9 +107,18 @@ class InstaDl {
     } = this.currentHost;
     let js = await fetch(src).then(r => r.text());
     js = patcher(js);
+    if (global.webpackChunk) {
+      delete global.webpackChunk;
+    }
+    if (global.self) {
+      delete global.self;
+    }
     global.webpackChunk = [];
     global.self = global;
     vm.runInThisContext(js);
+    if (!global.webpackChunk || !global.webpackChunk[0] || !global.webpackChunk[0][1]) {
+      throw new Error("Failed to load webpack modules");
+    }
     this.cachedModules = global.webpackChunk[0][1];
     return this.cachedModules;
   }
@@ -204,6 +213,7 @@ class InstaDl {
       console.log("[Cache] Membersihkan cache...");
       this.cachedModules = null;
       if (global.webpackChunk) {
+        global.webpackChunk.length = 0;
         delete global.webpackChunk;
       }
       if (global.self && global.self === global) {

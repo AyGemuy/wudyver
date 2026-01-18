@@ -26,6 +26,7 @@ class FastDL {
       let js = data;
       js = js.split("WjkfYp[0x10])(k9vssNM(0x1e2),").join("WjkfYp[0x10])('https://fastdl.app'+k9vssNM(0x1e2),");
       js = js.split("throw new(ilxnw1X(k9vssNM(WjkfYp[0x23])+WjkfYp[0x15]))(k9vssNM(0x1d9)+k9vssNM(0x1da)+k9vssNM(0x1db)+k9vssNM(0x1dc))").join("");
+      this._cleanupGlobals();
       global.webpackChunk = [];
       global.self = global;
       global.window = global;
@@ -34,11 +35,15 @@ class FastDL {
       };
       console.log("[1/4] Mengeksekusi script dalam VM...");
       vm.runInThisContext(js);
-      if (!global.webpackChunk[0]) throw new Error("Webpack chunk tidak ditemukan");
+      if (!global.webpackChunk || !global.webpackChunk[0] || !global.webpackChunk[0][1]) {
+        throw new Error("Webpack chunk tidak ditemukan atau format tidak valid");
+      }
       this.cache = global.webpackChunk[0][1];
+      console.log("[1/4] Modul berhasil di-cache.");
       return this.cache;
     } catch (e) {
       console.error("[Error Init] Gagal menyiapkan modul:", e.message);
+      this._cleanupGlobals();
       throw e;
     }
   }
@@ -52,7 +57,9 @@ class FastDL {
         const m = cache[id] = {
           exports: {}
         };
-        if (!modules[id]) throw new Error(`Modul ID ${id} hilang (Obfuscation update?)`);
+        if (!modules[id]) {
+          throw new Error(`Modul ID ${id} hilang (Obfuscation update?)`);
+        }
         modules[id](m, m.exports, req);
         return m.exports;
       };
@@ -60,9 +67,14 @@ class FastDL {
         value: true
       });
       req.d = (e, d) => {
-        for (const k in d) Object.defineProperty(e, k, {
-          get: d[k]
-        });
+        for (const k in d) {
+          if (!Object.prototype.hasOwnProperty.call(e, k)) {
+            Object.defineProperty(e, k, {
+              enumerable: true,
+              get: d[k]
+            });
+          }
+        }
       };
       const signerFn = await req(this.mid).default;
       const signedBody = await signerFn(target);
@@ -73,22 +85,26 @@ class FastDL {
       throw e;
     }
   }
+  _cleanupGlobals() {
+    if (global.webpackChunk) {
+      global.webpackChunk.length = 0;
+      delete global.webpackChunk;
+    }
+    if (global.self && global.self === global) {
+      delete global.self;
+    }
+    if (global.window && global.window === global) {
+      delete global.window;
+    }
+    if (global.location) {
+      delete global.location;
+    }
+  }
   clearCache() {
     try {
       console.log("[Cache] Membersihkan cache dan global variables...");
       this.cache = null;
-      if (global.webpackChunk) {
-        delete global.webpackChunk;
-      }
-      if (global.self && global.self === global) {
-        delete global.self;
-      }
-      if (global.window && global.window === global) {
-        delete global.window;
-      }
-      if (global.location) {
-        delete global.location;
-      }
+      this._cleanupGlobals();
       console.log("[Cache] Cache berhasil dibersihkan.");
     } catch (error) {
       console.error("[Cache] Gagal membersihkan cache:", error.message);
@@ -150,11 +166,18 @@ export default async function handler(req, res) {
   const api = new FastDL();
   try {
     const data = await api.download(params);
+    if (!data) {
+      return res.status(500).json({
+        error: "Gagal mendapatkan data dari FastDL"
+      });
+    }
     return res.status(200).json(data);
   } catch (error) {
     const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    console.error("[Handler Error]", errorMessage);
     return res.status(500).json({
-      error: errorMessage
+      error: errorMessage,
+      details: error.response?.data || null
     });
   } finally {
     try {

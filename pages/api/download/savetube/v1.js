@@ -8,7 +8,7 @@ class SavetubeDownloader {
     try {
       const {
         data
-      } = await axios.get("https://media.savetube.me/api/random-cdn");
+      } = await axios.get("https://media.savetube.vip/api/random-cdn");
       console.log("[CDN]", data.cdn);
       return data.cdn;
     } catch (error) {
@@ -92,7 +92,7 @@ class SavetubeDownloader {
         const result = {
           status: true,
           data: {
-            downloadUrl: `${directUrl}&title=${titleSlug}-ytshorts.savetube.me`
+            downloadUrl: `${directUrl}&title=${titleSlug}-ytshorts.savetube.vip`
           },
           message: ""
         };

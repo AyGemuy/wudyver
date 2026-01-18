@@ -29,9 +29,29 @@ class CaptchaSolver {
           sitekey: sitekey
         }),
         extractToken: data => data?.token
+      },
+      v4: {
+        baseUrl: "https://api.gimita.id/api/tools/bypasscf",
+        method: "GET",
+        defaultPayload: (url, sitekey) => ({
+          method: "turnstile-min",
+          siteKey: sitekey,
+          url: url
+        }),
+        extractToken: data => data?.data
+      },
+      v5: {
+        baseUrl: "https://fgsi.dpdns.org/api/tools/cfclearance/turnstile-min",
+        method: "GET",
+        defaultPayload: (url, sitekey) => ({
+          apikey: "CircleNBTeam",
+          sitekey: sitekey,
+          url: url
+        }),
+        extractToken: data => data?.data?.token
       }
     };
-    this.bases = ["v1", "v2", "v3"];
+    this.bases = ["v1", "v2", "v3", "v4", "v5"];
   }
   decode(str) {
     try {
@@ -103,7 +123,7 @@ class CaptchaSolver {
           elapsed: `${elapsed}s`
         };
       }
-      const msg = response.data?.message || "Token tidak ditemukan";
+      const msg = response.data?.message || "Token tidak ditemukan dalam response";
       this._log("fail", `${msg}`);
       throw new Error(msg);
     } catch (error) {
@@ -130,7 +150,6 @@ class CaptchaSolver {
     let attempted = 0;
     for (const ver of this.bases) {
       attempted++;
-      const cfg = this.config[ver];
       const isLast = attempted === this.bases.length;
       try {
         const result = await this._solveWithBase({

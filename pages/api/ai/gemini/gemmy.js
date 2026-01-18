@@ -3,242 +3,308 @@ import FormData from "form-data";
 import apiConfig from "@/configs/apiConfig";
 
 function convertPcmToWav(pcmData) {
-  const buffer = new Uint8Array(pcmData);
-  const sampleRate = 24e3;
-  const channels = 1;
-  const bitsPerSample = 16;
-  const bytesPerSample = bitsPerSample / 8;
-  const dataSize = buffer.length;
-  const fileSize = 36 + dataSize;
-  const header = new ArrayBuffer(44);
-  const view = new DataView(header);
-  view.setUint32(0, 1380533830, false);
-  view.setUint32(4, fileSize, true);
-  view.setUint32(8, 1463899717, false);
-  view.setUint32(12, 1718449184, false);
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
-  view.setUint16(22, channels, true);
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * channels * bytesPerSample, true);
-  view.setUint16(32, channels * bytesPerSample, true);
-  view.setUint16(34, bitsPerSample, true);
-  view.setUint32(36, 1684108385, false);
-  view.setUint32(40, dataSize, true);
-  const wavData = new Uint8Array(44 + dataSize);
-  wavData.set(new Uint8Array(header), 0);
-  wavData.set(buffer, 44);
-  return Buffer.from(wavData);
+  try {
+    const buffer = new Uint8Array(pcmData);
+    const sampleRate = 24e3;
+    const channels = 1;
+    const bitsPerSample = 16;
+    const bytesPerSample = bitsPerSample / 8;
+    const dataSize = buffer.length;
+    const fileSize = 36 + dataSize;
+    const header = new ArrayBuffer(44);
+    const view = new DataView(header);
+    view.setUint32(0, 1380533830, false);
+    view.setUint32(4, fileSize, true);
+    view.setUint32(8, 1463899717, false);
+    view.setUint32(12, 1718449184, false);
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, channels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * channels * bytesPerSample, true);
+    view.setUint16(32, channels * bytesPerSample, true);
+    view.setUint16(34, bitsPerSample, true);
+    view.setUint32(36, 1684108385, false);
+    view.setUint32(40, dataSize, true);
+    const wavData = new Uint8Array(44 + dataSize);
+    wavData.set(new Uint8Array(header), 0);
+    wavData.set(buffer, 44);
+    return Buffer.from(wavData);
+  } catch (e) {
+    console.error("[ConvertWAV] Error converting PCM to WAV:", e);
+    throw new Error("Failed to convert audio format.");
+  }
 }
-class VertexAI {
+class GeminiService {
   constructor() {
-    this.api_url = "https://firebasevertexai.googleapis.com/v1beta";
-    this.model_url = "projects/gemmy-ai-bdc03/locations/us-central1/publishers/google/models";
+    this.baseUrl = "https://generativelanguage.googleapis.com/v1beta/models";
+    this.apiKey = "AIzaSyDRQNLY08YYuyxpvd-ukd23b-lInPvO6BA";
     this.uploadUrl = `https://${apiConfig.DOMAIN_URL}/api/tools/upload`;
     this.headers = {
-      "content-type": "application/json",
-      "x-goog-api-client": "gl-kotlin/2.1.0-ai fire/16.5.0",
-      "x-goog-api-key": "AIzaSyD6QwvrvnjU7j-R6fkOghfIVKwtvc7SmLk"
-    };
-    this.ratio = ["1:1", "3:4", "4:3", "9:16", "16:9"];
-    this.model = {
-      search: ["gemini-2.0-flash", "gemini-2.0-flash-001", "gemini-2.5-flash", "gemini-2.5-flash-lite-preview-06-17", "gemini-2.5-pro"],
-      chat: ["gemini-1.5-flash", "gemini-1.5-flash-002", "gemini-1.5-pro", "gemini-1.5-pro-002", "gemini-2.0-flash", "gemini-2.0-flash-001", "gemini-2.0-flash-lite", "gemini-2.0-flash-lite-001", "gemini-2.5-flash", "gemini-2.5-flash-lite-preview-06-17", "gemini-2.5-pro"],
-      image: ["imagen-3.0-generate-002", "imagen-3.0-generate-001", "imagen-3.0-fast-generate-001", "imagen-3.0-capability-001", "imagen-4.0-generate-preview-06-06", "imagen-4.0-fast-generate-preview-06-06", "imagen-4.0-ultra-generate-preview-06-06"],
-      audio: ["gemini-2.0-flash-lite-preview-02-05", "gemini-2.5-flash-preview-tts", "gemini-2.0-flash"]
+      "Content-Type": "application/json",
+      "x-goog-api-key": this.apiKey
     };
   }
-  async chat({
-    prompt: question,
-    model = "gemini-2.5-flash",
-    system_instruction = null,
-    imageUrl = null,
-    search = false
-  } = {}) {
-    if (!question) throw new Error("Question is required");
-    if (!this.model.chat.includes(model)) throw new Error(`Available models: ${this.model.chat.join(", ")}`);
-    if (search && !this.model.search.includes(model)) throw new Error(`Available search models: ${this.model.search.join(", ")}`);
-    const parts = [{
-      text: question
-    }];
-    let fileBuffer = null;
-    let mimeType = null;
-    if (imageUrl) {
-      try {
-        const imageResponse = await axios.get(imageUrl, {
-          responseType: "arraybuffer"
-        });
-        fileBuffer = Buffer.from(imageResponse.data);
-        mimeType = imageResponse.headers["content-type"];
-        if (!mimeType) throw new Error("Could not determine MIME type from image URL response.");
-      } catch (imageDownloadError) {
-        throw new Error(`Failed to download image from URL: ${imageDownloadError.message}`);
-      }
-      parts.unshift({
-        inlineData: {
-          mimeType: mimeType,
-          data: fileBuffer.toString("base64")
+  async fetchResourceAsBase64(url) {
+    console.log(`[Gemini:Download] Start downloading from: ${url}`);
+    try {
+      const response = await axios.get(url, {
+        responseType: "arraybuffer"
+      });
+      const mimeType = response.headers["content-type"];
+      const base64Data = Buffer.from(response.data).toString("base64");
+      console.log(`[Gemini:Download] Success (${mimeType}, size: ${response.data.length} bytes)`);
+      return {
+        mimeType: mimeType,
+        data: base64Data
+      };
+    } catch (error) {
+      console.error(`[Gemini:Download] Failed: ${error.message}`);
+      throw new Error(`Failed to download resource: ${error.message}`);
+    }
+  }
+  async uploadToServer(base64Data, mimeType) {
+    console.log(`[Gemini:Upload] Preparing to upload (${mimeType})...`);
+    try {
+      const buffer = Buffer.from(base64Data, "base64");
+      const form = new FormData();
+      const ext = mimeType.split("/")[1].replace("wav", "mp3") || "bin";
+      const filename = `gemini_gen_${Date.now()}.${ext === "mpeg" ? "mp3" : ext}`;
+      form.append("file", buffer, {
+        filename: filename,
+        contentType: mimeType
+      });
+      console.log(`[Gemini:Upload] Sending to ${this.uploadUrl}...`);
+      const response = await axios.post(this.uploadUrl, form, {
+        headers: {
+          ...form.getHeaders()
         }
       });
+      if (response.data && response.data.result) {
+        const resultUrl = response.data.result.url || response.data.result;
+        console.log(`[Gemini:Upload] Success: ${resultUrl}`);
+        return resultUrl;
+      } else {
+        throw new Error("Upload response did not contain 'result'.");
+      }
+    } catch (error) {
+      console.error(`[Gemini:Upload] Failed: ${error.message}`);
+      throw new Error(`Upload failed: ${error.message}`);
     }
-    const r = await axios.post(`${this.api_url}/${this.model_url}/${model}:generateContent`, {
-      model: `${this.model_url}/${model}`,
-      contents: [...system_instruction ? [{
-        role: "model",
-        parts: [{
-          text: system_instruction
-        }]
-      }] : [], {
-        role: "user",
-        parts: parts
-      }],
-      ...search ? {
-        tools: [{
-          googleSearch: {}
-        }]
-      } : {}
-    }, {
-      headers: this.headers
-    });
-    if (r.status !== 200) throw new Error("No result found");
-    return r.data.candidates;
+  }
+  async chat({
+    prompt,
+    messages = [],
+    model = "gemini-2.5-flash",
+    system_instruction,
+    image_url,
+    search = false
+  }) {
+    console.log(`[Gemini:Chat] Init - Model: ${model}, Search: ${search}, Image: ${!!image_url}`);
+    try {
+      let contents = [];
+      if (messages.length > 0) {
+        contents = messages;
+      } else {
+        const parts = [];
+        if (image_url) {
+          const imgData = await this.fetchResourceAsBase64(image_url);
+          parts.push({
+            inline_data: {
+              mime_type: imgData.mimeType,
+              data: imgData.data
+            }
+          });
+        }
+        parts.push({
+          text: prompt
+        });
+        contents.push({
+          role: "user",
+          parts: parts
+        });
+      }
+      const payload = {
+        contents: contents,
+        ...system_instruction && {
+          system_instruction: {
+            parts: [{
+              text: system_instruction
+            }]
+          }
+        },
+        ...search && {
+          tools: [{
+            google_search: {}
+          }]
+        }
+      };
+      const url = `${this.baseUrl}/${model}:generateContent`;
+      console.log(`[Gemini:Chat] POST to ${url}`);
+      const response = await axios.post(url, payload, {
+        headers: this.headers
+      });
+      const candidate = response.data.candidates?.[0];
+      if (!candidate) throw new Error("No candidates returned from API.");
+      const textPart = candidate.content?.parts?.map(p => p.text).join("") || "No text content";
+      const grounding = candidate.groundingMetadata;
+      console.log(`[Gemini:Chat] Success. Text length: ${textPart.length}`);
+      return {
+        text: textPart,
+        sources: grounding || null,
+        raw: response.data
+      };
+    } catch (error) {
+      console.error(`[Gemini:Chat] Error:`, error.response?.data || error.message);
+      throw new Error(error.response?.data?.error?.message || error.message);
+    }
   }
   async image({
     prompt,
-    model = "imagen-3.0-generate-002",
-    aspect_ratio = "1:1"
-  } = {}) {
-    if (!prompt) throw new Error("Prompt is required");
-    if (!this.model.image.includes(model)) throw new Error(`Available models: ${this.model.image.join(", ")}`);
-    if (!this.ratio.includes(aspect_ratio)) throw new Error(`Available ratios: ${this.ratio.join(", ")}`);
-    const r = await axios.post(`${this.api_url}/${this.model_url}/${model}:predict`, {
-      instances: [{
-        prompt: prompt
-      }],
-      parameters: {
-        sampleCount: 1,
-        includeRaiReason: true,
-        aspectRatio: aspect_ratio,
-        safetySetting: "block_only_high",
-        personGeneration: "allow_adult",
-        addWatermark: false,
-        imageOutputOptions: {
-          mimeType: "image/jpeg",
-          compressionQuality: 100
-        }
+    model = "gemini-2.5-flash-image",
+    aspect_ratio = "1:1",
+    image_url
+  }) {
+    console.log(`[Gemini:Image] Init - Model: ${model}, Ratio: ${aspect_ratio}`);
+    try {
+      const parts = [{
+        text: prompt
+      }];
+      if (image_url) {
+        console.log(`[Gemini:Image] Downloading input image for editing...`);
+        const imgData = await this.fetchResourceAsBase64(image_url);
+        parts.unshift({
+          inline_data: {
+            mime_type: imgData.mimeType,
+            data: imgData.data
+          }
+        });
       }
-    }, {
-      headers: this.headers
-    });
-    if (r.status !== 200) throw new Error("No result found");
-    const prediction = r.data.predictions[0];
-    if (prediction?.bytesBase64Encoded && prediction?.mimeType) {
-      const catboxUrl = await this.uploadToCatbox({
-        bytesBase64Encoded: prediction.bytesBase64Encoded,
-        mimeType: prediction.mimeType
-      });
-      return {
-        url: catboxUrl,
-        prompt: prompt,
-        mime: prediction.mimeType
+      const payload = {
+        contents: [{
+          parts: parts
+        }],
+        generationConfig: {
+          responseModalities: ["IMAGE"],
+          imageConfig: {
+            aspectRatio: aspect_ratio
+          }
+        }
       };
-    } else {
-      throw new Error("No valid image data found in prediction.");
+      const url = `${this.baseUrl}/${model}:generateContent`;
+      console.log(`[Gemini:Image] POST to ${url}`);
+      const response = await axios.post(url, payload, {
+        headers: this.headers
+      });
+      const candidate = response.data.candidates?.[0];
+      const imgPart = candidate?.content?.parts?.find(p => p.inline_data || p.inlineData);
+      if (!imgPart) {
+        console.error("[Gemini:Image] No image part found in response:", JSON.stringify(response.data));
+        throw new Error("API returned success but no image data found.");
+      }
+      const rawData = imgPart.inline_data ? imgPart.inline_data.data : imgPart.inlineData.data;
+      const mime = imgPart.inline_data ? imgPart.inline_data.mime_type : imgPart.inlineData.mimeType;
+      const uploadedUrl = await this.uploadToServer(rawData, mime);
+      return {
+        url: uploadedUrl,
+        prompt: prompt,
+        mime: mime
+      };
+    } catch (error) {
+      console.error(`[Gemini:Image] Error:`, error.response?.data || error.message);
+      throw new Error(error.response?.data?.error?.message || error.message);
     }
   }
   async audio({
     prompt,
-    voice = "Leda",
-    model = "gemini-2.5-flash-preview-tts",
-    thinking_budget = null
-  } = {}) {
-    if (!prompt) throw new Error("Prompt is required for audio generation");
-    const isAudioModel = this.model.audio.includes(model);
-    const isChatModel = this.model.chat.includes(model);
-    if (!isAudioModel && !isChatModel) {
-      throw new Error(`Model ${model} might not support audio generation. Try: ${this.model.audio.join(", ")}`);
-    }
-    const generationConfig = {
-      responseModalities: ["AUDIO"],
-      speechConfig: {
-        voiceConfig: {
-          prebuiltVoiceConfig: {
-            voiceName: voice
-          }
-        }
-      }
-    };
-    if (thinking_budget) {
-      generationConfig.thinkingConfig = {
-        thinkingBudget: parseInt(thinking_budget)
-      };
-    }
-    const payload = {
-      contents: [{
-        role: "user",
-        parts: [{
-          text: prompt
-        }]
-      }],
-      generationConfig: generationConfig
-    };
-    const r = await axios.post(`${this.api_url}/${this.model_url}/${model}:generateContent`, payload, {
-      headers: this.headers
-    });
-    if (r.status !== 200) throw new Error("No result found");
-    const candidate = r.data.candidates?.[0];
-    const parts = candidate?.content?.parts;
-    let audioBase64 = null;
-    if (parts) {
-      for (const part of parts) {
-        if (part.inlineData && part.inlineData.mimeType.startsWith("audio/")) {
-          audioBase64 = part.inlineData.data;
-          break;
-        }
-      }
-    }
-    if (!audioBase64) {
-      throw new Error("No audio data found in response");
-    }
-    const pcmBuffer = Buffer.from(audioBase64, "base64");
-    const wavBuffer = convertPcmToWav(pcmBuffer);
-    const catboxUrl = await this.uploadToCatbox({
-      bytesBase64Encoded: wavBuffer.toString("base64"),
-      mimeType: "audio/wav"
-    });
-    return {
-      url: catboxUrl,
-      voice: voice,
-      prompt: prompt,
-      mime: "audio/wav"
-    };
-  }
-  async uploadToCatbox({
-    bytesBase64Encoded,
-    mimeType
+    conversation,
+    voice = "Kore",
+    model = "gemini-2.5-flash-preview-tts"
   }) {
-    if (!bytesBase64Encoded || typeof bytesBase64Encoded !== "string") {
-      throw new Error("bytesBase64Encoded is required and must be a string.");
-    }
-    if (!mimeType || typeof mimeType !== "string") {
-      throw new Error('mimeType is required and must be a string (e.g., "image/png").');
-    }
+    console.log(`[Gemini:Audio] Init - Model: ${model}, Voice: ${voice}`);
     try {
-      const buffer = Buffer.from(bytesBase64Encoded, "base64");
-      const formData = new FormData();
-      const fileExtension = mimeType.split("/")[1] || "bin";
-      formData.append("file", buffer, `file.${fileExtension}`);
-      const response = await axios.post(this.uploadUrl, formData, {
-        headers: {
-          ...formData.getHeaders()
-        }
-      });
-      if (response.status !== 200) {
-        throw new Error(`upload failed with status ${response.status}: ${response.data}`);
+      let payload = {};
+      if (conversation && Array.isArray(conversation)) {
+        console.log(`[Gemini:Audio] Processing Multi-Speaker conversation (${conversation.length} turns)`);
+        let dialogText = "TTS the following conversation:\n";
+        const speakers = new Set();
+        conversation.forEach(c => {
+          dialogText += `${c.speaker}: ${c.text}\n`;
+          speakers.add(c.speaker);
+        });
+        const speakerConfigs = [];
+        const voicesList = ["Kore", "Puck", "Fenrir", "Leda"];
+        let i = 0;
+        speakers.forEach(s => {
+          speakerConfigs.push({
+            speaker: s,
+            voiceConfig: {
+              prebuiltVoiceConfig: {
+                voiceName: voicesList[i % voicesList.length]
+              }
+            }
+          });
+          i++;
+        });
+        payload = {
+          contents: [{
+            parts: [{
+              text: dialogText
+            }]
+          }],
+          generationConfig: {
+            responseModalities: ["AUDIO"],
+            speechConfig: {
+              multiSpeakerVoiceConfig: {
+                speakerVoiceConfigs: speakerConfigs
+              }
+            }
+          }
+        };
+      } else {
+        console.log(`[Gemini:Audio] Processing Single Speaker`);
+        payload = {
+          contents: [{
+            parts: [{
+              text: prompt
+            }]
+          }],
+          generationConfig: {
+            responseModalities: ["AUDIO"],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: {
+                  voiceName: voice
+                }
+              }
+            }
+          }
+        };
       }
-      return response.data?.result;
+      const url = `${this.baseUrl}/${model}:generateContent`;
+      console.log(`[Gemini:Audio] POST to ${url}`);
+      const response = await axios.post(url, payload, {
+        headers: this.headers
+      });
+      const candidate = response.data.candidates?.[0];
+      const audioPart = candidate?.content?.parts?.find(p => p.inlineData || p.inline_data);
+      if (!audioPart) {
+        console.error("[Gemini:Audio] No audio data in response:", JSON.stringify(response.data));
+        throw new Error("API returned success but no audio data.");
+      }
+      const rawBase64 = audioPart.inlineData ? audioPart.inlineData.data : audioPart.inline_data.data;
+      console.log(`[Gemini:Audio] Converting PCM to WAV...`);
+      const pcmBuffer = Buffer.from(rawBase64, "base64");
+      const wavBuffer = convertPcmToWav(pcmBuffer);
+      const uploadedUrl = await this.uploadToServer(wavBuffer.toString("base64"), "audio/wav");
+      return {
+        url: uploadedUrl,
+        type: conversation ? "conversation" : "tts",
+        original_text: prompt || "Conversation Dialog"
+      };
     } catch (error) {
-      throw new Error(`Error uploading file: ${error.message}`);
+      console.error(`[Gemini:Audio] Error:`, error.response?.data || error.message);
+      throw new Error(error.response?.data?.error?.message || error.message);
     }
   }
 }
@@ -249,52 +315,56 @@ export default async function handler(req, res) {
   } = req.method === "GET" ? req.query : req.body;
   if (!action) {
     return res.status(400).json({
-      error: "Missing required field: action",
-      required: {
-        action: "chat | image | audio"
-      }
+      error: "Parameter 'action' wajib diisi.",
+      actions: ["chat", "image", "audio"]
     });
   }
-  const api = new VertexAI();
+  const api = new GeminiService();
   try {
-    let result;
+    console.log(`\n--- [API Request] Action: ${action} ---`);
+    let response;
     switch (action) {
       case "chat":
-        if (!params.prompt) {
+        if (!params.prompt && (!params.messages || params.messages.length === 0)) {
           return res.status(400).json({
-            error: `Missing required field: prompt (required for ${action})`
+            error: "Parameter 'prompt' atau 'messages' wajib diisi."
           });
         }
-        result = await api[action](params);
+        response = await api.chat(params);
         break;
       case "image":
         if (!params.prompt) {
           return res.status(400).json({
-            error: `Missing required field: prompt (required for ${action})`
+            error: "Parameter 'prompt' wajib diisi."
           });
         }
-        result = await api[action](params);
+        response = await api.image(params);
         break;
       case "audio":
-        if (!params.prompt) {
+        if (!params.prompt && !params.conversation) {
           return res.status(400).json({
-            error: `Missing required field: prompt (required for ${action})`
+            error: "Parameter 'prompt' atau 'conversation' wajib diisi."
           });
         }
-        result = await api[action](params);
+        response = await api.audio(params);
         break;
       default:
         return res.status(400).json({
-          error: `Invalid action: ${action}. Allowed: chat | image | audio`
+          error: `Action '${action}' tidak valid.`,
+          valid_actions: ["chat", "image", "audio"]
         });
     }
+    console.log(`[API Request] Action '${action}' completed successfully.\n`);
     return res.status(200).json({
-      success: true,
-      result: result
+      status: true,
+      result: response
     });
   } catch (error) {
+    console.error(`[FATAL ERROR] Action '${action}' failed:`, error.message);
     return res.status(500).json({
-      error: `Processing error: ${error.message}`
+      status: false,
+      error: error?.message || "Internal Server Error",
+      debug_info: error.response?.data || "No external API response data"
     });
   }
 }
