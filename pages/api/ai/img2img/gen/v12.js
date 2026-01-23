@@ -175,16 +175,17 @@ export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.imageUrl) {
     return res.status(400).json({
-      error: "imageUrl are required"
+      error: "Parameter 'imageUrl' diperlukan"
     });
   }
+  const api = new Ideogram();
   try {
-    const api = new Ideogram();
-    const response = await api.generate(params);
-    return res.status(200).json(response);
+    const data = await api.generate(params);
+    return res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({
-      error: error.message || "Internal Server Error"
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    return res.status(500).json({
+      error: errorMessage
     });
   }
 }

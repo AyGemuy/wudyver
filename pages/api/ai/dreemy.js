@@ -199,58 +199,16 @@ class DreemyAI {
           "content-type": "application/json"
         }
       });
-      const result = data?.data?.result;
-      const jobId = result?.jobId;
-      if (!jobId) {
-        console.log("[VIDEO] Video created (no polling needed)");
-        return {
-          token: t,
-          data: result
-        };
-      }
-      console.log("[VIDEO] Job created:", jobId);
-      console.log("[VIDEO] Polling for result...");
-      return await this.pollVideoStatus(jobId, t);
+      const result = data?.data;
+      console.log("[VIDEO] Video created (no polling needed)");
+      return {
+        token: t,
+        ...result
+      };
     } catch (e) {
       console.error("[ERROR] createVideo:", e?.response?.data || e?.message);
       throw e;
     }
-  }
-  async pollVideoStatus(jobId, token, scene = "2", maxAttempts = 60) {
-    const t = token || await this.ensure();
-    for (let i = 0; i < maxAttempts; i++) {
-      try {
-        console.log(`[POLL] Attempt ${i + 1}/${maxAttempts}`);
-        const {
-          data
-        } = await axios.post(`${this.base}/api/aiVideo/checkJobStatus`, {
-          scene: scene,
-          jobIds: [jobId]
-        }, {
-          headers: {
-            ...this.headers,
-            "x-auth-token": t,
-            "content-type": "application/json"
-          }
-        });
-        const status = data?.data?.[0];
-        console.log("[POLL] Status:", status?.status);
-        if (status?.status === 2) {
-          console.log("[POLL] Video completed!");
-          return {
-            token: t,
-            data: status
-          };
-        } else if (status?.status === 3) {
-          throw new Error("Video generation failed");
-        }
-        await new Promise(r => setTimeout(r, 5e3));
-      } catch (e) {
-        if (e.message === "Video generation failed") throw e;
-        console.error("[ERROR] poll iteration:", e?.message);
-      }
-    }
-    throw new Error("Timeout waiting for video generation");
   }
   async checkStatus({
     token,
@@ -271,9 +229,10 @@ class DreemyAI {
           "content-type": "application/json"
         }
       });
+      const result = data?.data;
       return {
         token: t,
-        data: data?.data
+        ...result
       };
     } catch (e) {
       console.error("[ERROR] checkStatus:", e?.response?.data || e?.message);
@@ -309,9 +268,10 @@ class DreemyAI {
           "x-auth-token": t
         }
       });
+      const result = data?.data;
       return {
         token: t,
-        data: data?.data
+        ...result
       };
     } catch (e) {
       console.error("[ERROR] searchModels:", e?.response?.data || e?.message);
@@ -340,9 +300,10 @@ class DreemyAI {
           "content-type": "application/json"
         }
       });
+      const result = data?.data;
       return {
         token: t,
-        data: data?.data
+        ...result
       };
     } catch (e) {
       console.error("[ERROR] getMyVideos:", e?.response?.data || e?.message);

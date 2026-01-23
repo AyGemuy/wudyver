@@ -1,17 +1,13 @@
-import axios from 'axios';
-import crypto from 'crypto';
-
+import axios from "axios";
+import crypto from "crypto";
 class InLoader {
   constructor() {
-    this.pkg = 'story.saver.reels.downloader';
-    this.ua = 'okhttp/4.12.0';
-    this.base = 'https://inload.app/api';
-    // Generate device id unik
-    this.devId = crypto.randomBytes(16).toString('hex');
-    this.token = '';
+    this.pkg = "story.saver.reels.downloader";
+    this.ua = "okhttp/4.12.0";
+    this.base = "https://inload.app/api";
+    this.devId = crypto.randomBytes(16).toString("hex");
+    this.token = "";
   }
-
-  // Fungsi registrasi
   async reg() {
     try {
       console.log(`[LOG] Auth Device: ${this.devId}`);
@@ -21,77 +17,76 @@ class InLoader {
         version: "18.0.0",
         device_id: this.devId
       };
-
-      const { data } = await axios.post(`${this.base}/register`, body, {
-        headers: { 'User-Agent': this.ua, 'package-name': this.pkg }
+      const {
+        data
+      } = await axios.post(`${this.base}/register`, body, {
+        headers: {
+          "User-Agent": this.ua,
+          "package-name": this.pkg
+        }
       });
-
-      this.token = data?.data?.token || '';
+      this.token = data?.data?.token || "";
       return this.token;
     } catch (e) {
       console.log(`[ERR] Reg failed: ${e.message}`);
       return null;
     }
   }
-
-  // Fungsi fetch dengan custom payload via spread
   async get(link, customPayload = {}) {
     try {
       console.log(`[LOG] Requesting API for: ${link.slice(0, 30)}...`);
-      
-      // Menggabungkan default payload dengan customPayload (...rest)
       const body = {
         device_id: this.devId,
         token: this.token,
         link: link,
         referer: "video",
         locale: "en",
-        ...customPayload // SPREAD di sini untuk custom body payload
+        ...customPayload
       };
-
-      const { data } = await axios.post(`${this.base}/app-fetch`, body, {
-        headers: { 'User-Agent': this.ua, 'package-name': this.pkg }
+      const {
+        data
+      } = await axios.post(`${this.base}/app-fetch`, body, {
+        headers: {
+          "User-Agent": this.ua,
+          "package-name": this.pkg
+        }
       });
-
       return data?.data || {};
     } catch (e) {
       console.log(`[ERR] Fetch failed: ${e.message}`);
       return {};
     }
   }
-
-  // Fungsi utama download
-  async download({ url, ...rest }) {
+  async download({
+    url,
+    ...rest
+  }) {
     try {
-      const target = url || rest?.link || '';
+      const target = url || rest?.link || "";
       if (!target) throw new Error("URL is required");
-
-      // Cek token (Logic OR & Ternary)
       this.token = this.token ? this.token : await this.reg();
-      
-      // Kirim rest ke fungsi get agar masuk ke body payload
-      const { media, ...info } = await this.get(target, rest);
-
-      // Parsing result: spread item agar data media lengkap
+      const {
+        media,
+        ...info
+      } = await this.get(target, rest);
       const result = [media].filter(Boolean).map(item => ({
-        ...item, // SPREAD item agar semua field API (url, type, thumb, dll) masuk
+        ...item,
         timestamp: Date.now()
       }));
-
       console.log(`[LOG] Process Done. Result count: ${result.length}`);
-
       return {
-        result,
-        ...info, // Metadata dari API
+        result: result,
+        ...info
       };
-
     } catch (e) {
       console.log(`[ERR] Download process error: ${e.message}`);
-      return { result: [], error: e.message };
+      return {
+        result: [],
+        error: e.message
+      };
     }
   }
 }
-
 export default async function handler(req, res) {
   const params = req.method === "GET" ? req.query : req.body;
   if (!params.url) {

@@ -81,7 +81,7 @@ export default async function handler(req, res) {
     const data = await api.run(params);
     return res.status(200).json(data);
   } catch (error) {
-    const errorMessage = error.message || "Terjadi kesalahan saat memproses URL";
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses.";
     return res.status(500).json({
       error: errorMessage
     });

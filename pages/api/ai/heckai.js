@@ -1,134 +1,222 @@
 import axios from "axios";
 class HeckAI {
   constructor() {
-    this.baseURL = "https://api.heckai.weight-wave.com/api/ha/v1";
-    this.headers = {
-      accept: "*/*",
-      "accept-language": "id-ID,id;q=0.9",
-      authorization: "",
-      "content-type": "application/json",
-      origin: "https://heck.ai",
-      referer: "https://heck.ai/",
-      "user-agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
-    };
-    this.modelList = {
-      1: "google/gemini-2.0-flash-001",
-      2: "deepseek/deepseek-r1",
-      3: "openai/gpt-4o-mini"
-    };
-  }
-  parseData(input) {
-    const get = (start, end) => {
-      const lines = input.split("\n").map(line => {
-        const content = line.slice(6);
-        return content ? content : "\n";
-      });
-      const i = lines.indexOf(start),
-        j = lines.indexOf(end);
-      return i >= 0 && j > i ? lines.slice(i + 1, j).join("") : null;
-    };
-    const answer = get("[ANSWER_START]", "[ANSWER_DONE]");
-    const related = get("[RELATE_Q_START]", "[RELATE_Q_DONE]");
-    let source = [];
-    try {
-      source = JSON.parse(get("[SOURCE_START]", "[SOURCE_DONE]") || "[]");
-    } catch {}
-    return {
-      answer: answer,
-      related: related,
-      source: source
+    this.base = "https://api.heckai.weight-wave.com";
+    this.sid = null;
+    this.ax = axios.create({
+      baseURL: this.base,
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+      },
+      timeout: 6e4
+    });
+    this.state = {
+      res: {
+        answer: "",
+        thinking: "",
+        sources: [],
+        related: []
+      },
+      ptr: "answer"
     };
   }
-  async create(question) {
+  async sess() {
+    console.log("🔄 Init Session...");
     try {
-      const slugTitle = `${question?.split(/\s+/)[0].toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`;
-      const {
-        data
-      } = await axios.post(`${this.baseURL}/session/create`, {
-        title: slugTitle
-      }, {
-        headers: this.headers
+      const r = await this.ax.post("/api/ha/v1/session/create", {
+        token: ""
       });
-      return data?.id || data?.sessionId;
-    } catch (err) {
-      console.error(`Error creating session: ${err.message}`);
-      throw new Error(`Failed to create session: ${err.message}`);
+      const newSid = r?.data?.id || r?.data?.token || null;
+      if (!newSid) throw new Error("No ID received");
+      this.sid = newSid;
+      console.log(`✅ SID: ${this.sid}`);
+      return this.sid;
+    } catch (e) {
+      console.error("❌ Sess:", e?.message);
+      return null;
+    }
+  }
+  async models({
+    ...rest
+  } = {}) {
+    console.log("📡 Fetch Models...");
+    try {
+      const r = await this.ax.get("/api/ha/v1/app/config", {
+        ...rest
+      });
+      return r?.data?.models ?? [];
+    } catch (e) {
+      console.error("❌ Models:", e?.message);
+      return [];
     }
   }
   async chat({
-    model = 1,
-    lang = "English",
-    prev_answer = null,
-    prev_question = null,
-    prompt: question,
-    sessionId = null,
-    search = false
+    prompt,
+    sid,
+    mode = "chat",
+    ...rest
   }) {
+    this.sid = sid || this.sid || await this.sess();
+    if (!this.sid) return console.error("❌ Abort: No Session ID");
+    this.state.res = {
+      answer: "",
+      thinking: "",
+      sources: [],
+      related: []
+    };
+    this.state.ptr = "answer";
+    const ep = mode === "search" ? "/api/ha/v1/search" : "/api/ha/v1/chat";
+    const body = {
+      model: "openai/gpt-4o-mini",
+      sessionId: this.sid,
+      stream: true,
+      question: prompt,
+      query: prompt,
+      ...mode === "search" ? {
+        api_key: "basic",
+        search_depth: "basic",
+        include_answer: true,
+        include_raw_content: true,
+        include_images: false
+      } : {},
+      ...rest
+    };
+    console.log(`🚀 [${mode.toUpperCase()}] ${body.model} > "${prompt.slice(0, 30)}..."`);
     try {
-      const modelName = this.modelList[model];
-      if (!modelName) {
-        throw new Error(`Model not found. Available models: ${Object.entries(this.modelList).map(([ i, name ]) => `${i}. ${name}`).join("\n")}`);
-      }
-      const endpoint = search ? "search" : "chat";
-      const finalSessionId = sessionId || await this.create(question);
-      const requestData = {
-        model: modelName,
-        question: question,
-        language: lang,
-        sessionId: finalSessionId,
-        ...prev_question && {
-          previousQuestion: prev_question
-        },
-        ...prev_answer && {
-          previousAnswer: prev_answer
-        }
-      };
-      Object.keys(requestData).forEach(key => {
-        if (requestData[key] === null || requestData[key] === undefined) {
-          delete requestData[key];
+      const r = await this.ax.post(ep, body, {
+        responseType: "stream",
+        headers: {
+          Accept: "text/event-stream"
         }
       });
-      const response = await axios.post(`${this.baseURL}/${endpoint}`, requestData, {
-        headers: this.headers
+      const stream = r.data;
+      let buf = "";
+      stream.on("data", c => {
+        buf += c.toString();
+        let parts = buf.split("\n");
+        buf = parts.pop() ?? "";
+        parts.forEach(line => this.proc(line));
       });
-      console.log(`Processed ${endpoint} successfully!`);
-      return {
-        ...this.parseData(response.data),
-        sessionId: finalSessionId
-      };
-    } catch (err) {
-      console.error(`Error in chat: ${err.message}`);
-      if (err.response) {
-        console.error(`Server error: ${err.response.status} - ${err.response.data}`);
-      }
-      throw new Error(`Failed to execute chat: ${err.message}`);
+      return new Promise((resolve, reject) => {
+        stream.on("end", () => {
+          if (buf.trim()) this.proc(buf);
+          console.log("\n🏁 Done.");
+          resolve({
+            ...this.state.res
+          });
+        });
+        stream.on("error", e => reject(e));
+      });
+    } catch (e) {
+      console.error("❌ Chat Err:", e?.response?.status || e?.message);
+      return null;
     }
   }
-  setAuthorization(token) {
-    this.headers.authorization = token;
-    return this;
+  proc(line) {
+    if (!line || line.length === 0) return;
+    const str = line.trim();
+    if (this.setMode(str)) return;
+    if (line.length >= 5 && line.slice(0, 5) === "data:") {
+      let raw = line.slice(5);
+      if (raw.length > 0 && raw[0] === " ") raw = raw.slice(1);
+      if (raw.trim() === "[DONE]") return;
+      try {
+        const data = JSON.parse(raw);
+        this.push(data);
+      } catch {
+        this.push(raw);
+      }
+    } else if (str.startsWith("{") || str.startsWith("[")) {
+      try {
+        this.push(JSON.parse(str));
+      } catch {}
+    }
   }
-  getModels() {
-    return Object.entries(this.modelList).map(([id, name]) => ({
-      id: parseInt(id),
-      name: name
-    }));
+  setMode(str) {
+    const flags = {
+      "[ANSWER_START]": ["answer", "\n💡 ANSWER:\n"],
+      "[REASON_START]": ["thinking", "\n🤔 THINKING:\n"],
+      "[SOURCE_START]": ["sources", "\n📚 SOURCES:\n"],
+      "[RELATE_Q_START]": ["related", "\n🔗 RELATED:\n"]
+    };
+    for (const k in flags) {
+      if (str.indexOf(k) !== -1) {
+        this.state.ptr = flags[k][0];
+        process.stdout.write(flags[k][1]);
+        return true;
+      }
+    }
+    if (str.indexOf("_DONE]") !== -1) return true;
+    return false;
+  }
+  push(d) {
+    if (Array.isArray(d)) {
+      this.state.res.sources = [...this.state.res.sources, ...d];
+      d.forEach((x, i) => {
+        if (x?.title) console.log(`  - ${x.title.slice(0, 50)}...`);
+      });
+      return;
+    }
+    const txt = d?.choices?.[0]?.delta?.content || d?.result || d?.content || (typeof d === "string" ? d : "");
+    if (txt) {
+      const p = this.state.ptr;
+      if (p === "related") {
+        const clean = txt.trim();
+        if (clean && clean !== "✩") {
+          this.state.res.related.push(clean);
+          process.stdout.write(txt);
+        }
+      } else if (p !== "sources") {
+        this.state.res[p] += txt;
+        process.stdout.write(txt);
+      }
+    }
   }
 }
 export default async function handler(req, res) {
-  const params = req.method === "GET" ? req.query : req.body;
-  if (!params.prompt) {
+  const {
+    action,
+    ...params
+  } = req.method === "GET" ? req.query : req.body;
+  if (!action) {
     return res.status(400).json({
-      error: "Prompt are required"
+      error: "Parameter 'action' wajib diisi",
+      actions: ["models", "chat"]
     });
   }
+  const api = new HeckAI();
   try {
-    const api = new HeckAI();
-    const response = await api.chat(params);
-    return res.status(200).json(response);
-  } catch (error) {
-    res.status(500).json({
-      error: error.message || "Internal Server Error"
+    let result;
+    switch (action) {
+      case "models":
+        result = await api.models(params);
+        break;
+      case "chat":
+        if (!params.prompt) {
+          return res.status(400).json({
+            error: "Parameter 'prompt' wajib diisi untuk action 'chat'",
+            example: {
+              action: "chat",
+              prompt: "Hello!"
+            }
+          });
+        }
+        result = await api.chat(params);
+        break;
+      default:
+        return res.status(400).json({
+          error: `Action tidak valid: ${action}`,
+          valid_actions: ["models", "chat"]
+        });
+    }
+    return res.status(200).json(result);
+  } catch (e) {
+    console.error(`[API ERROR] Action '${action}':`, e?.message);
+    return res.status(500).json({
+      status: false,
+      error: e?.message || "Terjadi kesalahan internal pada server",
+      action: action
     });
   }
 }

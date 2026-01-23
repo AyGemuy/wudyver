@@ -70,10 +70,12 @@ class DaohangGen {
     try {
       const finalPrompt = prompt || "Cyberpunk masterpiece";
       const inputImage = imageUrl ? await this.img(imageUrl) : null;
-      if (!inputImage) console.log('ℹ️ No image provided/detected, running Text-to-Image mode.');
+      if (!inputImage) console.log("ℹ️ No image provided/detected, running Text-to-Image mode.");
       const payload = {
         prompt: finalPrompt,
-        ...(inputImage && { image: inputImage }),
+        ...inputImage && {
+          image: inputImage
+        },
         ...rest
       };
       const {

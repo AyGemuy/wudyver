@@ -54,7 +54,7 @@ class Term {
     if (low === "php") return `${bin} -r "${safe}"`;
     return `${bin} ${c}`;
   }
-  safeRun({
+  run({
     code,
     lang,
     file,
@@ -109,21 +109,20 @@ class Term {
   }
 }
 export default async function handler(req, res) {
-  const p = req.method === "GET" ? req.query : req.body;
-  if (!p.code) {
+  const params = req.method === "GET" ? req.query : req.body;
+  if (!params.code) {
     return res.status(400).json({
-      ok: false,
-      err: "Parameter 'code' wajib"
+      error: "Parameter 'code' diperlukan"
     });
   }
   const api = new Term();
   try {
-    const result = await api.safeRun(p);
-    return res.status(200).json(result);
+    const data = await api.run(params);
+    return res.status(200).json(data);
   } catch (error) {
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses.";
     return res.status(500).json({
-      ok: false,
-      err: error.message
+      error: errorMessage
     });
   }
 }

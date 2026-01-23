@@ -47,14 +47,12 @@ export default async function handler(req, res) {
   }
   const api = new IntellipaatClient();
   try {
-    const result = await api.run({
-      code: params.code,
-      lang: params.lang || "node"
-    });
-    return res.status(200).json(result);
+    const data = await api.run(params);
+    return res.status(200).json(data);
   } catch (error) {
+    const errorMessage = error.message || "Terjadi kesalahan saat memproses.";
     return res.status(500).json({
-      error: error.message || "Internal Server Error"
+      error: errorMessage
     });
   }
 }

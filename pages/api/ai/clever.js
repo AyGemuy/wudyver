@@ -1,7 +1,7 @@
 import axios from "axios";
 import crypto from "crypto";
 import FormData from "form-data";
-class GeniusAI {
+class CleverAI {
   constructor() {
     this.baseUrl = "https://public.trafficmanager.net/appserver/api/v1";
     this.token = null;
@@ -29,42 +29,64 @@ class GeniusAI {
   genHead() {
     const ri = (a, b) => crypto.randomInt(a, b + 1);
     const rb = n => crypto.randomBytes(n).toString("hex").toUpperCase();
+    const brands = ["realme", "Xiaomi", "Samsung", "Oppo", "vivo"];
+    const models = {
+      realme: ["RMX3890", "RMX3710", "RMX3511"],
+      Xiaomi: ["2201116SG", "2201117TG", "M2101K6G"],
+      Samsung: ["SM-G991B", "SM-A525F", "SM-S908B"],
+      Oppo: ["CPH2211", "CPH2359"],
+      vivo: ["V2105", "V2111"]
+    };
+    const timezones = ["Asia/Jakarta", "Asia/Makassar", "Asia/Jayapura"];
+    const languages = [{
+      code: "id",
+      tag: "id-ID",
+      region: "ID"
+    }, {
+      code: "en",
+      tag: "en-US",
+      region: "US"
+    }];
+    const selectedBrand = brands[ri(0, brands.length - 1)];
+    const selectedModel = models[selectedBrand][ri(0, models[selectedBrand].length - 1)];
+    const selectedLang = languages[ri(0, languages.length - 1)];
+    const buildId = rb(4) + "." + ri(24e4, 25e4) + ".002";
     const xDev = {
-      brand: "realme",
-      designName: "RE5C91L1",
-      deviceName: "Malik.Js",
+      brand: selectedBrand,
+      designName: rb(4),
+      deviceName: `Device-${rb(2)}`,
       deviceType: 1,
-      deviceYearClass: 2024,
-      deviceManufacturer: "realme",
+      deviceYearClass: ri(2020, 2024),
+      deviceManufacturer: selectedBrand,
       modelId: null,
-      modelName: "RMX3890",
+      modelName: selectedModel,
       osName: "Android",
-      osVersion: "15",
-      platformApiLevel: 35,
-      osBuildFingerprint: "realme/RMX3890INT/RE5C91L1:15/AQ3A.240812.002/user/release-keys",
-      osInternalBuildId: "AQ3A.240812.002",
+      osVersion: `${ri(11, 15)}`,
+      platformApiLevel: ri(30, 35),
+      osBuildFingerprint: `${selectedBrand}/${selectedModel}/${rb(4)}:${ri(11, 15)}/${buildId}/user/release-keys`,
+      osInternalBuildId: buildId,
       isRootOrJailBroken: "no",
-      uptime: `${ri(1e8, 999999999)}`,
-      ip: "0.0.0.0",
-      timeZone: "Asia/Makassar",
+      uptime: `${ri(1e6, 999999999)}`,
+      ip: `${ri(1, 255)}.${ri(0, 255)}.${ri(0, 255)}.${ri(1, 255)}`,
+      timeZone: timezones[ri(0, timezones.length - 1)],
       deviceCurrencyCode: "IDR",
       deviceCurrencySymbol: "Rp",
-      deviceLanguageCode: "id",
-      deviceLanguageTag: "id-ID",
-      deviceRegionCode: "ID",
+      deviceLanguageCode: selectedLang.code,
+      deviceLanguageTag: selectedLang.tag,
+      deviceRegionCode: selectedLang.region,
       deviceTextDirection: "ltr"
     };
     return {
-      "User-Agent": "okhttp/4.12.0",
+      "User-Agent": `okhttp/${ri(3, 4)}.${ri(10, 12)}.${ri(0, 5)}`,
       Accept: "application/json, text/plain, */*",
       "Accept-Encoding": "gzip",
-      "accept-language": "en",
-      version: "9.22.14",
-      "x-version": "9.22.14",
-      "x-build-number": "3076",
-      "x-app-id": rb(16),
-      "x-experience-type": "COIN_B",
-      "x-functions-key": this.funcKey,
+      "accept-language": selectedLang.code,
+      version: `9.${ri(20, 25)}.${ri(1, 20)}`,
+      "x-version": `9.${ri(20, 25)}.${ri(1, 20)}`,
+      "x-build-number": `${ri(3e3, 4e3)}`,
+      "x-app-id": rb(16).toLowerCase(),
+      "x-experience-type": ri(0, 1) === 1 ? "COIN_B" : "COIN_A",
+      "x-functions-key": this.funcKey || rb(10),
       "x-platform": "android",
       "x-device": JSON.stringify(xDev)
     };
@@ -94,7 +116,7 @@ class GeniusAI {
         platform: "android",
         isAnonymousUser: true
       }));
-      await axios.post(`${this.baseUrl}/users`, regForm, {
+      const res = await axios.post(`${this.baseUrl}/users`, regForm, {
         headers: {
           ...this.headers,
           ...regForm.getHeaders(),
@@ -103,6 +125,7 @@ class GeniusAI {
         }
       });
       this.log("User berhasil didaftarkan di backend.", "SUCCESS");
+      console.log(res.data);
     } catch (e) {
       this.log(`Gagal Init: ${e.message}`, "ERROR");
       throw e;
@@ -140,6 +163,7 @@ class GeniusAI {
         }
       });
       this.log(`Upload berhasil: ${res.data.url}`, "SUCCESS");
+      console.log(res.data);
       return res.data.url;
     } catch (e) {
       this.log(`Upload gagal: ${e.message}`, "ERROR");
@@ -165,6 +189,7 @@ class GeniusAI {
         } : {}
       });
       this.log(`Ditemukan ${type === "bots" ? res.data.bots?.length : res.data.length} item.`, "SUCCESS");
+      console.log(res.data);
       return res.data;
     } catch (e) {
       this.log(`Search error: ${e.message}`, "ERROR");
@@ -184,6 +209,7 @@ class GeniusAI {
           }
         });
         const item = res.data.results?.[0];
+        console.log(res.data);
         if (item) {
           if (item.status === "COMPLETED") {
             this.log(`Polling selesai. URL: ${item.url}`, "SUCCESS");
@@ -202,14 +228,13 @@ class GeniusAI {
   async generate({
     prompt,
     image,
-    mode = "chat",
     engine,
     module
   }) {
     await this.init();
-    let selectedEngine = engine || this.engines[mode] || this.engines.chat;
+    let selectedEngine = engine || this.engines.chat;
     let moduleType = module || "CHAT";
-    this.log(`Mode: ${mode} | Engine: ${selectedEngine}`, "INFO");
+    this.log(`Mode: ${moduleType} | Engine: ${selectedEngine}`, "INFO");
     const contentArr = [];
     contentArr.push({
       type: "text",
@@ -273,6 +298,7 @@ class GeniusAI {
           if (trimmed.startsWith("data:")) {
             try {
               const jsonStr = trimmed.slice(5).trim();
+              console.log(jsonStr);
               if (jsonStr === "[DONE]") return;
               const data = JSON.parse(jsonStr);
               if (data.delta) {
@@ -342,7 +368,7 @@ export default async function handler(req, res) {
       actions: ["generate", "search"]
     });
   }
-  const api = new GeniusAI();
+  const api = new CleverAI();
   try {
     let result;
     switch (action) {
