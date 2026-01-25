@@ -17,6 +17,7 @@ class PolliNations {
       "Content-Type": "application/json",
       Accept: "*/*"
     };
+    this.skey = "sk_HKIJFyshGDbq5jrUVUVRRtSqnEg6zeDx";
     this.clients = {
       text: axios.create({
         baseURL: "https://text.pollinations.ai",
@@ -102,7 +103,7 @@ class PolliNations {
         }
       };
       console.log("[Chat] Sending payload to OpenAI endpoint...");
-      const response = await this.clients.text.post("/openai", payload);
+      const response = await this.clients.text.post(`/openai?key=${this.skey}`, payload);
       console.log("[Chat] Success.");
       return response.data;
     } catch (error) {
@@ -129,7 +130,8 @@ class PolliNations {
         nologo: nologo,
         enhance: enhance,
         safe: safe,
-        seed: seed || Math.floor(Math.random() * 1e9)
+        seed: seed || Math.floor(Math.random() * 1e9),
+        key: this.skey
       };
       const queryString = qs.stringify(params);
       const url = `/prompt/${encodeURIComponent(prompt)}?${queryString}`;
@@ -157,7 +159,8 @@ class PolliNations {
       if (!prompt) throw new Error("Prompt/Text is required for audio generation.");
       const params = {
         model: model,
-        voice: voice
+        voice: voice,
+        key: this.skey
       };
       const queryString = qs.stringify(params);
       const url = `/text/${encodeURIComponent(prompt)}?${queryString}`;
