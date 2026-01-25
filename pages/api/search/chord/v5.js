@@ -1,5 +1,4 @@
 import axios from "axios";
-import * as cheerio from "cheerio";
 class UChord {
   constructor() {
     this.base = "https://uchord-api.idayrus.com";
@@ -31,23 +30,6 @@ class UChord {
       throw err;
     }
   }
-  parse_chord(html) {
-    try {
-      const $ = cheerio.load(html);
-      let result = "";
-      $("pre").contents().each((i, el) => {
-        if (el.type === "text") {
-          result += el.data;
-        } else if (el.name === "span" && $(el).hasClass("u-chord")) {
-          result += `[${$(el).text()}]`;
-        }
-      });
-      return result.trim() || html;
-    } catch (err) {
-      console.error("[PARSE ERR]:", err?.message || err);
-      return html;
-    }
-  }
   async home() {
     const res = await this.req("/chord/recommendation/");
     return res;
@@ -61,15 +43,9 @@ class UChord {
     return res;
   }
   async detail({
-    chord_id
+    id
   }) {
-    const res = await this.req(`/chord/detail/${chord_id}/`);
-    if (res?.payload?.content) {
-      const parsed = this.parse_chord(res.payload.content);
-      res.payload.chord_parsed = parsed;
-      res.payload.chord_original = res.payload.content;
-      delete res.payload.content;
-    }
+    const res = await this.req(`/chord/detail/${id}/`);
     return res;
   }
 }
@@ -100,9 +76,9 @@ export default async function handler(req, res) {
         response = await api.search(params);
         break;
       case "detail":
-        if (!params.chord_id) {
+        if (!params.id) {
           return res.status(400).json({
-            error: "Parameter 'chord_id' wajib diisi untuk action 'detail'. Contoh: 6041a6cfaa7864374dd2d6a3"
+            error: "Parameter 'id' wajib diisi untuk action 'detail'. Contoh: 6041a6cfaa7864374dd2d6a3"
           });
         }
         response = await api.detail(params);

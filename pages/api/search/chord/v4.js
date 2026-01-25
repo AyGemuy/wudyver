@@ -89,14 +89,14 @@ class ChordMax {
     return await this.req("/artist/popular");
   }
   async by_singer({
-    singer_id
+    id
   }) {
-    return await this.req(`/chord/by_singer/${singer_id}`);
+    return await this.req(`/chord/by_singer/${id}`);
   }
   async detail({
-    chord_id
+    id
   }) {
-    const res = await this.req(`/chord/${chord_id}`);
+    const res = await this.req(`/chord/${id}`);
     if (res?.data?.chord) {
       const dec = this.decrypt(res.data.chord, this.masterKey);
       res.data.chord = dec || res.data.chord;
@@ -147,17 +147,17 @@ export default async function handler(req, res) {
         response = await api.artist_popular();
         break;
       case "by_singer":
-        if (!params.singer_id) {
+        if (!params.id) {
           return res.status(400).json({
-            error: "Parameter 'singer_id' wajib diisi untuk action 'by_singer'."
+            error: "Parameter 'id' wajib diisi untuk action 'by_singer'."
           });
         }
         response = await api.by_singer(params);
         break;
       case "detail":
-        if (!params.chord_id) {
+        if (!params.id) {
           return res.status(400).json({
-            error: "Parameter 'chord_id' wajib diisi untuk action 'detail'. Contoh: 66c952a2bb1b3dd52114512c"
+            error: "Parameter 'id' wajib diisi untuk action 'detail'. Contoh: 66c952a2bb1b3dd52114512c"
           });
         }
         response = await api.detail(params);

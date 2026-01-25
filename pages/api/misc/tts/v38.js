@@ -1,158 +1,132 @@
 import axios from "axios";
 import crypto from "crypto";
-class GetVoices {
+class XenVoice {
   constructor() {
-    const devId = crypto.randomBytes(8).toString("hex");
-    this.cfg = {
-      baseUrl: "https://api2.getvoices.ai/api/v1",
-      authUrl: "https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=AIzaSyBLUOuCL4MSweSny6qraVd-JLWXlK6qy4w",
-      headers: {
-        "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 15; RMX3890 Build/AQ3A.240812.002)",
-        Connection: "Keep-Alive",
-        "Accept-Encoding": "gzip",
-        "Content-Type": "application/json",
-        "Accept-Language": "id-ID,id;q=0.5"
-      },
-      common: {
-        appVersion: "1.14.27",
-        platform: "android",
-        groupId: 200,
-        deviceId: devId,
-        lang: "id",
-        uuid: `android_${devId}`
+    this.base = "https://voicechanger.xen-studios.com";
+    this.ua = "ktor-client";
+    this.token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZXhwIjoxNzU5ODEzOTc5fQ.X3F9omxra7cvMAhYu3qIuF6vDB7-KV2qJOfu1-3eb9Q";
+    this.cfg = [];
+    this.init();
+  }
+  init() {
+    const langs = [{
+      code: "de",
+      name: "German"
+    }, {
+      code: "en",
+      name: "English"
+    }, {
+      code: "es",
+      name: "Spanish"
+    }, {
+      code: "fr",
+      name: "French"
+    }, {
+      code: "hi",
+      name: "Hindi"
+    }, {
+      code: "it",
+      name: "Italian"
+    }, {
+      code: "ja",
+      name: "Japanese"
+    }, {
+      code: "ko",
+      name: "Korean"
+    }, {
+      code: "pl",
+      name: "Polish"
+    }, {
+      code: "pt",
+      name: "Portuguese"
+    }, {
+      code: "ru",
+      name: "Russian"
+    }, {
+      code: "tr",
+      name: "Turkish"
+    }, {
+      code: "zh",
+      name: "Chinese"
+    }];
+    let idCount = 0;
+    for (const lang of langs) {
+      for (let i = 0; i < 10; i++) {
+        this.cfg.push({
+          id: idCount++,
+          code: `${lang.code}_speaker_${i}`,
+          name: `${lang.name} Speaker ${i + 1}`,
+          lang: lang.code,
+          prompt: `v2/${lang.code}_speaker_${i}`
+        });
       }
+    }
+  }
+  log(msg) {
+    console.log(`[XenVoice] ${new Date().toLocaleTimeString()} -> ${msg}`);
+  }
+  rndName() {
+    return `req_${crypto.randomBytes(8).readBigUInt64BE().toString()}`;
+  }
+  find(query) {
+    return this.cfg.find(s => s.id === query || s.code === query);
+  }
+  voice_list() {
+    this.log(`Fetching voice list. Total available: ${this.cfg.length}`);
+    return {
+      status: true,
+      total: this.cfg.length,
+      voices: this.cfg
     };
-    this.token = null;
-    this.uid = null;
-    this.userInfo = null;
-    this.initialized = false;
-  }
-  log(msg, level = "INFO") {
-    const time = new Date().toISOString().split("T")[1].split(".")[0];
-    console.log(`[${time}] [${level}] ${msg}`);
-  }
-  async init() {
-    if (this.initialized) return;
-    this.initialized = true;
-    try {
-      this.log("Starting Auto-Initialization...", "INIT");
-      await this.login();
-      const resUser = await this.user();
-      this.userInfo = resUser?.user || resUser;
-      this.log(`User ID: ${this.uid?.substring(0, 6)}... | Credits: ${this.userInfo?.credits}`, "INFO");
-      const canClaim = this.userInfo?.canCollectDailyReward || this.userInfo?.dailyRewardData?.isReadyToCollect;
-      if (canClaim) {
-        await this.claim();
-      } else {
-        this.log("Daily reward not ready yet.", "SKIP");
-      }
-      this.log("System Ready.", "INIT");
-    } catch (e) {
-      this.initialized = false;
-      this.log(`Init Failed: ${e.message}`, "ERROR");
-      throw e;
-    }
-  }
-  async login() {
-    if (this.token) return;
-    try {
-      const authHeaders = {
-        ...this.cfg.headers,
-        "X-Android-Package": "com.leonfiedler.voiceai",
-        "X-Firebase-Client": "H4sIAAAAAAAA_6tWykhNLCpJSk0sKVayio7VUSpLLSrOzM9TslIyUqoFAFyivEQfAAAA"
-      };
-      const {
-        data
-      } = await axios.post(this.cfg.authUrl, {
-        clientType: "CLIENT_TYPE_ANDROID"
-      }, {
-        headers: authHeaders
-      });
-      this.token = data?.idToken;
-      this.uid = data?.localId;
-    } catch (e) {
-      throw new Error(`Login failed: ${e.message}`);
-    }
-  }
-  async request(path, payload = {}) {
-    const isSetupPath = path === "/user" || path.includes("/reward/claim");
-    if (!this.initialized && !isSetupPath && !this.token) {
-      await this.init();
-    } else if (!this.token) {
-      await this.login();
-    }
-    try {
-      const endpoint = `${this.cfg.baseUrl}${path}`;
-      const {
-        token: _,
-        ...cleanPayload
-      } = payload;
-      const body = {
-        ...this.cfg.common,
-        ...cleanPayload,
-        uid: cleanPayload.uid || this.uid
-      };
-      const {
-        data
-      } = await axios.post(endpoint, body, {
-        headers: {
-          ...this.cfg.headers,
-          Authorization: this.token,
-          "x-request-id": crypto.randomUUID()
-        }
-      });
-      return data;
-    } catch (e) {
-      const msg = e.response?.data?.error?.message || e.message;
-      this.log(`Error ${path}: ${msg}`, "ERROR");
-      return {
-        status: "error",
-        message: msg
-      };
-    }
-  }
-  async user(payload = {}) {
-    return await this.request("/user", payload);
-  }
-  async claim(payload = {}) {
-    this.log("Claiming daily reward...", "CLAIM");
-    const res = await this.request("/user/reward/claim", payload);
-    const newCredits = res?.credits ?? res?.user?.credits;
-    if (newCredits !== undefined) {
-      this.log(`Claimed! New Balance: ${newCredits}`, "CLAIM");
-      if (this.userInfo) this.userInfo.credits = newCredits;
-    }
-    return res;
   }
   async generate({
     text,
-    voice,
+    speaker,
     ...rest
-  } = {}) {
-    const payload = {
-      text: text || "Halo",
-      voice: voice || "joe_biden",
-      subscribed: false,
-      startTime: Date.now(),
-      translate: "id",
-      stream: false,
-      ...rest
-    };
-    return await this.request("/tts/create", payload);
-  }
-  async lyrics({
-    prompt,
-    ...rest
-  } = {}) {
-    this.log(`Generating lyrics for: ${prompt}`, "LYRICS");
-    return await this.request("/music/lyrics/create", {
-      lyrics: prompt || "Song lyrics",
-      ...rest
-    });
-  }
-  async voice_list(payload = {}) {
-    this.log("Fetching trending content...", "TREND");
-    return await this.request("/music/trending", payload);
+  }) {
+    try {
+      this.log(`Generating audio for speaker: ${speaker}`);
+      if (!text) throw new Error("Validation Error: 'text' is required.");
+      const spkData = this.find(speaker);
+      if (!spkData) {
+        const hint = this.cfg[10]?.code || "en_speaker_0";
+        throw new Error(`Speaker Error: '${speaker}' unavailable. Try ID (e.g., 10) or Code (e.g., '${hint}').`);
+      }
+      const payload = {
+        text: text,
+        history_prompt: spkData.prompt,
+        speaker_id: spkData.id,
+        fileName: rest.fileName ? rest.fileName : this.rndName(),
+        text_temp: rest.text_temp || .6,
+        waveform_temp: rest.waveform_temp || .6
+      };
+      this.log(`Payload: ${payload.fileName} | ID: ${spkData.id} (${spkData.name})`);
+      const response = await axios.post(`${this.base}/text_to_audio`, payload, {
+        headers: {
+          "User-Agent": this.ua,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          authorization: `Bearer ${this.token}`,
+          "accept-charset": "UTF-8"
+        }
+      });
+      const relativePath = response?.data?.audio_output;
+      if (!relativePath) throw new Error("Empty audio_output from server.");
+      const fullUrl = relativePath.includes("http") ? relativePath : `${this.base}/${relativePath.replace(/^\.\//, "")}`;
+      this.log("Success.");
+      return {
+        status: true,
+        result: fullUrl,
+        translation: response?.data?.translation?.translated_text || text
+      };
+    } catch (err) {
+      const errMsg = err?.response?.data?.detail || err?.message || "Unknown error";
+      this.log(`Failed: ${errMsg}`);
+      return {
+        status: false,
+        error: errMsg
+      };
+    }
   }
 }
 export default async function handler(req, res) {
@@ -163,10 +137,10 @@ export default async function handler(req, res) {
   if (!action) {
     return res.status(400).json({
       error: "Parameter 'action' wajib diisi",
-      actions: ["generate", "lyrics", "voice_list"]
+      actions: ["generate", "voice_list"]
     });
   }
-  const api = new GetVoices();
+  const api = new XenVoice();
   try {
     let result;
     switch (action) {
@@ -178,21 +152,13 @@ export default async function handler(req, res) {
         }
         result = await api.generate(params);
         break;
-      case "lyrics":
-        if (!params.prompt) {
-          return res.status(400).json({
-            error: "Parameter 'prompt' wajib diisi untuk action 'lyrics'"
-          });
-        }
-        result = await api.lyrics(params);
-        break;
       case "voice_list":
-        result = await api.voice_list(params);
+        result = api.voice_list();
         break;
       default:
         return res.status(400).json({
           error: `Action tidak valid: ${action}`,
-          valid_actions: ["generate", "lyrics", "voice_list"]
+          valid_actions: ["generate", "voice_list"]
         });
     }
     return res.status(200).json(result);

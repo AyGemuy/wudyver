@@ -2,18 +2,16 @@ import axios from "axios";
 import crypto from "crypto";
 import * as cheerio from "cheerio";
 import FormData from "form-data";
-import {
-  CookieJar
-} from "tough-cookie";
-import {
-  wrapper
-} from "axios-cookiejar-support";
+import https from "https";
 class AIPhotoTrend {
   constructor() {
     this.base = "https://aiphototrend.yurtybs.com";
-    this.jar = new CookieJar();
-    this.client = wrapper(axios.create({
-      jar: this.jar,
+    this.cookies = {};
+    this.client = axios.create({
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false,
+        keepAlive: true
+      }),
       headers: {
         "User-Agent": "Mozilla/5.0 (Linux; Android 15; RMX3890) AppleWebKit/537.36",
         "Accept-Encoding": "gzip, deflate, br, zstd",
@@ -23,7 +21,27 @@ class AIPhotoTrend {
         "x-requested-with": "com.aiphototrend",
         "accept-language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7"
       }
-    }));
+    });
+    this.client.interceptors.response.use(response => {
+      const setCookie = response.headers["set-cookie"];
+      if (setCookie) {
+        setCookie.forEach(cookie => {
+          const [nameValue] = cookie.split(";");
+          const [name, value] = nameValue.split("=");
+          if (name && value) {
+            this.cookies[name.trim()] = value.trim();
+          }
+        });
+      }
+      return response;
+    }, error => Promise.reject(error));
+    this.client.interceptors.request.use(config => {
+      const cookieString = Object.entries(this.cookies).map(([name, value]) => `${name}=${value}`).join("; ");
+      if (cookieString) {
+        config.headers.Cookie = cookieString;
+      }
+      return config;
+    }, error => Promise.reject(error));
   }
   getMimeFromBuffer(buffer) {
     const arr = new Uint8Array(buffer).subarray(0, 4);
@@ -69,8 +87,7 @@ class AIPhotoTrend {
     try {
       if (state) {
         try {
-          const cookies = JSON.parse(Buffer.from(state, "base64").toString());
-          await this.jar.setCookie(cookies, this.base);
+          this.cookies = JSON.parse(Buffer.from(state, "base64").toString());
           console.log("✓ Auth restored");
           return;
         } catch (e) {
@@ -101,8 +118,7 @@ class AIPhotoTrend {
   }
   async getState() {
     try {
-      const cookies = await this.jar.getCookies(this.base);
-      return Buffer.from(JSON.stringify(cookies[0]?.toString() || "")).toString("base64");
+      return Buffer.from(JSON.stringify(this.cookies)).toString("base64");
     } catch (error) {
       console.error("✗ getState error:", error.message);
       return null;
@@ -449,16 +465,16 @@ export default async function handler(req, res) {
     let result;
     switch (action) {
       case "themes":
-        result = api.themes(params);
+        result = await api.themes(params);
         break;
       case "profile":
-        result = api.profile(params);
+        result = await api.profile(params);
         break;
       case "gallery":
-        result = api.gallery(params);
+        result = await api.gallery(params);
         break;
       case "generate":
-        if (!paramsimage) {
+        if (!params.image) {
           return res.status(400).json({
             error: "Parameter 'image' wajib diisi untuk action 'generate'",
             example: {
